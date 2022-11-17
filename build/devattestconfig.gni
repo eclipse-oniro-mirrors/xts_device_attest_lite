@@ -1,0 +1,55 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+devattest_path = "//test/xts/device_attest_lite"
+
+# 支持构建种类
+declare_args() {
+  attest_release = "attest_release"
+  attest_debug = "attest_debug"
+}
+
+# 配置构建参数
+declare_args() {
+  # 构建版本
+  attest_build_target = attest_release
+  
+  # 模拟网络认证数据开关。true:模拟网络数据; false:访问真实网络数据。
+  enable_attest_mock_network = false
+  
+  # 模拟设备数据开关。true:模拟设备数据; false:访问真实设备数据。
+  enable_attest_mock_device = false
+  
+  # 记录内存使用情况的开关，用来检查内存是否存在泄漏。
+  enable_attest_debug_memory_leak = false
+
+  # 控制测试demo开关
+  enable_attest_sample = false
+
+  # 控制DFX开关。 true:开启dfx
+  enable_attest_debug_dfx = false
+}
+
+# 声明通用全局宏
+declare_args() {
+  # 调试debug开关
+  enable_attest_log_debug = false
+  
+  # 调试网络HOST debug开关
+  enable_attest_network_host_debug = false
+}
+
+# 设置通用全局宏
+if (attest_build_target == attest_debug) {
+  enable_attest_log_debug = true
+}
