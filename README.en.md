@@ -1,7 +1,7 @@
-# xts_device_attest_lite
+# Device Attest Lite
 
 #### Description
-{**When you're done, you can delete the content in this README and update the file with details for others getting started with your repository**}
+Open Harmony授权验证平台开发分支
 
 #### Software Architecture
 Software architecture description
@@ -10,7 +10,7 @@ Software architecture description
 
 1.  xxxx
 2.  xxxx
-3.  xxxx
+3.  xxxxx
 
 #### Instructions
 
