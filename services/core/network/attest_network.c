@@ -485,7 +485,7 @@ static int32_t GenCoapMsg(const DevicePacket *devPacket, ATTEST_ACTION_TYPE acti
 
 static int32_t SplitBySymbol(const char* src, size_t srcLen, const char* separator, List* list)
 {
-    if (src == NULL || srcLen <= 0 || list == NULL) {
+    if (src == NULL || srcLen == 0 || list == NULL) {
         ATTEST_LOG_ERROR("[SplitBySymbol] Invalid parameter.");
         return ATTEST_ERR;
     }

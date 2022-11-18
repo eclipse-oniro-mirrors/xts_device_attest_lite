@@ -233,6 +233,7 @@ int32_t WriteFile(const char* path, const char* fileName, const char* data, uint
     if (chmod(formatPath, S_IRUSR | S_IWUSR) < 0) { // 文件权限改为600
         ATTEST_LOG_ERROR("[WriteFile] chmod file failed");
         free(formatPath);
+        (void)fclose(fp);
         return ATTEST_ERR;
     }
     if (fwrite(data, dataLen, 1, fp) != 1) {

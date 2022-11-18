@@ -168,10 +168,9 @@ int32_t TLSWrite(const TLSSession* session, const uint8_t* buf, size_t len)
     if (session == NULL || buf == NULL || len > MAX_REQUEST_SIZE) {
         return ERR_NET_INVALID_ARG;
     }
-    int32_t ret = 0;
     size_t writeLen = 0;
     while (writeLen < len) {
-        ret = mbedtls_ssl_write((mbedtls_ssl_context *)&(session->tlsConfig.sslCtx),
+        int32_t ret = mbedtls_ssl_write((mbedtls_ssl_context *)&(session->tlsConfig.sslCtx),
                                 (uint8_t*)(buf + writeLen), len - writeLen);
         if (ret < 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
             ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
@@ -190,10 +189,9 @@ int32_t TLSRead(const TLSSession* session, uint8_t* buf, size_t len)
     if (session == NULL || buf == NULL || len == 0) {
         return ERR_NET_INVALID_ARG;
     }
-    int32_t ret = 0;
     size_t readLen = 0;
     while (readLen < len) {
-        ret = mbedtls_ssl_read((mbedtls_ssl_context *)&(session->tlsConfig.sslCtx), (uint8_t*)(buf + readLen),
+        int32_t ret = mbedtls_ssl_read((mbedtls_ssl_context *)&(session->tlsConfig.sslCtx), (uint8_t*)(buf + readLen),
                                len - readLen);
         if (ret < 0 && ret != MBEDTLS_ERR_SSL_TIMEOUT && ret != MBEDTLS_ERR_SSL_WANT_READ &&
             ret != MBEDTLS_ERR_SSL_WANT_WRITE && ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {

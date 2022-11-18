@@ -297,7 +297,12 @@ static int32_t CoapAddOptions(CoapPacket* pkt, const CoapPacketParam* param, Coa
 static int32_t CoapAddData(CoapPacket* pkt, const CoapBuffer* payload, CoapRWBuffer* buf)
 {
     ATTEST_LOG_DEBUG("[CoapAddData] Start");
-    if ((pkt == NULL) || (buf->rwBuffer == NULL) || ((payload->len != 0) && (payload->buffer == NULL))) {
+    if ((pkt == NULL) || (payload == NULL) || (buf == NULL)) {
+        ATTEST_LOG_ERROR("[CoapAddData] Invalid parameter");
+        return COAP_ERR_CODE_INVALID_ARGUMENT;
+    }
+
+    if ((buf->rwBuffer == NULL) || ((payload->len != 0) && (payload->buffer == NULL))) {
         ATTEST_LOG_ERROR("[CoapAddData] Invalid parameter");
         return COAP_ERR_CODE_INVALID_ARGUMENT;
     }
@@ -308,7 +313,7 @@ static int32_t CoapAddData(CoapPacket* pkt, const CoapBuffer* payload, CoapRWBuf
         return COAP_ERR_CODE_INVALID_ARGUMENT;
     }
 
-    if ((payload->len > 0xFFFF) || (buf->len + payload->len + 1) > buf->size) {
+    if ((payload->len > 0xFFFF) || ((buf->len + payload->len + 1) > buf->size)) {
         ATTEST_LOG_ERROR("[CoapAddData] Payload overruns the buffer");
         return COAP_ERR_CODE_PACKET_EXCEED_MAX_PDU;
     }
@@ -521,11 +526,10 @@ static int32_t CoapParseOption(CoapOption* option, uint16_t* runningDelta, const
         ATTEST_LOG_ERROR("[CoapParseOption] Invalid parameter");
         return COAP_ERR_CODE_INVALID_ARGUMENT;
     }
-    const uint8_t* p = NULL;
     uint8_t headLen = 1;
     uint16_t len;
     uint16_t delta;
-    p = *buf;
+    const uint8_t *p = *buf;
 
     if (bufLen < headLen) {
         ATTEST_LOG_ERROR("[CoapParseOption] Option header overruns the buffer");
