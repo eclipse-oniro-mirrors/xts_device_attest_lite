@@ -35,7 +35,6 @@ xts_device_attest_lite模块：
 │   └── services                # 服务主体和业务逻辑代码
 │       └── core                # 业务逻辑代码
 │   └── test                    # 测试用例编译配置存放目录
-│       └── data                # 测试用例打桩数据存放目录
 │       └── startup             # 小型系统启动示例存放目录
 │       └── unittest            # 测试用例代码存放目录
 ```

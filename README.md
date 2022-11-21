@@ -35,7 +35,6 @@ xts_device_attest_lite module：
 │   └── services                # Service subject and business logic code
 │       └── core                # Business logic code
 │   └── test                    
-│       └── data                # Test case mock data
 │       └── startup             # Small system startup example
 │       └── unittest            # Test case
 ```

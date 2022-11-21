@@ -99,32 +99,13 @@ config("devattest_core_config") {
     ]
   }
 
-  copy("token") {
-    sources = ["${devattest_path}/test/data/tokenA"]
-    outputs = ["$root_out_dir/data/attest/tokenA"]
-  }
-
   if (enable_attest_mock_network) {
-    copy("attest_mock_network_para") {
-      sources = ["${devattest_path}/test/data/attest_mock_network_para"]
-      outputs = ["$root_out_dir/data/attest/attest_mock_network_para"]
-    }
-
     defines += [
       "__ATTEST_MOCK_NETWORK_STUB__",
     ]
   }
 
   if (enable_attest_mock_device) {
-    copy("attest_mock_device_para") {
-      sources = ["${devattest_path}/test/data/attest_mock_device_para"]
-      outputs = ["$root_out_dir/data/attest/attest_mock_device_para"]
-    }
-
-    copy("attest_mock_token") {
-      sources = ["${devattest_path}/test/data/token"]
-      outputs = ["$root_out_dir/data/attest/token"]
-    }
 
     defines += [
       "__ATTEST_MOCK_DEVICE_STUB__",
@@ -205,18 +186,5 @@ if (ohos_kernel_type == "liteos_m") {
       "//build/lite/config/component/cJSON:cjson_shared",
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
     ]
-
-    if (enable_attest_mock_network) {
-      deps += [
-        ":attest_mock_network_para",
-      ]
-    }
-
-    if (enable_attest_mock_device) {
-      deps += [
-        ":attest_mock_device_para",
-        ":attest_mock_token",
-      ]
-    }
   }
 }
