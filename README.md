@@ -17,15 +17,15 @@
 
 ## 简介<a id="section100"></a>
 
-xts_device_attest_lite部件：
+xts_device_attest_lite模块：
 
--   轻量级设备证明组件，基本功能是看护OpenHarmony生态设备认证结果，通过端侧数据上云，达成统计OH生态设备数量的目标。目的是统计OH设备数量。xts_device_attest_lite部件用于轻量系统（mini system）和小型系统（small system）。
+-   轻量级设备证明模块，基本功能是看护OpenHarmony生态设备认证结果，通过端侧数据上云，达成统计OH生态设备数量的目标。目的是统计OH设备数量。xts_device_attest_lite部件用于轻量系统（mini system）和小型系统（small system）。
 
 ## 目录<a id="section200"></a>
 
 ```
 /test/xts
-├── device_attest_lite          # 设备证明模块代码存放目录
+├── device_attest_lite          # 轻量级设备证明模块代码存放目录
 │   └── build                   # 编译配置存放目录
 │   └── figures                 
 │   └── framework               # 系统能力服务框架
@@ -97,7 +97,7 @@ xts_device_attest_lite部件：
 | 软件版本号       | const.ohos.fullname=OpenHarmony-1.0.1.0                      | 使用默认值 |
 
 
-设备信息位于芯片的系统参数中的 base/startup/init/services/etc_lite/param/ohos_const/ohos.para 文件下。设备产品信息如下表：
+设备信息位于芯片的系统参数中的 vendor/hisilicon/hispark_pegasus/hals/utils/sys_param/vendor.para 文件下。设备产品信息如下表：
 
 **表 3** 
 | 设备信息         | vendor.para 配置参数                                | 备注                         | 
@@ -175,14 +175,14 @@ VersionId = deviceType/manufacture/brand/productSeries/OSFullName/productModel/s
 
 ### 对外接口<a id="section504"></a>
 
-设备证明模块对外提供的接口，如下表：
+轻量级设备证明模块对外提供的接口，如下表：
 
 | **接口名**                                              | **描述**     |
 | ------------------------------------------------------- | ------------ |
-| int32_t  StartDevAttestTask(void);                           | 启动设备证明主流程 |
+| int32_t  StartDevAttestTask(void);                           | 启动轻量级设备证明主流程 |
 | int32_t  GetAttestStatus(AttestResultInfo* attestResultInfo); | 获取证明结果 |
 
-轻量级设备证明需要厂商在网络连接成功后主动调用StartDevAttestTask函数，进入设备证明的流程。通过查询设备证明状态的接口，可以得到设备证明结果。
+轻量级设备证明需要厂商在网络连接成功后主动调用StartDevAttestTask函数，进入轻量级设备证明的流程。通过查询轻量级设备证明状态的接口，可以得到设备证明结果。
 
 ### 编译指令<a id="section505"></a>
 #### mini设备<a id="section5051"></a>
