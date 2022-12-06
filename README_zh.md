@@ -66,25 +66,16 @@ xts_device_attest_lite，轻量级设备证明部件，是OpenHarmony compatibil
 ```sh
 hb set
 #选择 设备类型
-hb build --gn-args build_xts=true
-#若不追加--gn-args build_xts=true，不会编译xts_device_attest_lite部件。
+hb build
 ```
 
 编译成功后，在out/芯片类型/产品类型/libs路径下生成libdevattest_core.a和libdevattest_sdk.a
+
 ### small设备<a id="section602"></a>
-#### liteos_a：
 ```sh
 hb set
 #选择 设备类型
-hb build --gn-args build_xts=true
-#若不追加--gn-args build_xts=true，不会编译xts_device_attest_lite部件。
-```
-#### linux:
-```sh
-hb set
-#选择 设备类型
-hb build --gn-args build_xts=true
-#若不追加--gn-args build_xts=true，不会编译xts_device_attest_lite部件。
+hb build
 ```
 
 编译成功后，在out/芯片类型/产品类型/usr/lib下生成libdevattest_core.so、libdevattest_server.so、libdevattest_client.so
