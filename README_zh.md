@@ -11,7 +11,7 @@ xts_device_attest_lite，轻量级设备证明部件，是OpenHarmony compatibil
 6、轻量级设备证明部件与OpenHarmony认证云通信，对设备进行激活/认证，设备从OpenHarmony认证云获取认证结果，存储到本地；  
 7、系统服务、系统应用等可通过轻量级设备证明部件提供的接口获取认证结果，并基于认证结果进行业务设计。  
 工作流程图：
-![](figures/image_001.png)
+![](figures/image_002.png)
 ## 目录<a id="section200"></a>
 
 ```
@@ -32,7 +32,7 @@ xts_device_attest_lite，轻量级设备证明部件，是OpenHarmony compatibil
 
 ## 架构图<a id="section300"></a>
 
-1、设备启动联网后，主动调起轻量级设备证明服务主流程，读取token和系统参数，发起设备认证端云通信；  
+1、设备启动联网后，主动调起轻量级设备证明部件主流程，读取token和系统参数，发起设备认证端云通信；  
 2、端云通信采用coap+tls协议，轻量级设备证明部件将token和系统参数上传到OpenHarmony认证云，并获取认证结果和新token；  
 3、轻量级设备证明部件将认证结果存储到沙箱目录，并更新token；  
 4、轻量级设备证明部件对外提供认证结果查询接口，供其他模块判定设备是否已通过认证，比如系统服务、系统应用等。 
@@ -60,8 +60,8 @@ xts_device_attest_lite，轻量级设备证明部件，是OpenHarmony compatibil
 
 集成轻量级设备证明部件的设备在网络连接成功后主动调用StartDevAttestTask函数，启动轻量级设备证明服务主流程。通过调用GetAttestStatus接口，可以获得设备认证结果。
 
-## 编译指令<a id="section605"></a>
-### mini设备<a id="section6051"></a>
+## 编译指令<a id="section600"></a>
+### mini设备<a id="section601"></a>
 
 ```sh
 hb set
@@ -71,15 +71,15 @@ hb build --gn-args build_xts=true
 ```
 
 编译成功后，在out/芯片类型/产品类型/libs路径下生成libdevattest_core.a和libdevattest_sdk.a
-### small设备<a id="section6052"></a>
-LiteOS：
+### small设备<a id="section602"></a>
+#### liteos_a：
 ```sh
 hb set
 #选择 设备类型
 hb build --gn-args build_xts=true
 #若不追加--gn-args build_xts=true，不会编译xts_device_attest_lite部件。
 ```
-Linux:
+#### linux:
 ```sh
 hb set
 #选择 设备类型
