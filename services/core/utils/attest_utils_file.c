@@ -230,21 +230,31 @@ int32_t WriteFile(const char* path, const char* fileName, const char* data, uint
         free(formatPath);
         return ATTEST_ERR;
     }
-    if (chmod(formatPath, S_IRUSR | S_IWUSR) < 0) { // 文件权限改为600
-        ATTEST_LOG_ERROR("[WriteFile] chmod file failed");
-        free(formatPath);
-        (void)fclose(fp);
-        return ATTEST_ERR;
-    }
-    if (fwrite(data, dataLen, 1, fp) != 1) {
-        ATTEST_LOG_ERROR("[WriteFile] write file %s failed", formatPath);
-        free(formatPath);
-        (void)fclose(fp);
-        return ATTEST_ERR;
-    }
+    int32_t ret = ATTEST_OK;
+    do {
+        if (chmod(formatPath, S_IRUSR | S_IWUSR) < 0) { // 文件权限改为600
+            ATTEST_LOG_ERROR("[WriteFile] chmod file failed");
+            ret = ATTEST_ERR;
+            break;
+        }
+        if (fwrite(data, dataLen, 1, fp) != 1) {
+            ATTEST_LOG_ERROR("[WriteFile] write file %s failed", formatPath);
+            ret = ATTEST_ERR;
+            break;
+        }
+        if (fflush(fp) != ATTEST_OK) {
+            ret = ATTEST_ERR;
+            break;
+        }
+        int fd = fileno(fp);
+        if (fsync(fd) != ATTEST_OK) {
+            ret = ATTEST_ERR;
+            break;
+        }
+    } while (0);
     free(formatPath);
     (void)fclose(fp);
-    return ATTEST_OK;
+    return ret;
 }
 
 int32_t ReadFile(const char* path, const char* fileName, char* buffer, uint32_t bufferLen)
@@ -323,8 +333,20 @@ int32_t CreateFile(const char* path, const char* fileName)
         return ATTEST_ERR;
     }
     ATTEST_MEM_FREE(realPath);
+    int32_t ret = ATTEST_OK;
+    do {
+        if (fflush(fp) != ATTEST_OK) {
+            ret = ATTEST_ERR;
+            break;
+        }
+        int fd = fileno(fp);
+        if (fsync(fd) != ATTEST_OK) {
+            ret = ATTEST_ERR;
+            break;
+        }
+    } while (0);
     (void)fclose(fp);
-    return ATTEST_OK;
+    return ret;
 }
 
 bool IsFileExist(const char* path, const char* fileName)
