@@ -2,13 +2,13 @@
 
 ## 简介<a id="section100"></a>
 
-device_attest_lite，轻量级设备证明部件，是OpenHarmony compatibility agreement约定需要设备厂商在产品中集成的模块，用于支撑生态伙伴完成产品的兼容性测试。其基本功能是看护OpenHarmony生态设备认证结果，通过端云校验机制，支撑OpenHarmony南北向生态统一，保障用户体验。该部件用于轻量系统（mini system）和小型系统（small system）。生态伙伴（即设备厂商）兼容性测试工作流程：  
+device_attest_lite，轻量级设备证明部件，是OpenHarmony compatibility agreement约定需要设备厂商在产品中集成的模块，用于支撑生态伙伴完成产品的兼容性测试。其基本功能是看护OpenHarmony生态设备证明结果，通过端云校验机制，支撑OpenHarmony南北向生态统一，保障用户体验。该部件用于轻量系统（mini system）和小型系统（small system）。生态伙伴（即设备厂商）兼容性测试工作流程：  
 1、设备厂商在[OpenHarmony兼容性平台](https://openatom.cn/atomavatar/#/login?redirect=%2Fauthorize%3Fresponse_type%3Dcode%26client_id%3D6bdacef0a8bd11ec938bd9550d2decfd%26redirect_uri%3Dhttps%3A%2F%2Fcompatibility.openharmony.cn%2Fconsole%26appName%3DOpenHarmony%E8%AE%A4%E8%AF%81%E5%B9%B3%E5%8F%B0%26scope%3D0,1,2,3%26state%3D%2Fpersonal)注册企业账号，完成设备信息登记，将登记的设备信息写入设备，并完成依赖接口适配；  
-2、设备厂商启动认证测试，上传xts测试报告；  
+2、设备厂商启动兼容性测试，上传xts测试报告；  
 3、OpenHarmony认证云认证通过设备厂商产品信息，发放token到OpenHarmony兼容性平台；  
 4、设备厂商从OpenHarmony兼容性平台获取token；  
 5、设备厂商经三方产线将token烧录到OpenHarmony设备；  
-6、轻量级设备证明部件与OpenHarmony认证云通信，对设备进行激活/认证，设备从OpenHarmony认证云获取认证结果，存储到本地；  
+6、轻量级设备证明部件与OpenHarmony认证云通信，对设备进行激活/认证，设备从OpenHarmony认证云获取证明结果，存储到本地；  
 7、系统服务、系统应用等可通过轻量级设备证明部件提供的接口获取认证结果，并基于认证结果进行业务设计。  
 
 工作流程图：  
@@ -57,9 +57,9 @@ device_attest_lite，轻量级设备证明部件，是OpenHarmony compatibility 
 | **接口名**                                              | **描述**     |
 | ------------------------------------------------------- | ------------ |
 | int32_t  StartDevAttestTask(void);                           | 启动轻量级设备证明服务主流程 |
-| int32_t  GetAttestStatus(AttestResultInfo* attestResultInfo); | 获取设备认证结果 |
+| int32_t  GetAttestStatus(AttestResultInfo* attestResultInfo); | 获取设备证明结果 |
 
-集成轻量级设备证明部件的设备在网络连接成功后主动调用StartDevAttestTask函数，启动轻量级设备证明服务主流程。通过调用GetAttestStatus接口，可以获得设备认证结果。
+集成轻量级设备证明部件的设备在网络连接成功后主动调用StartDevAttestTask函数，启动轻量级设备证明服务主流程。通过调用GetAttestStatus接口，可以获得设备证明结果。
 
 ## 编译指令<a id="section600"></a>
 ### mini设备<a id="section601"></a>
