@@ -1,0 +1,58 @@
+{
+  "name": "@ohos/devattest_service_lite",
+  "version": "4.0",
+  "description": "",
+  "license": "Apache License 2.0",
+  "domain": "os",
+  "publishAs": "",
+  "private": false,
+  "scripts": {},
+  "dirs": [],
+  "segment": {
+    "destPath": "test/xts/device_attest_lite"
+  },
+  "component": {
+    "name": "device_attest_lite",
+    "subsystem": "xts",
+    "syscap": [ "SystemCapability.XTS.DeviceAttestLite" ],
+    "features": [],
+    "adapted_system_type": [
+      "liteos_m",
+      "liteos_a",
+      "linux"
+    ],
+    "rom": "3072KB",
+    "ram": "~64KB",
+    "deps": {
+      "components": [
+        "samgr_lite",
+        "ipc_lite",
+        "kal_timer",
+        "hilog"
+      ],
+      "third_party": [
+        "bounds_checking_function",
+        "cjson",
+        "mbedtls"
+      ]
+    },
+    "build": {
+      "sub_component": [
+        "//test/xts/device_attest_lite:device_atTest_lite"
+      ],
+      "inner_kits": [
+        {
+          "header": {
+            "header_base":"//test/xts/device_attest_lite/interfaces",
+            "header_files": [
+              "devattest_interface.h",
+              "devattest_msg_def.h"
+            ]
+          },
+          "name": "//test/xts/device_attest_lite/framework:devattest_client"
+        }
+      ],
+      "test": []
+    }
+  }
+}
