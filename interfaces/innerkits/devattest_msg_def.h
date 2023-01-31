@@ -30,6 +30,8 @@ extern "C" {
 typedef struct {
     int32_t authResult;
     int32_t softwareResult;
+    int32_t softwareResultDetail[5];
+    int32_t ticketLength;
     char* ticket;
 } AttestResultInfo;
 

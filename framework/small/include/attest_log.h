@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 #define ATTEST_LOG_DOMAIN 0xD001800
-#define ATTEST_LOG_LABEL "ATTEST"
+#define ATTEST_LOG_LABEL "DEVATTEST"
 
 #define HILOGD(fmt, ...) ((void)HiLogPrint(LOG_CORE, LOG_DEBUG, ATTEST_LOG_DOMAIN, ATTEST_LOG_LABEL, fmt, ##__VA_ARGS__))
 #define HILOGI(fmt, ...) ((void)HiLogPrint(LOG_CORE, LOG_INFO, ATTEST_LOG_DOMAIN, ATTEST_LOG_LABEL, fmt, ##__VA_ARGS__))

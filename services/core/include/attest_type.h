@@ -37,7 +37,7 @@ extern "C" {
 
 #define MAX_ATTEST_BUFF_LEN 256
 
-#define STARTSUP_PARA_ATTEST_KEY "attest.auth.result"
+#define STARTSUP_PARA_ATTEST_KEY "persist.xts.devattest.authresult"
 #define STARTSUP_PARA_ATTEST_OK "attest_ok"
 #define STARTSUP_PARA_ATTEST_ERROR "attest_error"
 
@@ -46,6 +46,11 @@ extern "C" {
 // token相关
 #define TOKEN_ID_LEN 36
 #define TOKEN_VALUE_LEN 32
+#define TOKEN_ID_LEN_MAX 128
+#define TOKEN_VALUE_LEN_MAX 128
+#define OUT_STR_LEN_MAX 128
+
+#define TOKEN_UNPRESET (-2)
 
 #define SALT_ENCRYPT_LEN 16
 #define TOKEN_ID_ENCRYPT_LEN 64
@@ -65,6 +70,15 @@ extern "C" {
 #define APP_ID_LEN 9
 #define UDID_STRING_LEN 64
 
+// auth_result相关
+#define ATTEST_RESULT_INIT (-1)
+#define VERSIONID_RESULT 0
+#define PATCHLEVEL_RESULT 1
+#define ROOTHASH_RESULT 2
+#define PCID_RESULT 3
+#define RESERVE_RESULT 4
+#define SOFTWARE_RESULT_DETAIL_SIZE 5
+
 // 认证接口返回值，与json结构一一对应
 typedef struct {
     int32_t errorCode;
@@ -79,10 +93,19 @@ typedef struct {
 typedef struct {
     char* versionId;
     char* authType;
+    char* softwareResultDetail;
     int32_t softwareResult;
     int32_t hardwareResult;
     uint64_t expireTime;  // 项目新增字段，参考接口文档
 } AuthStatus;
+
+// 认证返回结果中的softwareResultDetail结构
+typedef struct {
+    int32_t versionIdResult;
+    int32_t patchLevelResult;
+    int32_t rootHashResult;
+    int32_t pcidResult;
+} SoftwareResultDetail;
 
 // 获取挑战值返回结果
 typedef struct {
@@ -134,9 +157,10 @@ typedef struct DevicePacket {
     char *udid;
     char *ticket;
     char *randomUuid;  // uuid的长度
+    char *kitinfo; /* 可以重新定义一个新结构，然后做成链表 */
+    char *pcid;
     DeviceTokenInfo tokenInfo;
     DeviceProductInfo productInfo;
-    char *kitinfo; /* 可以重新定义一个新结构，然后做成链表 */
 } DevicePacket;
 
 typedef enum {
@@ -146,6 +170,16 @@ typedef enum {
     ATTEST_ACTION_ACTIVATE,
     ATTEST_ACTION_MAX,
 } ATTEST_ACTION_TYPE;
+
+typedef enum {
+    ATTEST_RESULT_AUTH = 0,
+    ATTEST_RESULT_SOFTWARE,
+    ATTEST_RESULT_VERSIONID,
+    ATTEST_RESULT_PATCHLEVEL,
+    ATTEST_RESULT_ROOTHASH,
+    ATTEST_RESULT_PCID,
+    ATTEST_RESULT_MAX,
+} ATTEST_RESULT_TYPE;
 
 #ifdef __cplusplus
 #if __cplusplus

@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 
+#include "attest_type.h"
 #include "attest_entry.h"
 #include "devattest_interface.h"
 
@@ -35,10 +36,57 @@ int32_t GetAttestStatus(AttestResultInfo* attestResultInfo)
     if (attestResultInfo == NULL) {
         return DEVATTEST_FAIL;
     }
-    char* ticketStr = NULL;
-    int ret = QueryAttest(&attestResultInfo->authResult, &attestResultInfo->softwareResult, &ticketStr);
-    if (ret == DEVATTEST_SUCCESS && ticketStr != NULL) {
+    int *intArray = NULL;
+    int arraySize = 0;
+    int ticketLength = 0;
+    char *ticketStr = NULL;
+    int ret = QueryAttest(&intArray, &arraySize, &ticketStr, &ticketLength);
+    if (ret != DEVATTEST_SUCCESS) {
+        printf("[DEVATTEST][GetAttestStatus] failed!");
+        return ret;
+    }
+
+    do {
+        int *authResult = &attestResultInfo->authResult;
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_AUTH, authResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        int *softwareResult = &attestResultInfo->softwareResult;
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_SOFTWARE, softwareResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        int *versionIdResult = &attestResultInfo->softwareResultDetail[VERSIONID_RESULT];
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_VERSIONID, versionIdResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        int *patchResult = &attestResultInfo->softwareResultDetail[PATCHLEVEL_RESULT];
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_PATCHLEVEL, patchResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        int *roothashResult = &attestResultInfo->softwareResultDetail[ROOTHASH_RESULT];
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_ROOTHASH, roothashResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        int *pcidResult = &attestResultInfo->softwareResultDetail[PCID_RESULT];
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_PCID, pcidResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+    } while (0);
+    attestResultInfo->softwareResultDetail[PCID_RESULT] = ATTEST_RESULT_INIT;
+    if (ret != DEVATTEST_SUCCESS) {
+        printf("[DEVATTEST][GetAttestStatus] read failed!");
+        return DEVATTEST_FAIL;
+    }
+
+    if (ticketStr != NULL) {
         attestResultInfo->ticket = ticketStr;
+        attestResultInfo->ticketLength = ticketLength;
     }
     return ret;
 }

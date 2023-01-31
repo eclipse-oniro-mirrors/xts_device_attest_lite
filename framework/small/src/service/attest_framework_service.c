@@ -20,7 +20,7 @@
 #include "attest_log.h"
 #include "attest_utils_timer.h"
 
-#define ATTEST_SLEEP_TIME 2000
+#define ATTEST_SLEEP_TIME 100
 
 static ATTEST_TIMER_ID g_AttestSaTimerId = NULL;
 

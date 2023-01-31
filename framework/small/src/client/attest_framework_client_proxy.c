@@ -49,17 +49,24 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
     }
     AttestResultInfo *attestResult = *attestStatus;
     if (!ReadInt32(reply, (int32_t *)&attestResult->authResult) ||
-        !ReadInt32(reply, (int32_t *)&attestResult->softwareResult)) {
+        !ReadInt32(reply, (int32_t *)&attestResult->softwareResult) ||
+        !ReadInt32(reply, (int32_t *)&attestResult->softwareResultDetail[VERSIONID_RESULT]) ||
+        !ReadInt32(reply, (int32_t *)&attestResult->softwareResultDetail[PATCHLEVEL_RESULT]) ||
+        !ReadInt32(reply, (int32_t *)&attestResult->softwareResultDetail[ROOTHASH_RESULT]) ||
+        !ReadInt32(reply, (int32_t *)&attestResult->softwareResultDetail[PCID_RESULT]) ||
+        !ReadInt32(reply, (int32_t *)&attestResult->softwareResultDetail[RESERVE_RESULT]) ||
+        !ReadInt32(reply, (int32_t *)&attestResult->ticketLength)) {
         HILOGE("[ReadAttestResultInfo] Failed to ReadInt32.");
         return DEVATTEST_FAIL;
     }
 
     size_t ticketLen = 0;
     attestResult->ticket = (char *)ReadString(reply, &ticketLen);
-    if ((attestResult->ticket == NULL) || (ticketLen == 0)) {
+    if ((attestResult->ticket == NULL) || (ticketLen != (unsigned int)attestResult->ticketLength)) {
         HILOGE("[ReadAttestResultInfo] Failed to ReadString.");
         return DEVATTEST_FAIL;
     }
+
     return DEVATTEST_SUCCESS;
 }
 

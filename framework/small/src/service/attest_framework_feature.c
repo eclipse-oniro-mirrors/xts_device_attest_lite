@@ -26,6 +26,8 @@
 
 #include "attest_log.h"
 #include "attest_framework_define.h"
+#include "attest_type.h"
+#include "attest_utils.h"
 #include "attest_entry.h"
 
 typedef struct {
@@ -87,28 +89,78 @@ static BOOL FEATURE_OnMessage(Feature *feature, Request *request)
     return FALSE;
 }
 
-static int32_t WriteAttestResultInfo(IpcIo *reply, int32_t authResult, int32_t softwareResult, char *ticket)
+static int32_t WriteAttestResultInfo(IpcIo *reply, int32_t *intArray, int32_t arraySize, char *ticket, int32_t lenghth)
 {
     if (reply == NULL) {
         HILOGE("[WriteAttestResultInfo] reply is null!");
         return DEVATTEST_FAIL;
     }
 
-    if (ticket == NULL) {
-        HILOGE("[WriteAttestResultInfo] ticket is NULL!");
+    if (intArray == NULL || arraySize == 0 || ticket == NULL || lenghth == 0) {
+        HILOGE("[WriteAttestResultInfo] paramter is wrong!");
         if (!WriteInt32(reply, DEVATTEST_FAIL)) {
             HILOGE("[WriteAttestResultInfo] Write ret fail!");
         }
         return DEVATTEST_FAIL;
     }
 
+    int32_t authResult = ATTEST_RESULT_INIT;
+    int32_t softwareResult = ATTEST_RESULT_INIT;
+    int32_t softwareResultDetail[SOFTWARE_RESULT_DETAIL_SIZE] = {0};
+    int32_t ret = DEVATTEST_SUCCESS;
+    do {
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_AUTH, &authResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_SOFTWARE, &softwareResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        int32_t *versionIdResult = &softwareResultDetail[VERSIONID_RESULT];
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_VERSIONID, versionIdResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        int32_t *patchResult = &softwareResultDetail[PATCHLEVEL_RESULT];
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_PATCHLEVEL, patchResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        int32_t *roothashResult = &softwareResultDetail[ROOTHASH_RESULT];
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_ROOTHASH, roothashResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        int32_t *pcidResult = &softwareResultDetail[PCID_RESULT];
+        if (AttestReadInt32(intArray, arraySize, ATTEST_RESULT_PCID, pcidResult) != DEVATTEST_SUCCESS) {
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+    } while (0);
+    softwareResultDetail[RESERVE_RESULT] = ATTEST_RESULT_INIT;
+    if (ret != DEVATTEST_SUCCESS) {
+        HILOGE("[WriteAttestResultInfo] Query result arrat fail!");
+        if (!WriteInt32(reply, DEVATTEST_FAIL)) {
+            HILOGE("[WriteAttestResultInfo] Write ret fail!");
+        }
+        return DEVATTEST_FAIL;
+    }
+
+    // result
     if (!WriteInt32(reply, DEVATTEST_SUCCESS)) {
         HILOGE("[WriteAttestResultInfo] Write result fail!");
         return DEVATTEST_FAIL;
     }
-
+    // data
     if (!WriteInt32(reply, authResult) || !WriteInt32(reply, softwareResult) ||
-        !WriteString(reply, ticket)) {
+        !WriteInt32(reply, softwareResultDetail[VERSIONID_RESULT]) ||
+        !WriteInt32(reply, softwareResultDetail[PATCHLEVEL_RESULT]) ||
+        !WriteInt32(reply, softwareResultDetail[ROOTHASH_RESULT]) ||
+        !WriteInt32(reply, softwareResultDetail[PCID_RESULT]) ||
+        !WriteInt32(reply, softwareResultDetail[RESERVE_RESULT]) ||
+        !WriteInt32(reply, lenghth) || !WriteString(reply, ticket)) {
         HILOGE("[WriteAttestResultInfo] Write data fail!");
         return DEVATTEST_FAIL;
     }
@@ -121,21 +173,20 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         HILOGE("[FeatureQueryAttest] reply is null!");
         return DEVATTEST_FAIL;
     }
-
-    int32_t authResult = -1;
-    int32_t softwareResult = -1;
+    int32_t *intArray = NULL;
+    int32_t arraySize = 0;
+    int32_t ticketLenghth = 0;
     char *ticket = "";
-
-    int32_t ret = QueryAttest(&authResult, &softwareResult, &ticket);
-    if (ret != DEVATTEST_SUCCESS) {
+    int32_t ret = QueryAttest(&intArray, &arraySize, &ticket, &ticketLenghth);
+    if ((ret != DEVATTEST_SUCCESS) || (arraySize != ATTEST_RESULT_MAX)) {
         HILOGE("[FeatureQueryAttest] Query status fail!");
         if (!WriteInt32(reply, ret)) {
             HILOGE("[FeatureQueryAttest] Write ret fail!");
         }
         return DEVATTEST_FAIL;
     }
-
-    ret = WriteAttestResultInfo(reply, authResult, softwareResult, ticket);
+    ret = WriteAttestResultInfo(reply, intArray, arraySize, ticket, ticketLenghth);
+    ATTEST_MEM_FREE(intArray);
     return ret;
 }
 

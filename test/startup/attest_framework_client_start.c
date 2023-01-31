@@ -36,9 +36,17 @@ int main(void)
             printf("[CLIENT MAIN] wrong.\n");
         }
 
+        printf("[CLIENT MAIN] auth:%d, software:%d, versionId:%d, patchLevel:%d, roothash:%d, pcid:%d, reserve:%d\n",
+                attestResultInfo.authResult, attestResultInfo.softwareResult,
+                attestResultInfo.softwareResultDetail[0],
+                attestResultInfo.softwareResultDetail[1],
+                attestResultInfo.softwareResultDetail[2],
+                attestResultInfo.softwareResultDetail[3],
+                attestResultInfo.softwareResultDetail[4]);
+
         if (attestResultInfo.ticket != NULL) {
-            printf("[CLIENT MAIN] auth:%d, software:%d, ticket:%s\n",
-                attestResultInfo.authResult, attestResultInfo.softwareResult, attestResultInfo.ticket);
+            printf("[CLIENT MAIN] ticketLength:%d, ticket:%s\n",
+                attestResultInfo.ticketLength, attestResultInfo.ticket);
 
             free(attestResultInfo.ticket);
             attestResultInfo.ticket = NULL;

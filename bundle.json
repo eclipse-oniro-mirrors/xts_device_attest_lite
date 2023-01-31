@@ -43,7 +43,7 @@
       "inner_kits": [
         {
           "header": {
-            "header_base":"//test/xts/device_attest_lite/interfaces",
+            "header_base":"//test/xts/device_attest_lite/interfaces/innerkits",
             "header_files": [
               "devattest_interface.h",
               "devattest_msg_def.h"

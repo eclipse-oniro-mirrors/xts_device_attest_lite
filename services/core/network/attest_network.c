@@ -374,7 +374,8 @@ char* BuildCoapAuthBody(const DevicePacket *postValue)
             cJSON_AddStringToObject(software, "brand", postValue->productInfo.brand) == NULL ||
             cJSON_AddStringToObject(software, "rootHash", postValue->productInfo.rootHash) == NULL ||
             cJSON_AddStringToObject(software, "version", postValue->productInfo.displayVersion) == NULL ||
-            cJSON_AddStringToObject(software, "patchLevel", postValue->productInfo.patchTag) == NULL) {
+            cJSON_AddStringToObject(software, "patchLevel", postValue->productInfo.patchTag) == NULL ||
+            cJSON_AddStringToObject(software, "pcid", postValue->pcid) == NULL) {
             ret = ATTEST_ERR;
             ATTEST_LOG_ERROR("[BuildCoapAuthBody] software Add productInfo values fail");
             break;
