@@ -25,6 +25,7 @@
 #include <iproxy_client.h>
 #include <iproxy_server.h>
 
+#include "attest_type.h"
 #include "attest_log.h"
 #include "attest_framework_define.h"
 #include "devattest_interface.h"
