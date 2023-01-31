@@ -36,10 +36,6 @@ include_common = [
   "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
 ]
 
-config("devattest_framework_config") {
-  ldflags = [ "-pthread" ]
-}
-
 # L1 server
 shared_library("devattest_server") {
   sources = [
@@ -47,11 +43,10 @@ shared_library("devattest_server") {
     "small/src/service/attest_framework_server.c",
   ]
 
-  cflags = [ "-fPIC", ]
-  cflags += cflags_common
+  cflags = cflags_common
+  cflags += [ "-fPIC" ]
   cflags_cc = cflags
-
-  public_configs = [ ":devattest_framework_config" ]
+  ldflags = [ "-pthread" ]
 
   include_dirs = include_common
   include_dirs += [ "${devattest_path}/services/core" ]
@@ -67,11 +62,10 @@ shared_library("devattest_server") {
 shared_library("devattest_client") {
   sources = [ "small/src/client/attest_framework_client_proxy.c" ]
 
-  cflags = [ "-fPIC", ]
-  cflags += cflags_common
+  cflags = cflags_common
+  cflags += [ "-fPIC" ]
   cflags_cc = cflags
-
-  public_configs = [ ":devattest_framework_config" ]
+  ldflags = [ "-pthread" ]
 
   include_dirs = include_common
 
@@ -86,8 +80,7 @@ executable("devattest_service") {
   sources = [ "small/src/service/attest_framework_service.c" ]
   cflags = cflags_common
   cflags_cc = cflags
-
-  public_configs = [ ":devattest_framework_config" ]
+  ldflags = [ "-pthread" ]
 
   include_dirs = include_common
   include_dirs += [ "${devattest_path}/services/core/include/utils" ]
