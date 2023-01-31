@@ -47,7 +47,7 @@ shared_library("devattest_server") {
     "small/src/service/attest_framework_server.c",
   ]
 
-  cflags = [ "-fPIC" ]
+  cflags = [ "-fPIC", ]
   cflags += cflags_common
   cflags_cc = cflags
 
@@ -67,7 +67,7 @@ shared_library("devattest_server") {
 shared_library("devattest_client") {
   sources = [ "small/src/client/attest_framework_client_proxy.c" ]
 
-  cflags = [ "-fPIC" ]
+  cflags = [ "-fPIC", ]
   cflags += cflags_common
   cflags_cc = cflags
 

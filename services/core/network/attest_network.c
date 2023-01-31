@@ -283,7 +283,7 @@ char* BuildCoapResetBody(const DevicePacket *postValue)
         ATTEST_LOG_ERROR("[BuildCoapResetBody] postData CreateObject fail");
         return NULL;
     }
-    int32_t ret = 0;
+    int32_t ret = ATTEST_OK;
     do {
         if (cJSON_AddStringToObject(postData, "udid", postValue->udid) == NULL) {
             ret = ATTEST_ERR;
@@ -319,6 +319,39 @@ char* BuildCoapResetBody(const DevicePacket *postValue)
     return bodyData;
 }
 
+static int32_t BuildCoapAuthBodySoftware(const DevicePacket *postValue, cJSON *outData)
+{
+    if (postValue == NULL || outData == NULL) {
+        ATTEST_LOG_ERROR("[BuildCoapAuthBodySoftware] Invalid parameter");
+        return ATTEST_ERR;
+    }
+
+    cJSON *software = cJSON_CreateObject();
+    if (software == NULL) {
+        ATTEST_LOG_ERROR("[BuildCoapAuthBodySoftware] software Create Object fail");
+        return ATTEST_ERR;
+    }
+
+    if (!cJSON_AddItemToObject(outData, "software", software)) {
+        cJSON_Delete(software);
+        ATTEST_LOG_ERROR("[BuildCoapAuthBodySoftware] postData Add Item To Object fail");
+        return ATTEST_ERR;
+    }
+
+    if (cJSON_AddStringToObject(software, "versionId", postValue->productInfo.versionId) == NULL ||
+        cJSON_AddStringToObject(software, "manufacture", postValue->productInfo.manu) == NULL ||
+        cJSON_AddStringToObject(software, "model", postValue->productInfo.model) == NULL ||
+        cJSON_AddStringToObject(software, "brand", postValue->productInfo.brand) == NULL ||
+        cJSON_AddStringToObject(software, "rootHash", postValue->productInfo.rootHash) == NULL ||
+        cJSON_AddStringToObject(software, "version", postValue->productInfo.displayVersion) == NULL ||
+        cJSON_AddStringToObject(software, "patchLevel", postValue->productInfo.patchTag) == NULL ||
+        cJSON_AddStringToObject(software, "pcid", postValue->pcid) == NULL) {
+        ATTEST_LOG_ERROR("[BuildCoapAuthBodySoftware] software Add productInfo values fail");
+        return ATTEST_ERR;
+    }
+    return ATTEST_OK;
+}
+
 char* BuildCoapAuthBody(const DevicePacket *postValue)
 {
     ATTEST_LOG_DEBUG("[BuildCoapAuthBody] Begin.");
@@ -331,7 +364,7 @@ char* BuildCoapAuthBody(const DevicePacket *postValue)
         ATTEST_LOG_ERROR("[BuildCoapAuthBody] postData CreateObject fail");
         return NULL;
     }
-    int32_t ret = 0;
+    int32_t ret = ATTEST_OK;
     do {
         if (cJSON_AddStringToObject(postData, "udid", postValue->udid) == NULL) {
             ret = ATTEST_ERR;
@@ -356,30 +389,7 @@ char* BuildCoapAuthBody(const DevicePacket *postValue)
             ATTEST_LOG_ERROR("[BuildCoapAuthBody] tokenInfo Add uuid or token fail");
             break;
         }
-        cJSON *software = cJSON_CreateObject();
-        if (software == NULL) {
-            ret = ATTEST_ERR;
-            ATTEST_LOG_ERROR("[BuildCoapAuthBody] software Create Object fail");
-            break;
-        }
-        if (!cJSON_AddItemToObject(postData, "software", software)) {
-            cJSON_Delete(software);
-            ret = ATTEST_ERR;
-            ATTEST_LOG_ERROR("[BuildCoapAuthBody] postData Add Item To Object fail");
-            break;
-        }
-        if (cJSON_AddStringToObject(software, "versionId", postValue->productInfo.versionId) == NULL ||
-            cJSON_AddStringToObject(software, "manufacture", postValue->productInfo.manu) == NULL ||
-            cJSON_AddStringToObject(software, "model", postValue->productInfo.model) == NULL ||
-            cJSON_AddStringToObject(software, "brand", postValue->productInfo.brand) == NULL ||
-            cJSON_AddStringToObject(software, "rootHash", postValue->productInfo.rootHash) == NULL ||
-            cJSON_AddStringToObject(software, "version", postValue->productInfo.displayVersion) == NULL ||
-            cJSON_AddStringToObject(software, "patchLevel", postValue->productInfo.patchTag) == NULL ||
-            cJSON_AddStringToObject(software, "pcid", postValue->pcid) == NULL) {
-            ret = ATTEST_ERR;
-            ATTEST_LOG_ERROR("[BuildCoapAuthBody] software Add productInfo values fail");
-            break;
-        }
+        ret = BuildCoapAuthBodySoftware(postValue, postData);
     } while (0);
     if (ret == ATTEST_ERR) {
         cJSON_Delete(postData);
@@ -404,7 +414,7 @@ char* BuildCoapActiveBody(const DevicePacket *postValue)
         ATTEST_LOG_ERROR("[BuildCoapActiveBody] postData CreateObject fail");
         return NULL;
     }
-    int32_t ret = 0;
+    int32_t ret = ATTEST_OK;
     do {
         if (cJSON_AddStringToObject(postData, "ticket", postValue->ticket) == NULL ||
             cJSON_AddStringToObject(postData, "udid", postValue->udid) == NULL) {
