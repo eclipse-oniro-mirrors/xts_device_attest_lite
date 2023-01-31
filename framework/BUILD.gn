@@ -38,12 +38,6 @@ include_common = [
 
 config("devattest_framework_config") {
   ldflags = [ "-pthread" ]
-  if (board_name != "omap_se") {
-    ldflags += [
-      "-Wl,-z,relro,-z,now",
-      "-s",
-    ]
-  }
 }
 
 # L1 server

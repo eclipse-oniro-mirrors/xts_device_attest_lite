@@ -316,14 +316,16 @@ int32_t ProcAttest(void)
     return ret;
 }
 
-static int32_t QueryAttestStatusImpl(int32_t** resultArray, int32_t* arraySize, char** ticket, int32_t* ticketLength)
+static int32_t QueryAttestStatusImpl(int32_t* authResult, int32_t* softwareResult, char** ticket)
 {
     ATTEST_LOG_DEBUG("[QueryAttestStatusImpl] Query attest status begin.");
-    if (resultArray == NULL || arraySize == NULL || ticket == NULL) {
+    if (authResult == NULL || softwareResult == NULL || ticket == NULL) {
         return ATTEST_ERR;
     }
+    *authResult = DEVICE_ATTEST_FAIL;
+    *softwareResult = DEVICE_ATTEST_FAIL;
     *ticket = "";
-    *ticketLength = 0;
+
     // 获取认证结果
     char* authStatusBase64 = NULL;
     if (GetAuthStatus(&authStatusBase64) != 0) {
@@ -354,56 +356,17 @@ static int32_t QueryAttestStatusImpl(int32_t** resultArray, int32_t* arraySize, 
         return ATTEST_ERR;
     }
 
-    int32_t intArraySize = ATTEST_RESULT_MAX;
-    int32_t *arrayHead = (int32_t *)ATTEST_MEM_MALLOC(intArraySize * sizeof(int32_t));
-    (void)memset_s(arrayHead, intArraySize * sizeof(int32_t), 0, intArraySize * sizeof(int32_t));
-    int32_t ret = ATTEST_OK;
-    do {
-        if (AttestWriteInt32(arrayHead, intArraySize, ATTEST_RESULT_AUTH, authStatus->hardwareResult) != ATTEST_OK) {
-            ret = ATTEST_ERR;
-            break;
-        }
-        int32_t softwareResult = authStatus->softwareResult;
-        if (AttestWriteInt32(arrayHead, intArraySize, ATTEST_RESULT_SOFTWARE, softwareResult) != ATTEST_OK) {
-            ret = ATTEST_ERR;
-            break;
-        }
-        int32_t versionIdResult = ((SoftwareResultDetail *)authStatus->softwareResultDetail)->versionIdResult;
-        if (AttestWriteInt32(arrayHead, intArraySize, ATTEST_RESULT_VERSIONID, versionIdResult) != ATTEST_OK) {
-            ret = ATTEST_ERR;
-            break;
-        }
-        int32_t patchLevelResult = ((SoftwareResultDetail *)authStatus->softwareResultDetail)->patchLevelResult;
-        if (AttestWriteInt32(arrayHead, intArraySize, ATTEST_RESULT_PATCHLEVEL, patchLevelResult) != ATTEST_OK) {
-            ret = ATTEST_ERR;
-            break;
-        }
-        int32_t rootHashResult = ((SoftwareResultDetail *)authStatus->softwareResultDetail)->rootHashResult;
-        if (AttestWriteInt32(arrayHead, intArraySize, ATTEST_RESULT_ROOTHASH, rootHashResult) != ATTEST_OK) {
-            ret = ATTEST_ERR;
-            break;
-        }
-        int32_t pcidResult = ((SoftwareResultDetail *)authStatus->softwareResultDetail)->pcidResult;
-        if (AttestWriteInt32(arrayHead, intArraySize, ATTEST_RESULT_PCID, pcidResult) != ATTEST_OK) {
-            ret = ATTEST_ERR;
-            break;
-        }
-    } while (0);
-    DestroyAuthStatus(&authStatus);
-    if (ret != ATTEST_OK) {
-        return ATTEST_ERR;
-    }
-    *resultArray = arrayHead;
-    *arraySize = intArraySize;
+    *authResult = authStatus->hardwareResult;
+    *softwareResult = authStatus->softwareResult;
     *ticket = decryptedTicket;
-    *ticketLength = strlen(*ticket);
+    DestroyAuthStatus(&authStatus);
     return ATTEST_OK;
 }
 
-int32_t QueryAttestStatus(int32_t** resultArray, int32_t* arraySize, char** ticket, int32_t* ticketLength)
+int32_t QueryAttestStatus(int32_t* authResult, int32_t* softwareResult, char** ticket)
 {
     pthread_mutex_lock(&g_mtxAttest);
-    int32_t ret = QueryAttestStatusImpl(resultArray, arraySize, ticket, ticketLength);
+    int32_t ret = QueryAttestStatusImpl(authResult, softwareResult, ticket);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[QueryAttestStatus] failed ret = %d.", ret);
     }

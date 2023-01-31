@@ -65,15 +65,6 @@ extern "C" {
 #define APP_ID_LEN 9
 #define UDID_STRING_LEN 64
 
-// auth_result相关
-#define ATTEST_RESULT_INIT (-1)
-#define VERSIONID_RESULT 0
-#define PATCHLEVEL_RESULT 1
-#define ROOTHASH_RESULT 2
-#define PCID_RESULT 3
-#define RESERVE_RESULT 4
-#define SOFTWARE_RESULT_DETAIL_SIZE 5
-
 // 认证接口返回值，与json结构一一对应
 typedef struct {
     int32_t errorCode;
@@ -165,16 +156,6 @@ typedef enum {
     ATTEST_ACTION_ACTIVATE,
     ATTEST_ACTION_MAX,
 } ATTEST_ACTION_TYPE;
-
-typedef enum {
-    ATTEST_RESULT_AUTH = 0,
-    ATTEST_RESULT_SOFTWARE,
-    ATTEST_RESULT_VERSIONID,
-    ATTEST_RESULT_PATCHLEVEL,
-    ATTEST_RESULT_ROOTHASH,
-    ATTEST_RESULT_PCID,
-    ATTEST_RESULT_MAX,
-} ATTEST_RESULT_TYPE;
 
 #ifdef __cplusplus
 #if __cplusplus

@@ -26,7 +26,7 @@
 #include "attest_adapter_mock.h"
 #include "attest_service_auth.h"
 
-#define AUTH_RESULT_LEN 16
+#define AUTH_RESULT_LEN 64
 
 bool IsAuthStatusChg(void)
 {

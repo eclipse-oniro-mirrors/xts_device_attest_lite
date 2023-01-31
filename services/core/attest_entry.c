@@ -100,7 +100,7 @@ int32_t AttestTask(void)
     return ret;
 }
 
-int32_t QueryAttest(int32_t** resultArray, int32_t* arraySize, char** ticket, int32_t* ticketLength)
+int32_t QueryAttest(int32_t* authResult, int32_t* softwareResult, char** ticket)
 {
-    return QueryAttestStatus(resultArray, arraySize, ticket, ticketLength);
+    return QueryAttestStatus(authResult, softwareResult, ticket);
 }

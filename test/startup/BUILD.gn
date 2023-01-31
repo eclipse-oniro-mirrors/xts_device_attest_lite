@@ -32,12 +32,6 @@ executable("devattest_client") {
   cflags_cc = cflags
 
   ldflags = [ "-pthread" ]
-  if (board_name != "omap_se") {
-    ldflags += [
-      "-Wl,-z,relro,-z,now",
-      "-s",
-    ]
-  }
 
   include_dirs = [ "${devattest_path}/interfaces/innerkits" ]
 
