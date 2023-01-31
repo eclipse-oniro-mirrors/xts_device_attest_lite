@@ -14,7 +14,7 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 
-cflags_common = [
+CFLAGS_COMMON = [
   "-ftrapv",
   "-Werror",
   "-Wextra",
@@ -26,7 +26,7 @@ cflags_common = [
   "-Wdate-time",
 ]
 
-include_common = [
+INCLUDE_COMMON = [
   "small/include",
   "${devattest_path}/services/core/include",
   "${devattest_path}/interfaces/innerkits",
@@ -36,32 +36,17 @@ include_common = [
   "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
 ]
 
-config("devattest_framework_config") {
-  ldflags = [ "-pthread" ]
-  if (board_name != "omap_se") {
-    ldflags += [
-      "-Wl,-z,relro,-z,now",
-      "-s",
-    ]
-  }
-}
-
 # L1 server
 shared_library("devattest_server") {
   sources = [
     "small/src/service/attest_framework_feature.c",
     "small/src/service/attest_framework_server.c",
   ]
-
-  cflags = [ "-fPIC" ]
-  cflags += cflags_common
-  cflags_cc = cflags
-
-  public_configs = [ ":devattest_framework_config" ]
-
-  include_dirs = include_common
+  cflags = CFLAGS_COMMON
+  cflags += [ "-fPIC" ]
+  ldflags = [ "-pthread" ]
+  include_dirs = INCLUDE_COMMON
   include_dirs += [ "${devattest_path}/services/core" ]
-
   deps = [
     "${devattest_path}/services/core:devattest_core",
     "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
@@ -72,15 +57,10 @@ shared_library("devattest_server") {
 # L1 client
 shared_library("devattest_client") {
   sources = [ "small/src/client/attest_framework_client_proxy.c" ]
-
-  cflags = [ "-fPIC" ]
-  cflags += cflags_common
-  cflags_cc = cflags
-
-  public_configs = [ ":devattest_framework_config" ]
-
-  include_dirs = include_common
-
+  cflags = CFLAGS_COMMON
+  cflags += [ "-fPIC" ]
+  ldflags = [ "-pthread" ]
+  include_dirs = INCLUDE_COMMON
   deps = [
     "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
     "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
@@ -90,14 +70,10 @@ shared_library("devattest_client") {
 # L1 service bin
 executable("devattest_service") {
   sources = [ "small/src/service/attest_framework_service.c" ]
-  cflags = cflags_common
-  cflags_cc = cflags
-
-  public_configs = [ ":devattest_framework_config" ]
-
-  include_dirs = include_common
+  cflags = CFLAGS_COMMON
+  ldflags = [ "-pthread" ]
+  include_dirs = INCLUDE_COMMON
   include_dirs += [ "${devattest_path}/services/core/include/utils" ]
-
   deps = [
     ":devattest_server",
     "${devattest_path}/services/core:devattest_core",
@@ -116,4 +92,3 @@ static_library("devattest_sdk") {
     deps = [ "${devattest_path}/services/core:devattest_core" ]
   }
 }
-
