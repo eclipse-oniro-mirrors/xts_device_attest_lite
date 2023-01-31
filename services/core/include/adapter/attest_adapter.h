@@ -42,8 +42,6 @@ char* AttestGetSecurityPatchTag(void);
 
 char* AttestGetUdid(void);
 
-char* AttestGetSerial(void);
-
 int32_t AttestWriteTicket(const TicketInfo* ticketInfo);
 
 int32_t AttestReadTicket(TicketInfo* ticketInfo);

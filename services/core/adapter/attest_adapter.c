@@ -233,11 +233,6 @@ char* AttestGetUdid(void)
     return OsGetUdid();
 }
 
-char* AttestGetSerial(void)
-{
-    return OsGetSerial();
-}
-
 int32_t AttestSetParameter(const char *key, const char *value)
 {
     return OsSetParameter(key, value);

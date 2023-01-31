@@ -67,7 +67,6 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
         HILOGE("[ReadAttestResultInfo] Failed to ReadString.");
         return DEVATTEST_FAIL;
     }
-
     return DEVATTEST_SUCCESS;
 }
 

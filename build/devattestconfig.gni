@@ -12,7 +12,6 @@
 # limitations under the License.
 
 devattest_path = "//test/xts/device_attest_lite"
-
 devattest_innerkit_path = "${devattest_path}/interfaces/innerkits"
 
 # 支持构建种类
