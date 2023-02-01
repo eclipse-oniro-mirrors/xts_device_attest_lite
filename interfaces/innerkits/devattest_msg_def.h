@@ -27,6 +27,8 @@ extern "C" {
 
 #define DEVATTEST_SUCCESS 0
 
+#define ATTEST_RESULT_INIT (-1)
+
 typedef struct {
     int32_t authResult;
     int32_t softwareResult;

@@ -122,8 +122,8 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         return DEVATTEST_FAIL;
     }
 
-    int32_t authResult = -1;
-    int32_t softwareResult = -1;
+    int32_t authResult = ATTEST_RESULT_INIT;
+    int32_t softwareResult = ATTEST_RESULT_INIT;
     char *ticket = "";
 
     int32_t ret = QueryAttest(&authResult, &softwareResult, &ticket);

@@ -14,117 +14,81 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 
-cflags_common = [
-    "-ftrapv",
-    "-Werror",
-    "-Wextra",
-    "-Wshadow",
-    "-fstack-protector-all",
-    "-D_FORTIFY_SOURCE=2",
-    "-Wformat=2",
-    "-Wfloat-equal",
-    "-Wdate-time",
+CFLAGS_COMMON = [
+  "-ftrapv",
+  "-Werror",
+  "-Wextra",
+  "-Wshadow",
+  "-fstack-protector-all",
+  "-D_FORTIFY_SOURCE=2",
+  "-Wformat=2",
+  "-Wfloat-equal",
+  "-Wdate-time",
 ]
 
-include_common = [
-    "small/include",
-    "${devattest_path}/services/core/include",
-    "${devattest_path}/interfaces",
-    "//utils/native/lite/include",
-    "//foundation/systemabilitymgr/samgr_lite/interfaces/kits/samgr",
-    "//foundation/communication/ipc/interfaces/innerkits/c/ipc/include",
-    "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
+INCLUDE_COMMON = [
+  "small/include",
+  "${devattest_path}/services/core/include",
+  "${devattest_path}/interfaces/innerkits",
+  "//utils/native/lite/include",
+  "//foundation/systemabilitymgr/samgr_lite/interfaces/kits/samgr",
+  "//foundation/communication/ipc/interfaces/innerkits/c/ipc/include",
+  "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
 ]
-
-config("devattest_framework_config") {
-    ldflags = [ "-pthread", ]
-    if (board_name != "omap_se") {
-        ldflags += [ "-Wl,-z,relro,-z,now", "-s" ]
-    }
-}
 
 # L1 server
 shared_library("devattest_server") {
-    sources = [
-        "small/src/service/attest_framework_feature.c",
-        "small/src/service/attest_framework_server.c",
-    ]
-
-    cflags = [ "-fPIC", ]
-    cflags += cflags_common
-    cflags_cc = cflags
-
-    public_configs = [
-      ":devattest_framework_config",
-    ]
-
-    include_dirs = include_common
-    include_dirs += [
-        "${devattest_path}/services/core",
-    ]
-
-    deps = [
-        "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
-        "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
-    ]
+  sources = [
+    "small/src/service/attest_framework_feature.c",
+    "small/src/service/attest_framework_server.c",
+  ]
+  cflags = CFLAGS_COMMON
+  cflags += [ "-fPIC" ]
+  ldflags = [ "-pthread" ]
+  include_dirs = INCLUDE_COMMON
+  include_dirs += [ "${devattest_path}/services/core" ]
+  deps = [
+    "${devattest_path}/services/core:devattest_core",
+    "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+    "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
+  ]
 }
 
 # L1 client
 shared_library("devattest_client") {
-    sources = [
-        "small/src/client/attest_framework_client_proxy.c",
-    ]
-
-    cflags = [ "-fPIC", ]
-    cflags += cflags_common
-    cflags_cc = cflags
-
-    public_configs = [
-      ":devattest_framework_config",
-    ]
-
-    include_dirs = include_common
-
-    deps = [
-        "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
-        "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
-    ]
+  sources = [ "small/src/client/attest_framework_client_proxy.c" ]
+  cflags = CFLAGS_COMMON
+  cflags += [ "-fPIC" ]
+  ldflags = [ "-pthread" ]
+  include_dirs = INCLUDE_COMMON
+  deps = [
+    "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+    "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
+  ]
 }
 
 # L1 service bin
 executable("devattest_service") {
-    sources = [
-        "small/src/service/attest_framework_service.c",
-    ]
-    cflags = cflags_common
-    cflags_cc = cflags
-
-    public_configs = [
-      ":devattest_framework_config",
-    ]
-
-    include_dirs = include_common
-    include_dirs += [
-        "${devattest_path}/services/core/include/utils",
-    ]
-
-    deps = [
-        ":devattest_server",
-        "${devattest_path}/services/core:devattest_core",
-        "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
-    ]
+  sources = [ "small/src/service/attest_framework_service.c" ]
+  cflags = CFLAGS_COMMON
+  ldflags = [ "-pthread" ]
+  include_dirs = INCLUDE_COMMON
+  include_dirs += [ "${devattest_path}/services/core/include/utils" ]
+  deps = [
+    ":devattest_server",
+    "${devattest_path}/services/core:devattest_core",
+    "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
+  ]
 }
 
 # L0 interface
 static_library("devattest_sdk") {
-    if (os_level == "mini") {
-        sources = [ "mini/src/attest_framework_client_mini.c" ]
-        include_dirs = [
-            "${devattest_path}/interfaces",
-            "${devattest_path}/services/core"
-        ]
-        deps = [
-            "${devattest_path}/services/core:devattest_core",
-        ]
-    }
+  if (os_level == "mini") {
+    sources = [ "mini/src/attest_framework_client_mini.c" ]
+    include_dirs = [
+      "${devattest_path}/interfaces/innerkits",
+      "${devattest_path}/services/core",
+    ]
+    deps = [ "${devattest_path}/services/core:devattest_core" ]
+  }
 }

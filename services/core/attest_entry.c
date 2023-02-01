@@ -57,7 +57,11 @@ static void AttestAuthCallBack(void *argv)
         }
         g_ProcAttestTimerId = NULL;
     }
-    if (CreateAttestThread(AttestTaskThread, (void *)ProcAttest, ATTEST_CALLBACK_THREAD_NAME, g_ProcAttestTimerId) != ATTEST_OK) {
+    int ret = CreateAttestThread(AttestTaskThread,
+        (void *)ProcAttest,
+        ATTEST_CALLBACK_THREAD_NAME,
+        g_ProcAttestTimerId);
+    if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[AttestAuthCallBack] CreateAttestThread return failed");
     }
     return;
@@ -84,7 +88,11 @@ int32_t AttestTask(void)
     }
 
     // 创建主流程定时器
-    ret = AttestCreateTimerTask(ATTEST_TIMER_TYPE_PERIOD, EXPIRED_INTERVAL, &AttestAuthCallBack, NULL, &g_ProcAttestTimerId);
+    ret = AttestCreateTimerTask(ATTEST_TIMER_TYPE_PERIOD,
+        EXPIRED_INTERVAL,
+        &AttestAuthCallBack,
+        NULL,
+        &g_ProcAttestTimerId);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[AttestTask] Create Periodic TimerTask return ret = %d.", ret);
     }
