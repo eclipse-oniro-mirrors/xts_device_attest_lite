@@ -23,6 +23,7 @@ static ATTEST_TIMER_ID g_ProcAttestTimerId = NULL;
 
 #ifdef __LITEOS_M__
 
+static osThreadId_t g_AttestTaskId = NULL;
 typedef void(*AttestTaskCallback)(void);
 // L0启动
 static int CreateAttestThread(void(*run)(void *), void *argv, const char *name, osThreadId_t *serverTaskId)
@@ -49,18 +50,18 @@ static void AttestTaskThread(void *argv)
 static void AttestAuthCallBack(void *argv)
 {
     (void)argv;
-    if (g_ProcAttestTimerId == NULL) {
-        const char *pthreadName = osThreadGetName(g_ProcAttestTimerId);
+    if (g_AttestTaskId != NULL) {
+        const char *pthreadName = osThreadGetName(g_AttestTaskId);
         if ((pthreadName != NULL) && (strcmp(pthreadName, ATTEST_CALLBACK_THREAD_NAME) == 0)) {
-            osThreadTerminate(g_ProcAttestTimerId);
+            osThreadTerminate(g_AttestTaskId);
             ATTEST_LOG_ERROR("[AttestAuthCallBack] osThreadTerminate");
         }
-        g_ProcAttestTimerId = NULL;
+        g_AttestTaskId = NULL;
     }
     int ret = CreateAttestThread(AttestTaskThread,
         (void *)ProcAttest,
         ATTEST_CALLBACK_THREAD_NAME,
-        g_ProcAttestTimerId);
+        &g_AttestTaskId);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[AttestAuthCallBack] CreateAttestThread return failed");
     }

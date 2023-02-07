@@ -139,7 +139,7 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
     return ret;
 }
 
-static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req, IpcIo *reply)
+static int32_t Invoke(const IServerProxy *iProxy, const int funcId, void *origin, IpcIo *req, IpcIo *reply)
 {
     (void)origin;
     (void)req;
