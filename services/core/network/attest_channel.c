@@ -56,7 +56,6 @@ static int32_t LazyVerifyCert(void* data, mbedtls_x509_crt* crt, int32_t depth, 
             if (*flags == 0) {
                 break;
             }
-            continue;
         }
     }
     ((void)data);
