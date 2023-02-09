@@ -102,13 +102,10 @@ static int AttestClientQueryStatusCb(void *owner, int code, IpcIo *reply)
 static int32_t StartProc(IUnknown *iUnknown)
 {
     if (iUnknown == NULL) {
-        return DEVATTEST_FAIL;
-    }
-    AttestClientProxy *proxy = (AttestClientProxy *)iUnknown;
-    if (proxy == NULL) {
         HILOGE("[StartProc] Get proxy failed.");
         return DEVATTEST_FAIL;
     }
+    AttestClientProxy *proxy = (AttestClientProxy *)iUnknown;
     int32_t result = DEVATTEST_SUCCESS;
     int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_PROC, NULL, &result, AttestClientStartProcCb);
 
@@ -125,13 +122,10 @@ static int32_t StartProc(IUnknown *iUnknown)
 static int32_t QueryStatus(IUnknown *iUnknown, AttestResultInfo *attestResultInfo)
 {
     if (iUnknown == NULL) {
+        HILOGE("[StartProc] Get proxy failed.");
         return DEVATTEST_FAIL;
     }
     AttestClientProxy *proxy = (AttestClientProxy *)iUnknown;
-    if (proxy == NULL) {
-        HILOGE("[QueryStatus] Get proxy failed.");
-        return DEVATTEST_FAIL;
-    }
     ServiceRspMsg reply = {0};
     reply.attestResultInfo = attestResultInfo;
     int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_QUERY, NULL, &reply, AttestClientQueryStatusCb);
@@ -159,6 +153,8 @@ static void *CreateClient(const char *service, const char *feature, uint32 size)
     (void)memset_s(client, len, 0, len);
     AttestClientEntry *entry = (AttestClientEntry *)&client[size];
     if (entry == NULL) {
+        free(client);
+        client = NULL;
         return NULL;
     }
     entry->ver = ((uint16)SERVER_PROXY_VER | (uint16)DEFAULT_VERSION);
@@ -178,7 +174,6 @@ static void DestroyClient(const char *service, const char *feature, void *iproxy
     (void)feature;
     if (iproxy != NULL) {
         free(iproxy);
-        iproxy = NULL;
     }
 }
 

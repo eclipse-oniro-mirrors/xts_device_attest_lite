@@ -40,7 +40,7 @@ int32_t GetRandomNum(void)
 
     const char* pers = "CTR_DRBG";
     uint8_t random = 0;
-    int32_t ret = 0;
+    int32_t ret = ATTEST_OK;
     do {
         if (initFlag == false) {
             mbedtls_ctr_drbg_init(&randomContext);

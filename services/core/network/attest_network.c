@@ -675,7 +675,7 @@ static int32_t SendTLSMsg(const TLSSession* session, char *coapMessage, size_t c
     if (session == NULL || coapMessage == NULL || coapMessageLen > MAX_MESSAGE_LEN) {
         return ERR_NET_INVALID_ARG;
     }
-    int32_t ret;
+    int32_t ret = ATTEST_ERR;
     int32_t i = 0;
     for (; i <= WISE_RETRY_CNT; i++) {
         ret = TLSWrite(session, (unsigned char*)coapMessage, coapMessageLen);
@@ -684,7 +684,7 @@ static int32_t SendTLSMsg(const TLSSession* session, char *coapMessage, size_t c
             break;
         }
     }
-    if (ret != 0 && i > WISE_RETRY_CNT) {
+    if (ret != ATTEST_OK && i > WISE_RETRY_CNT) {
         ATTEST_LOG_ERROR("[SendTLSMsg] Send msg failed, exceed retry limit.");
         return ret;
     }
