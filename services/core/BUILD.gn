@@ -129,12 +129,21 @@ config("devattest_core_config") {
   ]
 }
 
+config("devattest_core_hi3861_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "//device/soc/hisilicon/hi3861v100/sdk_liteos/third_party/mbedtls/include",
+  ]
+}
+
 if (ohos_kernel_type == "liteos_m") {
   static_library("devattest_core") {
     sources = sources_common
 
     public_configs = [
       ":devattest_core_config",
+      ":devattest_core_hi3861_config"
     ]
 
     cflags = [
