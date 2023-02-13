@@ -89,10 +89,8 @@ config("devattest_core_config") {
     defines +=
         [ "HTTPS_NETWORK_HOST = \"wisedevice-saas-mirrorcn.hwcloudtest.cn\"" ]
   } else {
-    defines += [
-      "HTTPS_NETWORK_HOST = \"wisedevice-lite-drcn.openharmony.cn\"",
-      #"HTTPS_NETWORK_HOST = \"wisedevice-saas-mirrorcn.hwcloudtest.cn\"",
-    ]
+    defines += 
+    [ "HTTPS_NETWORK_HOST = \"wisedevice-lite-drcn.openharmony.cn\"" ]
   }
 
   if (enable_attest_mock_network) {
@@ -113,11 +111,21 @@ config("devattest_core_config") {
   defines += [ "MBEDTLS_ALLOW_PRIVATE_ACCESS" ]
 }
 
+config("devattest_core_hi3861_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = 
+  [ "//device/soc/hisilicon/hi3861v100/sdk_liteos/third_party/mbedtls/include" ]
+}
+
 if (ohos_kernel_type == "liteos_m") {
   static_library("devattest_core") {
     sources = sources_common
 
-    public_configs = [ ":devattest_core_config" ]
+    public_configs = [
+      ":devattest_core_config",
+      ":devattest_core_hi3861_config"
+    ]
 
     cflags = [
       "-Wall",
