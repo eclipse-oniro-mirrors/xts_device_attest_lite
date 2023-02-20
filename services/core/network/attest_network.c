@@ -283,7 +283,7 @@ char* BuildCoapResetBody(const DevicePacket *postValue)
         ATTEST_LOG_ERROR("[BuildCoapResetBody] postData CreateObject fail");
         return NULL;
     }
-    int32_t ret = 0;
+    int32_t ret = ATTEST_OK;
     do {
         if (cJSON_AddStringToObject(postData, "udid", postValue->udid) == NULL) {
             ret = ATTEST_ERR;
@@ -331,7 +331,7 @@ char* BuildCoapAuthBody(const DevicePacket *postValue)
         ATTEST_LOG_ERROR("[BuildCoapAuthBody] postData CreateObject fail");
         return NULL;
     }
-    int32_t ret = 0;
+    int32_t ret = ATTEST_OK;
     do {
         if (cJSON_AddStringToObject(postData, "udid", postValue->udid) == NULL) {
             ret = ATTEST_ERR;
@@ -403,7 +403,7 @@ char* BuildCoapActiveBody(const DevicePacket *postValue)
         ATTEST_LOG_ERROR("[BuildCoapActiveBody] postData CreateObject fail");
         return NULL;
     }
-    int32_t ret = 0;
+    int32_t ret = ATTEST_OK;
     do {
         if (cJSON_AddStringToObject(postData, "ticket", postValue->ticket) == NULL ||
             cJSON_AddStringToObject(postData, "udid", postValue->udid) == NULL) {

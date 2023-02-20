@@ -26,7 +26,7 @@
 #include "attest_adapter_mock.h"
 #include "attest_service_auth.h"
 
-#define AUTH_RESULT_LEN 16
+#define AUTH_RESULT_LEN 64
 
 bool IsAuthStatusChg(void)
 {
@@ -169,7 +169,7 @@ static int32_t ParseAuthType(const cJSON* root, AuthStatus* authStatus)
         return ATTEST_ERR;
     }
     char* temp = cJSON_GetStringValue(cJSON_GetObjectItem(root, "authType"));
-    if (temp == NULL || strlen(temp) == 0) {
+    if (temp == NULL) {
         ATTEST_LOG_ERROR("[ParseAuthType] Get String Value for authType fail");
         return ATTEST_ERR;
     }
@@ -199,7 +199,7 @@ static int32_t ParseVersionId(const cJSON* root, AuthStatus* authStatus)
         return ATTEST_ERR;
     }
     char* temp = cJSON_GetStringValue(cJSON_GetObjectItem(root, "versionId"));
-    if (temp == NULL || strlen(temp) == 0) {
+    if (temp == NULL) {
         ATTEST_LOG_ERROR("[ParseVersionId] Get String Value for versionId fail");
         return ATTEST_ERR;
     }
@@ -546,7 +546,7 @@ static int32_t ParseAuthStats(const cJSON* json, AuthResult* authResult)
         return ATTEST_ERR;
     }
     char* item = cJSON_GetStringValue(cJSON_GetObjectItem(json, "authStats"));
-    if ((item == NULL) || (strlen(item) == 0)) {
+    if (item == NULL) {
         ATTEST_LOG_ERROR("[ParseAuthStats] GetStringValue authStats failed");
         return ATTEST_ERR;
     }
@@ -736,7 +736,6 @@ int32_t ParseAuthResultResp(const char* msg, AuthResult* authResult)
         ATTEST_LOG_ERROR("[ParseAuthResultResp] Invalid parameter.");
         return ATTEST_ERR;
     }
-    
     AuthStatus* authStatus = CreateAuthStatus();
     cJSON* json = cJSON_Parse(msg);
     if (json == NULL) {
@@ -747,32 +746,32 @@ int32_t ParseAuthResultResp(const char* msg, AuthResult* authResult)
     int32_t ret = -1;
     do {
         // 解析错误码为4999或140001时，重试一次
-        if ((ret = ParseErrcode(json, authResult)) != 0) {
+        if ((ret = ParseErrcode(json, authResult)) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseAuthResultResp] Invalid error code or get it failed, ret = %d", ret);
             break;
         }
-        if ((ret = ParseAuthStats(json, authResult)) != 0) {
+        if ((ret = ParseAuthStats(json, authResult)) != ATTEST_OK) {
             ATTEST_LOG_ERROR(
                 "[ParseAuthResultResp] Parse auth status from symbol authentication response failed, ret = %d", ret);
             break;
         }
-        if ((ret = DecodeAuthStatus(authResult->authStatus, authStatus)) != 0) {
+        if ((ret = DecodeAuthStatus(authResult->authStatus, authStatus)) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseAuthResultResp] Decode authentication status data damaged, ret = %d", ret);
             break;
         }
-        if ((authStatus != NULL) && (authStatus->hardwareResult != 0)) {
+        if ((authStatus != NULL) && (authStatus->hardwareResult != ATTEST_OK)) {
             ATTEST_LOG_ERROR("[ParseAuthResultResp] Hardware result is [%d]", authStatus->hardwareResult);
             break;
         }
-        if (ParseTicket(json, authResult) != 0) {
+        if (ParseTicket(json, authResult) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseAuthResultResp] Parse ticket from symbol authentication response failed");
             break;
         }
-        if (ParseTokenValue(json, authResult) != 0) {
+        if (ParseTokenValue(json, authResult) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseAuthResultResp] Parse token value from symbol authentication response failed");
             break;
         }
-        if (ParseTokenId(json, authResult) != 0) {
+        if (ParseTokenId(json, authResult) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseAuthResultResp] Parse token id from symbol authentication response failed");
             break;
         }

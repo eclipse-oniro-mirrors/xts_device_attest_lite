@@ -155,7 +155,7 @@ char* GetRandomUuid(void)
         ATTEST_LOG_ERROR("[GetRandomUuid] malloc memory failed.");
         return NULL;
     }
-    
+
     char* index = buff;
     uint32_t tempLen = 4;
     int32_t MaxRandomLen = 65536;

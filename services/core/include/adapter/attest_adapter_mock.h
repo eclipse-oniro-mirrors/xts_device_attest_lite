@@ -36,7 +36,7 @@ extern "C" {
 #define ATTEST_MOCK_DEVICE_STUB_FLAG false
 #endif
 
-#define ATTEST_MOCK_STUB_PATH "/storage/data/attest"
+#define ATTEST_MOCK_STUB_PATH "/storage/data/device_attest"
 #define ATTEST_MOCK_STUB_NETWORK_NAME "attest_mock_network_para"
 #define ATTEST_MOCK_STUB_DEVICE_NAME "attest_mock_device_para"
 #define ATTEST_MOCK_TOKEN_FILE_NAME "token"
