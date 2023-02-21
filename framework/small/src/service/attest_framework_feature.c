@@ -150,7 +150,6 @@ static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req
     switch (funcId) {
         case ATTEST_FRAMEWORK_MSG_PROC:
             AttestTask();
-            WriteInt32(reply, DEVATTEST_SUCCESS);
             break;
         case ATTEST_FRAMEWORK_MSG_QUERY:
             FeatureQueryAttest(reply);
