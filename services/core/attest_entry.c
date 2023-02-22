@@ -50,7 +50,7 @@ static void AttestTaskThread(void *argv)
 static void AttestAuthCallBack(void *argv)
 {
     (void)argv;
-    if (g_AttestTaskId == NULL) {
+    if (g_AttestTaskId != NULL) {
         const char *pthreadName = osThreadGetName(g_AttestTaskId);
         if ((pthreadName != NULL) && (strcmp(pthreadName, ATTEST_CALLBACK_THREAD_NAME) == 0)) {
             osThreadTerminate(g_AttestTaskId);
@@ -89,7 +89,11 @@ int32_t AttestTask(void)
     }
 
     // 创建主流程定时器
-    ret = AttestCreateTimerTask(ATTEST_TIMER_TYPE_PERIOD, EXPIRED_INTERVAL, &AttestAuthCallBack, NULL, &g_ProcAttestTimerId);
+    ret = AttestCreateTimerTask(ATTEST_TIMER_TYPE_PERIOD,
+        EXPIRED_INTERVAL,
+        &AttestAuthCallBack,
+        NULL,
+        &g_ProcAttestTimerId);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[AttestTask] Create Periodic TimerTask return ret = %d.", ret);
     }
