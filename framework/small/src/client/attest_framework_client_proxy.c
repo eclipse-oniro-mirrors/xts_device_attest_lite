@@ -63,19 +63,6 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
     return DEVATTEST_SUCCESS;
 }
 
-static int AttestClientStartProcCb(void *owner, int code, IpcIo *reply)
-{
-    (void)code;
-    if ((owner == NULL) || (reply == NULL)) {
-        HILOGE("[AttestClientStartProcCb] owner or reply is nullptr.");
-        return DEVATTEST_FAIL;
-    }
-
-    int32_t *result = (int32_t *)owner;
-    ReadInt32(reply, result);
-    return DEVATTEST_SUCCESS;
-}
-
 static int AttestClientQueryStatusCb(void *owner, int code, IpcIo *reply)
 {
     (void)code;
@@ -106,15 +93,11 @@ static int32_t StartProc(IUnknown *iUnknown)
         return DEVATTEST_FAIL;
     }
     AttestClientProxy *proxy = (AttestClientProxy *)iUnknown;
-    int32_t result = DEVATTEST_SUCCESS;
-    int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_PROC, NULL, &result, AttestClientStartProcCb);
+    int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_PROC, NULL, NULL, NULL);
 
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[StartProc] Invoke failed.");
         return DEVATTEST_FAIL;
-    }
-    if (result != DEVATTEST_SUCCESS) {
-        HILOGE("[StartProc] An error has occurred");
     }
     return DEVATTEST_SUCCESS;
 }
@@ -122,7 +105,7 @@ static int32_t StartProc(IUnknown *iUnknown)
 static int32_t QueryStatus(IUnknown *iUnknown, AttestResultInfo *attestResultInfo)
 {
     if (iUnknown == NULL) {
-        HILOGE("[StartProc] Get proxy failed.");
+        HILOGE("[QueryStatus] Get proxy failed.");
         return DEVATTEST_FAIL;
     }
     AttestClientProxy *proxy = (AttestClientProxy *)iUnknown;
