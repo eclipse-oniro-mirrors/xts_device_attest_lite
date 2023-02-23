@@ -122,8 +122,8 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         return DEVATTEST_FAIL;
     }
 
-    int32_t authResult = -1;
-    int32_t softwareResult = -1;
+    int32_t authResult = ATTEST_RESULT_INIT;
+    int32_t softwareResult = ATTEST_RESULT_INIT;
     char *ticket = "";
 
     int32_t ret = QueryAttest(&authResult, &softwareResult, &ticket);
@@ -150,7 +150,6 @@ static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req
     switch (funcId) {
         case ATTEST_FRAMEWORK_MSG_PROC:
             AttestTask();
-            WriteInt32(reply, DEVATTEST_SUCCESS);
             break;
         case ATTEST_FRAMEWORK_MSG_QUERY:
             FeatureQueryAttest(reply);
