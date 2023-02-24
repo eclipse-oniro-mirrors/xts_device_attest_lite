@@ -19,6 +19,7 @@ lite_component("device_atTest_lite") {
     features += [
       "framework:devattest_service",
       "test/startup:devattest_client",
+      "interfaces/kit/js:ace_kit_device_attest",
     ]
   } else if (ohos_kernel_type == "liteos_m") {
     features += [ "framework:devattest_sdk" ]
