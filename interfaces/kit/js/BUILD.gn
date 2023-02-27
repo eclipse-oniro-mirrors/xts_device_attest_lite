@@ -31,7 +31,7 @@ lite_library("ace_kit_device_attest") {
 
   include_dirs = [
     "include",
-    "${devattest_path}/interfaces",
+    "${devattest_path}/interfaces/innerkits",
     "${devattest_path}/framework/small/include",
     "//foundation/arkui/ace_engine_lite/interfaces/inner_api/builtin/base",
     "//foundation/arkui/ace_engine_lite/interfaces/inner_api/builtin/jsi",

@@ -100,7 +100,7 @@ void SetJsResult(JSIValue *result, AttestResultInfo *attestResultInfo)
     JSI::SetNumberProperty(*result, "softwareResult", attestResultInfo->softwareResult);
     
     JSIValue array = JSI::CreateNull();
-    int32_t size = attestResultInfo->softwareResultDetail.size();
+    int32_t size = sizeof(attestResultInfo->softwareResultDetail);
     if (size > 0) {
         bool isArray = false;
         array = JSI::CreateArray(size);

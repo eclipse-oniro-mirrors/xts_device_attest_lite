@@ -33,9 +33,22 @@ extern "C" {
 
 #define ATTEST_RESULT_INIT (-1)
 
+#define SOFTWARE_RESULT_DETAIL_SIZE 5
+#define MAX_ATTEST_RESULT_SIZE (SOFTWARE_RESULT_DETAIL_SIZE + 2)
+
+typedef enum {
+    SOFTWARE_RESULT_VERSIONID,
+    SOFTWARE_RESULT_PATCHLEVEL,
+    SOFTWARE_RESULT_ROOTHASH,
+    SOFTWARE_RESULT_PCID,
+    SOFTWARE_RESULT_RESERVE,
+} SOFTWARE_RESULT_DETAIL_TYPE;
+
 typedef struct {
     int32_t authResult;
     int32_t softwareResult;
+    int32_t softwareResultDetail[5];
+    int32_t ticketLength;
     char* ticket;
 } AttestResultInfo;
 
