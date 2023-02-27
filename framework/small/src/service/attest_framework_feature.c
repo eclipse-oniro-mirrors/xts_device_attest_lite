@@ -18,11 +18,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <securec.h>
+#include <bundle_manager.h>
+#include <bundle_info.h>
 #include <ohos_init.h>
 #include <iunknown.h>
 #include <samgr_lite.h>
 #include <iproxy_client.h>
 #include <iproxy_server.h>
+#include "ipc_skeleton.h"
 
 #include "attest_log.h"
 #include "attest_framework_define.h"
@@ -87,14 +90,14 @@ static BOOL FEATURE_OnMessage(Feature *feature, Request *request)
     return FALSE;
 }
 
-static int32_t WriteAttestResultInfo(IpcIo *reply, int32_t authResult, int32_t softwareResult, char *ticket)
+static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResultInfo)
 {
     if (reply == NULL) {
         HILOGE("[WriteAttestResultInfo] reply is null!");
         return DEVATTEST_FAIL;
     }
 
-    if (ticket == NULL) {
+    if (attestResultInfo->ticket == NULL) {
         HILOGE("[WriteAttestResultInfo] ticket is NULL!");
         if (!WriteInt32(reply, DEVATTEST_FAIL)) {
             HILOGE("[WriteAttestResultInfo] Write ret fail!");
@@ -107,26 +110,96 @@ static int32_t WriteAttestResultInfo(IpcIo *reply, int32_t authResult, int32_t s
         return DEVATTEST_FAIL;
     }
 
-    if (!WriteInt32(reply, authResult) || !WriteInt32(reply, softwareResult) ||
-        !WriteString(reply, ticket)) {
+    if (!WriteInt32(reply, attestResultInfo->authResult) || !WriteInt32(reply, attestResultInfo->softwareResult) ||
+        !WriteInt32(reply, attestResultInfo->ticketLength) || !WriteString(reply, attestResultInfo->ticket)) {
         HILOGE("[WriteAttestResultInfo] Write data fail!");
+        return DEVATTEST_FAIL;
+    }
+
+    int32_t size = sizeof(attestResultInfo->softwareResultDetail);
+    if (!WriteInt32Vector(reply, attestResultInfo->softwareResultDetail, size)) {
+        HILOGE("[WriteAttestResultInfo] Write softwareResultDetail_ fail!");
+        return DEVATTEST_FAIL;
+    }
+
+    return DEVATTEST_SUCCESS;
+}
+
+static int32_t IpcWriteErrorPermissionInfo(IpcIo *reply)
+{
+    if (reply == NULL) {
+        HILOGE("[IpcWritePermissionError] reply is null!");
+        return DEVATTEST_FAIL;
+    }
+    if (!WriteInt32(reply, DEVATTEST_ERR_JS_IS_NOT_SYSTEM_APP)) {
+        HILOGE("[IpcWritePermissionError] Write ret fail!");
         return DEVATTEST_FAIL;
     }
     return DEVATTEST_SUCCESS;
 }
 
+static int32_t CopyAttestResult(int32_t *resultArray, AttestResultInfo *attestResultInfo)
+{
+    if (resultArray == NULL) {
+        return DEVATTEST_FAIL;
+    }
+    int32_t *head = resultArray;
+    attestResultInfo->authResult = *head;
+    head++;
+    attestResultInfo->softwareResult = *head;
+    for (int i = 0; i < SOFTWARE_RESULT_DETAIL_SIZE; i++) {
+        (attestResultInfo->softwareResultDetail)[i] = *(++head);
+    }
+    return DEVATTEST_SUCCESS;
+}
+
+static int32_t GetQueryAttestResult(AttestResultInfo *attestResultInfo)
+{
+    int32_t resultArraySize = MAX_ATTEST_RESULT_SIZE * sizeof(int32_t);
+    int32_t *resultArray = (int32_t *)malloc(resultArraySize);
+    if (resultArray == NULL) {
+        HILOGE("malloc resultArray failed");
+        return DEVATTEST_FAIL;
+    }
+    (void)memset_s(resultArray, resultArraySize, 0, resultArraySize);
+    int32_t ticketLenght = 0;
+    char* ticketStr = NULL;
+    int32_t ret = DEVATTEST_SUCCESS;
+    do {
+        ret = QueryAttest(&resultArray, MAX_ATTEST_RESULT_SIZE, &ticketStr, &ticketLenght);
+        if (ret != DEVATTEST_SUCCESS) {
+            HILOGE("QueryAttest failed");
+            break;
+        }
+        if (ticketStr == NULL || ticketLenght == 0) {
+            HILOGE("get ticket failed");
+            ret = DEVATTEST_FAIL;
+            break;
+        }
+        attestResultInfo->ticketLength = ticketLenght;
+        attestResultInfo->ticket = ticketStr;
+        ret = CopyAttestResult(resultArray,  attestResultInfo);
+        if (ret != DEVATTEST_SUCCESS) {
+            HILOGE("copy attest result failed");
+            break;
+        }
+    } while (0);
+    if (ret != DEVATTEST_SUCCESS && ticketStr != NULL) {
+        free(ticketStr);
+        ticketStr = NULL;
+    }
+    resultArray = NULL;
+    return ret;
+}
 static int32_t FeatureQueryAttest(IpcIo *reply)
 {
     if (reply == NULL) {
         HILOGE("[FeatureQueryAttest] reply is null!");
         return DEVATTEST_FAIL;
     }
+    AttestResultInfo  attestResultInfo = {.softwareResultDetail={-1, -1, -1, -1, -1}};
+    int32_t ret = GetQueryAttestResult(&attestResultInfo);
 
-    int32_t authResult = ATTEST_RESULT_INIT;
-    int32_t softwareResult = ATTEST_RESULT_INIT;
-    char *ticket = "";
-
-    int32_t ret = QueryAttest(&authResult, &softwareResult, &ticket);
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[FeatureQueryAttest] Query status fail!");
         if (!WriteInt32(reply, ret)) {
@@ -135,16 +208,38 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         return DEVATTEST_FAIL;
     }
 
-    ret = WriteAttestResultInfo(reply, authResult, softwareResult, ticket);
+    ret = WriteAttestResultInfo(reply, &attestResultInfo);
     return ret;
+}
+
+static bool CheckPermission(int32_t uid)
+{
+    char *bundName = NULL;
+    GetBundleNameForUid(uid, &bundName);
+    if (bundName == NULL) {
+        HILOGE("[CheckPermission] Get  bundle name fail!");
+        return false;
+    }
+    BundleInfo bundleInfo = { 0 };
+    uint8_t ret = GetBundleInfo(bundName, 0, &bundleInfo);
+    if (ret != DEVATTEST_SUCCESS) {
+        HILOGE("[CheckPermission] Get  bundle info fail!");
+        return false;
+    }
+    bool isSystem = bundleInfo.isSystemApp;
+    ClearBundleInfo(&bundleInfo);
+    return isSystem;
 }
 
 static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req, IpcIo *reply)
 {
-    (void)origin;
     (void)req;
-    if (iProxy == NULL) {
+    if (iProxy == NULL || origin == NULL) {
         return DEVATTEST_FAIL;
+    }
+    int32_t uid = GetCallingUid();
+    if (!CheckPermission(uid)) {
+        return IpcWriteErrorPermissionInfo(req);
     }
     int32_t ret = DEVATTEST_SUCCESS;
     switch (funcId) {

@@ -49,17 +49,29 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
     }
     AttestResultInfo *attestResult = *attestStatus;
     if (!ReadInt32(reply, (int32_t *)&attestResult->authResult) ||
-        !ReadInt32(reply, (int32_t *)&attestResult->softwareResult)) {
+        !ReadInt32(reply, (int32_t *)&attestResult->softwareResult) ||
+        !ReadInt32(reply, (int32_t *)attestResult->ticketLength)) {
         HILOGE("[ReadAttestResultInfo] Failed to ReadInt32.");
         return DEVATTEST_FAIL;
     }
 
-    size_t ticketLen = 0;
-    attestResult->ticket = (char *)ReadString(reply, &ticketLen);
-    if ((attestResult->ticket == NULL) || (ticketLen == 0)) {
+    size_t len = 0;
+    attestResult->ticket = (char *)ReadString(reply, &len);
+    if ((attestResult->ticket == NULL) || (len == 0)) {
         HILOGE("[ReadAttestResultInfo] Failed to ReadString.");
         return DEVATTEST_FAIL;
     }
+    int32_t *softwareResultDetail = ReadInt32Vector(reply, &len);
+    if (softwareResultDetail == NULL || (len != sizeof(attestResult->softwareResultDetail))) {
+        HILOGE("[ReadAttestResultInfo] Failed to softwareResultDetail_.");
+        return DEVATTEST_FAIL;
+    }
+    len = sizeof(int32_t) * sizeof(attestResult->softwareResultDetail);
+    if (memcpy_s(attestResult->softwareResultDetail, len, softwareResultDetail, len) != 0) {
+        HILOGE("[ReadAttestResultInfo] Failed to copy softwareResultDetail.");
+        return DEVATTEST_FAIL;
+    }
+
     return DEVATTEST_SUCCESS;
 }
 

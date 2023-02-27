@@ -46,11 +46,18 @@ shared_library("devattest_server") {
   cflags += [ "-fPIC" ]
   ldflags = [ "-pthread" ]
   include_dirs = INCLUDE_COMMON
-  include_dirs += [ "${devattest_path}/services/core" ]
+  include_dirs += [
+    "${devattest_path}/services/core",
+    "//foundation/ability/ability_lite/interfaces/kits/want_lite",
+    "//foundation/bundlemanager/bundle_framework_lite/interfaces/kits/bundle_lite",
+    "//foundation/communication/ipc/interfaces/innerkits/c/ipc/include",
+  ]
   deps = [
     "${devattest_path}/services/core:devattest_core",
     "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
     "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
+    "//foundation/bundlemanager/bundle_framework_lite/frameworks/bundle_lite:bundle",
+    "//foundation/communication/ipc/interfaces/innerkits/c/ipc:rpc_manager"
   ]
 }
 

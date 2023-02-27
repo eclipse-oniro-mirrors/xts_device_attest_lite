@@ -33,33 +33,6 @@
 
 pthread_mutex_t g_mtxAttest = PTHREAD_MUTEX_INITIALIZER;
 
-static int32_t ConnectWiseDevice(void)
-{
-    ATTEST_LOG_DEBUG("[ConnectWiseDevice] Begin.");
-    int32_t ret = 0;
-    for (int32_t i = 0; i <= WISE_RETRY_CNT; i++) {
-        if (ATTEST_MOCK_NETWORK_STUB_FLAG) {
-            ATTEST_LOG_DEBUG("[ConnectWiseDevice] End of MOCK.");
-            return ATTEST_OK;
-        }
-        ret = D2CConnect();
-        if (ret == ATTEST_OK) {
-            break;
-        }
-    }
-    ATTEST_LOG_DEBUG("[ConnectWiseDevice] End.");
-    return ret;
-}
-
-static void DisConnectWiseDevice(void)
-{
-    if (ATTEST_MOCK_NETWORK_STUB_FLAG) {
-        ATTEST_LOG_DEBUG("[DisConnectWiseDevice] End of MOCK.");
-        return;
-    }
-    D2CClose();
-    ATTEST_LOG_DEBUG("[DisConnectWiseDevice] End.");
-}
 
 static int32_t ResetDevice(void)
 {
@@ -248,18 +221,6 @@ static int32_t ProcAttestImpl(void)
             break;
         }
 
-        // token激活
-        ATTEST_LOG_INFO("[ProcAttestImpl] Active token.");
-        for (int32_t i = 0; i <= WISE_RETRY_CNT; i++) {
-            ret = ActiveToken(authResult);
-            if (!IS_WISE_RETRY(-ret)) {
-                break;
-            }
-        }
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttestImpl] Active token failed, ret = %d.", ret);
-            break;
-        }
         // 结果保存到本地
         ATTEST_LOG_INFO("[ProcAttestImpl] Flush auth result.");
         ret = FlushAuthResult(authResult->ticket, authResult->authStatus);
@@ -271,9 +232,18 @@ static int32_t ProcAttestImpl(void)
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ProcAttestImpl] Flush attest para failed, ret = %d.", ret);
         }
-        ret = GetAttestStatusPara();
+
+        // token激活
+        ATTEST_LOG_INFO("[ProcAttestImpl] Active token.");
+        for (int32_t i = 0; i <= WISE_RETRY_CNT; i++) {
+            ret = ActiveToken(authResult);
+            if (!IS_WISE_RETRY(-ret)) {
+                break;
+            }
+        }
         if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttestImpl] Get para failed, ret = %d.", ret);
+            ATTEST_LOG_ERROR("[ProcAttestImpl] Active token failed, ret = %d.", ret);
+            break;
         }
     } while (0);
     DestroySysData();
@@ -290,22 +260,10 @@ int32_t ProcAttest(void)
         ret = InitMemNodeList();
         ATTEST_LOG_INFO("[ProcAttest] Init mem node list, ret = %d.", ret);
     }
-
-    do {
-        // connect to network
-        ret = ConnectWiseDevice();
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttest] Connect wise device failed, ret = %d.", ret);
-            break;
-        }
-
-        ret = ProcAttestImpl();
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttest] Proc failed, ret = %d.", ret);
-        }
-        DisConnectWiseDevice();
-    } while (0);
-
+    ret = ProcAttestImpl();
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[ProcAttest] Proc Attest failed, ret = %d.", ret);
+    }
     if (ATTEST_DEBUG_MEMORY_LEAK) {
         PrintMemNodeList();
         ret = DestroyMemNodeList();
@@ -316,16 +274,35 @@ int32_t ProcAttest(void)
     return ret;
 }
 
-static int32_t QueryAttestStatusImpl(int32_t* authResult, int32_t* softwareResult, char** ticket)
+static int32_t CopyResultArray(AuthStatus* authStatus, int32_t** resultArray)
 {
-    ATTEST_LOG_DEBUG("[QueryAttestStatusImpl] Query attest status begin.");
-    if (authResult == NULL || softwareResult == NULL || ticket == NULL) {
+    if (authStatus == NULL || resultArray == NULL) {
         return ATTEST_ERR;
     }
-    *authResult = DEVICE_ATTEST_FAIL;
-    *softwareResult = DEVICE_ATTEST_FAIL;
-    *ticket = "";
+    int32_t *head = *resultArray;
+    head[ATTEST_RESULT_AUTH] = authStatus->hardwareResult;
+    head[ATTEST_RESULT_SOFTWARE] = authStatus->softwareResult;
+    SoftwareResultDetail *softwareResultDetail = (SoftwareResultDetail *)authStatus->softwareResultDetail;
+    if (softwareResultDetail == NULL) {
+        return ATTEST_ERR;
+    }
+    head[ATTEST_RESULT_VERSIONID] = softwareResultDetail->versionIdResult;
+    head[ATTEST_RESULT_PATCHLEVEL] = softwareResultDetail->patchLevelResult;
+    head[ATTEST_RESULT_ROOTHASH] = softwareResultDetail->rootHashResult;
+    head[ATTEST_RESULT_PCID] = softwareResultDetail->pcidResult;
+    head[ATTEST_RESULT_RESERVE] = DEVICE_ATTEST_FAIL;
+    return ATTEST_OK;
+}
 
+static int32_t QueryAttestStatusImpl(int32_t** resultArray, int32_t arraySize, char** ticket, int32_t* ticketLength)
+{
+    ATTEST_LOG_DEBUG("[QueryAttestStatusImpl] Query attest status begin.");
+    if (resultArray == NULL || arraySize != ATTEST_RESULT_MAX || ticket == NULL) {
+        ATTEST_LOG_ERROR("[QueryAttestStatusImpl] parameter wrong");
+        return ATTEST_ERR;
+    }
+    *ticket = NULL;
+    *ticketLength = 0;
     // 获取认证结果
     char* authStatusBase64 = NULL;
     if (GetAuthStatus(&authStatusBase64) != 0) {
@@ -356,21 +333,25 @@ static int32_t QueryAttestStatusImpl(int32_t* authResult, int32_t* softwareResul
         return ATTEST_ERR;
     }
 
-    *authResult = authStatus->hardwareResult;
-    *softwareResult = authStatus->softwareResult;
-    *ticket = decryptedTicket;
+    retCode = CopyResultArray(authStatus, resultArray);
+    if (retCode != ATTEST_OK) {
+        DestroyAuthStatus(&authStatus);
+        ATTEST_MEM_FREE(decryptedTicket);
+        return ATTEST_ERR;
+    }
     DestroyAuthStatus(&authStatus);
+    *ticket = decryptedTicket;
+    *ticketLength = strlen(*ticket);
     return ATTEST_OK;
 }
 
-int32_t QueryAttestStatus(int32_t* authResult, int32_t* softwareResult, char** ticket)
+int32_t QueryAttestStatus(int32_t** resultArray, int32_t arraySize, char** ticket, int32_t* ticketLength)
 {
     pthread_mutex_lock(&g_mtxAttest);
-    int32_t ret = QueryAttestStatusImpl(authResult, softwareResult, ticket);
+    int32_t ret = QueryAttestStatusImpl(resultArray, arraySize, ticket, ticketLength);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[QueryAttestStatus] failed ret = %d.", ret);
     }
     pthread_mutex_unlock(&g_mtxAttest);
     return ret;
 }
-
