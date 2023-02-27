@@ -32,7 +32,6 @@ public:
     static JSIValue GetAttestResultInfoSync(const JSIValue thisVal, const JSIValue *args, uint8_t argsNum);
     static JSIValue GetAttestResultInfoAsync(const JSIValue thisVal, const JSIValue *args, uint8_t argsNum);
 };
-
 } // namespace ACELite
 } // namespace OHOS
 

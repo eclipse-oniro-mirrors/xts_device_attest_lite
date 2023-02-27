@@ -30,7 +30,8 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION, "System service exception, please try again or reboot your device"},
 };
 
-string getErrorMessage(uint32_t errorCode) {
+string getErrorMessage(uint32_t errorCode)
+{
     auto iter = g_errorStringMap.find(errorCode);
     if (iter != g_errorStringMap.end()) {
         return iter->second;
@@ -105,14 +106,15 @@ void SetJsResult(JSIValue *result, AttestResultInfo *attestResultInfo)
         bool isArray = false;
         array = JSI::CreateArray(size);
         isArray = JSI::ValueIsArray(array);
-        if (isArray == false) {
+        if (!isArray) {
             HILOGE("JSI_create_array fail");
+            return;
         }
         JSIValue element = JSI::CreateNull();
         for (size_t i = 0; i != size; ++i) {
-             element = JSI::CreateNumber(attestResultInfo->softwareResultDetail[i]);
-             JSI::SetPropertyByIndex(array, i, element);
-             JSI::ReleaseValue(element);
+            element = JSI::CreateNumber(attestResultInfo->softwareResultDetail[i]);
+            JSI::SetPropertyByIndex(array, i, element);
+            JSI::ReleaseValue(element);
         }
     }
     JSI::SetNamedProperty(*result, "softwareResultDetail", array);
