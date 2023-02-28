@@ -974,8 +974,8 @@ static int32_t SplitNetworkInfoSymbol(char *inputData, List *list)
         ATTEST_MEM_FREE(networkServerInfo);
         return ret;
     }
-    AddListNode(list, (char *)networkServerInfo);
-    return ATTEST_OK;
+    ret = AddListNode(list, (char *)networkServerInfo);
+    return ret;
 }
 
 #ifdef __LITEOS_M__
@@ -1026,18 +1026,23 @@ static int32_t ParseNetworkInfosConfig(char *inputData, int32_t inputLen, List *
     int32_t ret = ATTEST_OK;
     do {
         cJSON* array = cJSON_GetObjectItem(root, NETWORK_CONFIG_SERVER_INFO_NAME);
+        if (array == NULL) {
+            ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to get ObjectItem");
+            ret = ATTEST_ERR;
+            break;
+        }
         int32_t arraySize = cJSON_GetArraySize(array);
         for (int32_t i = 0; i < arraySize; i++) {
             char *valueString = cJSON_GetStringValue(cJSON_GetArrayItem(array, i));
             if (valueString == NULL) {
-                ATTEST_LOG_ERROR("[ParseNetworkInfoConfig] failed to get ObjectItem.");
+                ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to get string");
                 ret = ATTEST_ERR;
                 break;
             }
 
             ret = SplitNetworkInfoSymbol(valueString, list);
             if (ret != ATTEST_OK) {
-                ATTEST_LOG_ERROR("[ParseNetworkInfoConfig] failed to split network info");
+                ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to get SplitNetworkInfo");
                 break;
             }
         }
@@ -1100,8 +1105,8 @@ static int32_t NetworkInfoConfig(List* list)
 int32_t InitNetworkServerInfo(void)
 {
     if (g_attestNetworkList.head != NULL) {
-        ATTEST_LOG_ERROR("[D2CConnect] already init g_attestNetworkList");
-        return ATTEST_ERR;
+        ATTEST_LOG_WARN("[InitNetworkServerInfo] already init g_attestNetworkList");
+        return ATTEST_OK;
     }
     int32_t ret = NetworkInfoConfig(&g_attestNetworkList);
     if (ret != ATTEST_OK) {

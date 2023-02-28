@@ -84,3 +84,4 @@ int32_t OEMReadNetworkConfig(char* buffer, uint32_t bufferLen)
 {
     return ReadFile(AUTH_RESULT_PATH, NETWORK_CONFIG_FILE_NAME, buffer, bufferLen);
 }
+
