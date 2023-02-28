@@ -25,9 +25,7 @@ lite_library("ace_kit_device_attest") {
   } else {
     target_type = "shared_library"
   }
-  sources = [
-    "src/native_device_attest.cpp",
-  ]
+  sources = [ "src/native_device_attest.cpp" ]
 
   include_dirs = [
     "include",
@@ -41,12 +39,10 @@ lite_library("ace_kit_device_attest") {
   if (ohos_kernel_type == "liteos_m") {
     deps = [ "${devattest_path}/framework:devattest_sdk" ]
   } else {
-    include_dirs += [
-        "//third_party/bounds_checking_function/include",
-    ]
+    include_dirs += [ "//third_party/bounds_checking_function/include" ]
     deps = [
-        "${devattest_path}/framework:devattest_client",
-        "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+      "${devattest_path}/framework:devattest_client",
+      "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
     ]
   }
 }
