@@ -110,8 +110,10 @@ static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResul
         return DEVATTEST_FAIL;
     }
 
-    if (!WriteInt32(reply, attestResultInfo->authResult) || !WriteInt32(reply, attestResultInfo->softwareResult) ||
-        !WriteInt32(reply, attestResultInfo->ticketLength) || !WriteString(reply, attestResultInfo->ticket)) {
+    if (!WriteInt32(reply, attestResultInfo->authResult) ||
+        !WriteInt32(reply, attestResultInfo->softwareResult) ||
+        !WriteInt32(reply, attestResultInfo->ticketLength) ||
+        !WriteString(reply, attestResultInfo->ticket)) {
         HILOGE("[WriteAttestResultInfo] Write data fail!");
         return DEVATTEST_FAIL;
     }
@@ -172,7 +174,7 @@ static int32_t GetQueryAttestResult(AttestResultInfo *attestResultInfo)
             break;
         }
         if (ticketStr == NULL || ticketLenght == 0) {
-            HILOGE("get ticket failed");
+            HILOGE("Get ticket failed");
             ret = DEVATTEST_FAIL;
             break;
         }
@@ -191,6 +193,7 @@ static int32_t GetQueryAttestResult(AttestResultInfo *attestResultInfo)
     resultArray = NULL;
     return ret;
 }
+
 static int32_t FeatureQueryAttest(IpcIo *reply)
 {
     if (reply == NULL) {
@@ -209,6 +212,10 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
     }
 
     ret = WriteAttestResultInfo(reply, &attestResultInfo);
+    if (attestResultInfo.ticket != NULL) {
+        free(attestResultInfo.ticket);
+        attestResultInfo.ticket = NULL;
+    }
     return ret;
 }
 

@@ -36,11 +36,11 @@ static int32_t CopyAttestResult(int32_t *resultArray, AttestResultInfo *attestRe
         return DEVATTEST_FAIL;
     }
     int32_t *head = resultArray;
-    attestResultInfo->authResult_ = *head;
+    attestResultInfo->authResult = *head;
     head++;
-    attestResultInfo->softwareResult_ = *head;
+    attestResultInfo->softwareResult = *head;
     for (int i = 0; i < SOFTWARE_RESULT_DETAIL_SIZE; i++) {
-        attestResultInfo.softwareResultDetail_[i] = *(++head);
+        attestResultInfo.softwareResultDetail[i] = *(++head);
     }
     return DEVATTEST_SUCCESS;
 }
@@ -67,12 +67,12 @@ int32_t GetAttestStatus(AttestResultInfo* attestResultInfo)
             break;
         }
         if (ticketStr == NULL || ticketLenght == 0) {
-            HILOGE("get ticket failed");
+            HILOGE("Get ticket failed");
             ret = DEVATTEST_FAIL;
             break;
         }
-        attestResultInfo->ticketLength_ = ticketLenght;
-        attestResultInfo->ticket_ = ticketStr;
+        attestResultInfo->ticketLength = ticketLenght;
+        attestResultInfo->ticket = ticketStr;
         ret = CopyAttestResult(resultArray,  attestResultInfo);
         if (ret != DEVATTEST_SUCCESS) {
             HILOGE("copy attest result failed");
