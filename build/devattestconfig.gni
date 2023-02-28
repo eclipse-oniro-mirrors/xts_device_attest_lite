@@ -42,9 +42,6 @@ declare_args() {
 declare_args() {
   # open debug log
   enable_attest_log_debug = false
-
-  # using saas network host
-  enable_attest_network_host_debug = false
 }
 
 if (attest_build_target == attest_debug) {

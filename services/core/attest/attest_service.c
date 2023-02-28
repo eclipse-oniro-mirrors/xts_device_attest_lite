@@ -292,6 +292,12 @@ int32_t ProcAttest(void)
     }
 
     do {
+        // init network server info
+        ret = InitNetworkServerInfo();
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[ProcAttest] InitNetworkServerInfo failed, ret = %d.", ret);
+            break;
+        }
         // connect to network
         ret = ConnectWiseDevice();
         if (ret != ATTEST_OK) {

@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+#include "hal_token.h"
+#ifdef __LITEOS_M__
+#include "hi_mdm.h"
+#endif
+
 #include "attest_type.h"
 #include "attest_utils_log.h"
 #include "attest_adapter_oem.h"
@@ -20,7 +25,14 @@
 #include "attest_adapter_mock.h"
 #include "attest_adapter.h"
 
-#include "hal_token.h"
+#ifdef __LITEOS_M__
+#define HI_NV_XTS_DEV_ATTEST_NET 0x60
+#define HI_NV_NET_SIZE 256
+
+typedef struct {
+    uint8_t nv_dev_attest_net[HI_NV_NET_SIZE];
+} hi_nv_xts_dev_attest_net_cfg;
+#endif
 
 // 是否存在重置标记
 bool AttestIsResetFlagExist(void)
@@ -242,3 +254,34 @@ int32_t AttestGetParameter(const char *key, const char *def, char *value, uint32
 {
     return OsGetParameter(key, def, value, len);
 }
+
+// 读取网络配置信息
+#ifdef __LITEOS_M__
+static int32_t CopyNVData(char *dst, int32_t dstLen, unsigned char *src, int32_t srcLen)
+{
+    if (dst == NULL || src == NULL) {
+        ATTEST_LOG_ERROR("[CopyNVData] input paramter wrong");
+        return ATTEST_ERR;
+    }
+    int32_t dataLen = (dstLen < srcLen) ? dstLen : srcLen;
+    for (int32_t i = 0; i < dataLen; i++) {
+        dst[i] = (char)src[i];
+    }
+    return ATTEST_OK;
+}
+
+int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen)
+{
+    hi_nv_xts_dev_attest_net_cfg nv_net = { 0 };
+    int32_t ret = hi_nv_read(HI_NV_XTS_DEV_ATTEST_NET, &nv_net, sizeof(hi_nv_xts_dev_attest_net_cfg), 0);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[AttestReadNetworkConfig] hi_nv_read failed");
+    }
+    return CopyNVData(buffer, bufferLen, nv_net.nv_dev_attest_net, sizeof(hi_nv_xts_dev_attest_net_cfg));
+}
+#else
+int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen)
+{
+    return OEMReadNetworkConfig(buffer, bufferLen);
+}
+#endif

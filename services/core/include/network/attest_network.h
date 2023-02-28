@@ -26,7 +26,8 @@ extern "C" {
 #endif
 #endif
 
-#define HTTPS_NETWORK_PORT "5684"
+#define NETWORK_CONFIG_SIZE 256
+#define NETWORK_CONFIG_SERVER_INFO_NAME "serverInfo"
 
 typedef enum {
     COAP_URI_PATH   = 11,
@@ -43,7 +44,7 @@ typedef struct CoapOptList {
 int32_t D2CConnect(void);
 
 void D2CClose(void);
-    
+
 DevicePacket* CreateDevicePacket(void);
 
 void DestroyDevicePacket(DevicePacket** devicePacket);
@@ -61,6 +62,8 @@ char* BuildCoapResetBody(const DevicePacket *devPacket);
 char* BuildCoapAuthBody(const DevicePacket *devPacket);
 
 char* BuildCoapActiveBody(const DevicePacket *devPacket);
+
+int32_t InitNetworkServerInfo(void);
 
 #ifdef __cplusplus
 #if __cplusplus
