@@ -200,9 +200,8 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         HILOGE("[FeatureQueryAttest] reply is null!");
         return DEVATTEST_FAIL;
     }
-    AttestResultInfo  attestResultInfo = {.softwareResultDetail={-1, -1, -1, -1, -1}};
+    AttestResultInfo  attestResultInfo = { .softwareResultDetail = {-1, -1, -1, -1, -1} };
     int32_t ret = GetQueryAttestResult(&attestResultInfo);
-
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[FeatureQueryAttest] Query status fail!");
         if (!WriteInt32(reply, ret)) {

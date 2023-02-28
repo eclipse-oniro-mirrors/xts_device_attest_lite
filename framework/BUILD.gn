@@ -55,9 +55,9 @@ shared_library("devattest_server") {
   deps = [
     "${devattest_path}/services/core:devattest_core",
     "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
-    "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
     "//foundation/bundlemanager/bundle_framework_lite/frameworks/bundle_lite:bundle",
-    "//foundation/communication/ipc/interfaces/innerkits/c/ipc:rpc_manager"
+    "//foundation/communication/ipc/interfaces/innerkits/c/ipc:rpc_manager",
+    "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
   ]
 }
 
