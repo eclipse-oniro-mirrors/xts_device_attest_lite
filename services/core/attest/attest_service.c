@@ -336,15 +336,15 @@ static int32_t CopyResultArray(AuthStatus* authStatus, int32_t** resultArray)
     return ATTEST_OK;
 }
 
-static int32_t QueryAttestStatusImpl(int32_t* authResult, int32_t* softwareResult, char** ticket)
+static int32_t QueryAttestStatusImpl(int32_t** resultArray, int32_t arraySize, char** ticket, int32_t* ticketLength)
 {
     ATTEST_LOG_DEBUG("[QueryAttestStatusImpl] Query attest status begin.");
-    if (authResult == NULL || softwareResult == NULL || ticket == NULL) {
+    if (resultArray == NULL || arraySize != ATTEST_RESULT_MAX || ticket == NULL) {
+        ATTEST_LOG_ERROR("[QueryAttestStatusImpl] parameter wrong");
         return ATTEST_ERR;
     }
-    *authResult = DEVICE_ATTEST_FAIL;
-    *softwareResult = DEVICE_ATTEST_FAIL;
-    *ticket = "";
+    *ticket = NULL;
+    *ticketLength = 0;
 
     // 获取认证结果
     char* authStatusBase64 = NULL;
