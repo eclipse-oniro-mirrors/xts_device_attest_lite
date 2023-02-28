@@ -239,7 +239,10 @@ int32_t CountSymbolNum(char *inputData, int32_t symbol)
         return countNum;
     }
     char *pNext = strchr(inputData, symbol);
-    while(pNext != NULL){
+    if (pNext == NULL) {
+        return countNum;
+    }
+    while (pNext != NULL) {
         countNum++;
         pNext = pNext + 1;
         pNext = strchr(pNext, symbol);

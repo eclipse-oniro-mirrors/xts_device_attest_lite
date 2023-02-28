@@ -32,7 +32,6 @@
 #include "attest_utils_log.h"
 #include "attest_utils_list.h"
 #include "attest_utils_json.h"
-#include "attest_type.h"
 #include "attest_service_device.h"
 #include "attest_coap.h"
 #include "attest_coap_def.h"
@@ -215,7 +214,7 @@ static int32_t ConnectNetWork(TLSSession **session, void* reserved)
     ListNode* head = g_attestNetworkList.head;
     int32_t currentIndex = 0;
     int32_t ret = ATTEST_OK;
-    while(head != NULL && currentIndex < MAX_NETWORK_CFG_LIST_SIZE) {
+    while (head != NULL && currentIndex < MAX_NETWORK_CFG_LIST_SIZE) {
         currentIndex++;
         ServerInfo* networkInfo = (ServerInfo*)head->data;
         head = head->next;
@@ -995,11 +994,11 @@ static int32_t ParseNetworkInfosConfig(char *inputData, int32_t inputLen, List *
     ret = SplitBySymbol(inputData, inputLen, ";", &ServerInfoStrList);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] CreateList failed.");
-        ReleaseList(ServerInfoStrList);
+        ReleaseList(&ServerInfoStrList);
         return ret;
     }
 
-    ListNode* head = ServerInfoStrList->head;
+    ListNode* head = ServerInfoStrList.head;
     while (head != NULL) {
         ret = SplitNetworkInfoSymbol(head->data, list);
         if (ret != ATTEST_OK) {
@@ -1007,7 +1006,7 @@ static int32_t ParseNetworkInfosConfig(char *inputData, int32_t inputLen, List *
             break;
         }
     }
-    ReleaseList(ServerInfoStrList);
+    ReleaseList(&ServerInfoStrList);
     return ret;
 }
 #else
