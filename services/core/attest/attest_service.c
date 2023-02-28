@@ -33,6 +33,33 @@
 
 pthread_mutex_t g_mtxAttest = PTHREAD_MUTEX_INITIALIZER;
 
+static int32_t ConnectWiseDevice(void)
+{
+    ATTEST_LOG_DEBUG("[ConnectWiseDevice] Begin.");
+    int32_t ret = 0;
+    for (int32_t i = 0; i <= WISE_RETRY_CNT; i++) {
+        if (ATTEST_MOCK_NETWORK_STUB_FLAG) {
+            ATTEST_LOG_DEBUG("[ConnectWiseDevice] End of MOCK.");
+            return ATTEST_OK;
+        }
+        ret = D2CConnect();
+        if (ret == ATTEST_OK) {
+            break;
+        }
+    }
+    ATTEST_LOG_DEBUG("[ConnectWiseDevice] End.");
+    return ret;
+}
+
+static void DisConnectWiseDevice(void)
+{
+    if (ATTEST_MOCK_NETWORK_STUB_FLAG) {
+        ATTEST_LOG_DEBUG("[DisConnectWiseDevice] End of MOCK.");
+        return;
+    }
+    D2CClose();
+    ATTEST_LOG_DEBUG("[DisConnectWiseDevice] End.");
+}
 
 static int32_t ResetDevice(void)
 {
@@ -221,18 +248,6 @@ static int32_t ProcAttestImpl(void)
             break;
         }
 
-        // 结果保存到本地
-        ATTEST_LOG_INFO("[ProcAttestImpl] Flush auth result.");
-        ret = FlushAuthResult(authResult->ticket, authResult->authStatus);
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttestImpl] Flush auth result failed, ret = %d.", ret);
-        }
-        // 结果保存到启动子系统parameter,方便展示
-        ret = FlushAttestStatusPara(authResult->authStatus);
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttestImpl] Flush attest para failed, ret = %d.", ret);
-        }
-
         // token激活
         ATTEST_LOG_INFO("[ProcAttestImpl] Active token.");
         for (int32_t i = 0; i <= WISE_RETRY_CNT; i++) {
@@ -244,6 +259,21 @@ static int32_t ProcAttestImpl(void)
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ProcAttestImpl] Active token failed, ret = %d.", ret);
             break;
+        }
+        // 结果保存到本地
+        ATTEST_LOG_INFO("[ProcAttestImpl] Flush auth result.");
+        ret = FlushAuthResult(authResult->ticket, authResult->authStatus);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[ProcAttestImpl] Flush auth result failed, ret = %d.", ret);
+        }
+        // 结果保存到启动子系统parameter,方便展示
+        ret = FlushAttestStatusPara(authResult->authStatus);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[ProcAttestImpl] Flush attest para failed, ret = %d.", ret);
+        }
+        ret = GetAttestStatusPara();
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[ProcAttestImpl] Get para failed, ret = %d.", ret);
         }
     } while (0);
     DestroySysData();
@@ -260,10 +290,22 @@ int32_t ProcAttest(void)
         ret = InitMemNodeList();
         ATTEST_LOG_INFO("[ProcAttest] Init mem node list, ret = %d.", ret);
     }
-    ret = ProcAttestImpl();
-    if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[ProcAttest] Proc Attest failed, ret = %d.", ret);
-    }
+
+    do {
+        // connect to network
+        ret = ConnectWiseDevice();
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[ProcAttest] Connect wise device failed, ret = %d.", ret);
+            break;
+        }
+
+        ret = ProcAttestImpl();
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[ProcAttest] Proc failed, ret = %d.", ret);
+        }
+        DisConnectWiseDevice();
+    } while (0);
+
     if (ATTEST_DEBUG_MEMORY_LEAK) {
         PrintMemNodeList();
         ret = DestroyMemNodeList();
@@ -294,15 +336,16 @@ static int32_t CopyResultArray(AuthStatus* authStatus, int32_t** resultArray)
     return ATTEST_OK;
 }
 
-static int32_t QueryAttestStatusImpl(int32_t** resultArray, int32_t arraySize, char** ticket, int32_t* ticketLength)
+static int32_t QueryAttestStatusImpl(int32_t* authResult, int32_t* softwareResult, char** ticket)
 {
     ATTEST_LOG_DEBUG("[QueryAttestStatusImpl] Query attest status begin.");
-    if (resultArray == NULL || arraySize != ATTEST_RESULT_MAX || ticket == NULL) {
-        ATTEST_LOG_ERROR("[QueryAttestStatusImpl] parameter wrong");
+    if (authResult == NULL || softwareResult == NULL || ticket == NULL) {
         return ATTEST_ERR;
     }
-    *ticket = NULL;
-    *ticketLength = 0;
+    *authResult = DEVICE_ATTEST_FAIL;
+    *softwareResult = DEVICE_ATTEST_FAIL;
+    *ticket = "";
+
     // 获取认证结果
     char* authStatusBase64 = NULL;
     if (GetAuthStatus(&authStatusBase64) != 0) {
@@ -332,7 +375,6 @@ static int32_t QueryAttestStatusImpl(int32_t** resultArray, int32_t arraySize, c
         ATTEST_LOG_ERROR("[QueryAttestStatusImpl] read ticket from device failed");
         return ATTEST_ERR;
     }
-
     retCode = CopyResultArray(authStatus, resultArray);
     if (retCode != ATTEST_OK) {
         DestroyAuthStatus(&authStatus);
