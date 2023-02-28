@@ -190,6 +190,7 @@ static int32_t GetQueryAttestResult(AttestResultInfo *attestResultInfo)
         free(ticketStr);
         ticketStr = NULL;
     }
+    free(resultArray);
     resultArray = NULL;
     return ret;
 }

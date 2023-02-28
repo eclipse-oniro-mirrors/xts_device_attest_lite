@@ -83,6 +83,7 @@ int32_t GetAttestStatus(AttestResultInfo* attestResultInfo)
         free(ticketStr);
         ticketStr = NULL;
     }
+    free(resultArray);
     resultArray = NULL;
     HILOGI("GetAttestStatus end success");
     return ret;
