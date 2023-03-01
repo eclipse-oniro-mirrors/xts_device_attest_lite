@@ -82,7 +82,7 @@ JSIValue ExecuteAsyncWork(const JSIValue thisVal, const JSIValue* args,
 {
     JSIValue undefValue = JSI::CreateUndefined();
     if (!IsValidParam(args, argsNum)) {
-        FailCallBack(thisVal, args, DEVATTEST_ERR_JS_PARAMETER_ERROR);
+        FailCallBack(JSI::AcquireValue(thisVal), JSI::AcquireValue(args[0]), DEVATTEST_ERR_JS_PARAMETER_ERROR);
         return undefValue;
     }
     FuncParams* params = new(std::nothrow) FuncParams();
