@@ -66,7 +66,7 @@ void SuccessCallBack(const JSIValue thisVal, const JSIValue args, JSIValue jsiVa
     JSIValue error = JSI::CreateUndefined();
     JSIValue argv[ARGC_TWO] = {error, jsiValue};
     JSI::CallFunction(args, thisVal, argv, ARGC_TWO);
-    JSI::ReleaseValueList(error, ARGS_END);
+    JSI::ReleaseValueList(error, jsiValue, ARGS_END);
 }
 
 bool IsValidJSIValue(const JSIValue* args, uint8_t argsNum)
