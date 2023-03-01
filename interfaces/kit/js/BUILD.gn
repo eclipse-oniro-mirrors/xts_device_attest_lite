@@ -14,7 +14,7 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 
-shared_library("ace_engine_lite_attest") {
+shared_library("kit_device_attest") {
   sources = [ "src/native_device_attest.cpp" ]
   cflags = [
     "-ftrapv",

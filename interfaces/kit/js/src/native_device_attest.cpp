@@ -90,6 +90,7 @@ JSIValue ExecuteAsyncWork(const JSIValue thisVal, const JSIValue* args,
     }
     FuncParams* params = new(std::nothrow) FuncParams();
     if (params == nullptr) {
+        FailCallBack(thisVal, *args, DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION);
         return undefValue;
     }
     params->thisVal = JSI::AcquireValue(thisVal);
@@ -104,7 +105,7 @@ void SetJsResult(JSIValue *result, AttestResultInfo *attestResultInfo)
     JSI::SetNumberProperty(*result, "softwareResult", attestResultInfo->softwareResult);
     
     JSIValue array = JSI::CreateNull();
-    size_t size = sizeof(attestResultInfo->softwareResultDetail);
+    size_t size = sizeof(attestResultInfo->softwareResultDetail) / sizeof(int32_t);
     if (size > 0) {
         bool isArray = false;
         array = JSI::CreateArray(size);
