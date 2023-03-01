@@ -231,10 +231,10 @@ void AttestMemFree(void **point)
     *point = NULL;
 }
 
-int32_t CountSymbolNum(char *inputData, int32_t symbol)
+int32_t CountSymbolNum(char *inputData, int32_t inputLen, int32_t symbol)
 {
     int32_t countNum = 0;
-    if (inputData == NULL) {
+    if (inputData == NULL || inputLen > INT32_MAX) {
         ATTEST_LOG_ERROR("[CountSymbolNum] paramter wrong.");
         return countNum;
     }

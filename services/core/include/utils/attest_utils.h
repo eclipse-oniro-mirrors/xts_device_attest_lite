@@ -51,7 +51,7 @@ int Sha256Value(const unsigned char *src, int srcLen, char *dest, int destLen);
 
 int32_t AnonymiseStr(char* str);
 
-int32_t CountSymbolNum(char *inputData, int32_t symbol);
+int32_t CountSymbolNum(char *inputData, int32_t inputLen, int32_t symbol);
 
 #ifdef __cplusplus
 #if __cplusplus

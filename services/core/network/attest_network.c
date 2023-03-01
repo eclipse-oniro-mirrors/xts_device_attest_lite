@@ -932,14 +932,14 @@ int32_t SendAttestMsg(const DevicePacket *devPacket, ATTEST_ACTION_TYPE actionTy
     return retCode;
 }
 
-static int32_t SplitNetworkInfoSymbol(char *inputData, List *list)
+static int32_t SplitNetworkInfoSymbol(char *inputData, int32_t inputLen, List *list)
 {
-    if (inputData == NULL || list == NULL) {
+    if (inputData == NULL || inputLen == 0 || list == NULL) {
         ATTEST_LOG_ERROR("[SplitNetworkInfoSymbol] paramter wrong.");
         return ATTEST_ERR;
     }
 
-    if (CountSymbolNum(inputData, ':') != 1) {
+    if (CountSymbolNum(inputData, inputLen, ':') != 1) {
         ATTEST_LOG_ERROR("[SplitNetworkInfoSymbol] inputData form wrong.");
         return ATTEST_ERR;
     }
@@ -981,7 +981,7 @@ static int32_t SplitNetworkInfoSymbol(char *inputData, List *list)
 #ifdef __LITEOS_M__
 static int32_t ParseNetworkInfosConfig(char *inputData, int32_t inputLen, List *list)
 {
-    if (inputData == NULL || inputLen == 0) {
+    if (inputData == NULL || inputLen == 0 || list == NULL) {
         ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] paramter wrong.");
         return ATTEST_ERR;
     }
@@ -992,7 +992,7 @@ static int32_t ParseNetworkInfosConfig(char *inputData, int32_t inputLen, List *
         return ret;
     }
 
-    if (CountSymbolNum(inputData, ';') > 0) {
+    if (CountSymbolNum(inputData, inputLen, ';') > 0) {
         ret = SplitBySymbol(inputData, inputLen, ";", &ServerInfoStrList);
     } else {
         ret = AddListNode(&ServerInfoStrList, AttestStrdup(inputData));
@@ -1005,7 +1005,7 @@ static int32_t ParseNetworkInfosConfig(char *inputData, int32_t inputLen, List *
 
     ListNode* head = ServerInfoStrList.head;
     while (head != NULL) {
-        ret = SplitNetworkInfoSymbol(head->data, list);
+        ret = SplitNetworkInfoSymbol(head->data, inputLen, list);
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to split network info.");
             break;
@@ -1046,7 +1046,7 @@ static int32_t ParseNetworkInfosConfig(char *inputData, int32_t inputLen, List *
                 break;
             }
 
-            ret = SplitNetworkInfoSymbol(valueString, list);
+            ret = SplitNetworkInfoSymbol(valueString, inputLen, list);
             if (ret != ATTEST_OK) {
                 ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to get SplitNetworkInfo");
                 break;
@@ -1082,20 +1082,20 @@ static int32_t NetworkInfoConfig(List* list)
     }
 
     // For reading network_config.json
-    char *buffer = (char *)ATTEST_MEM_MALLOC(NETWORK_CONFIG_SIZE);
+    char *buffer = (char *)ATTEST_MEM_MALLOC(NETWORK_CONFIG_SIZE + 1);
     if (buffer == NULL) {
         ATTEST_LOG_ERROR("[NetworkInfoConfig] buffer malloc failed.");
         ReleaseList(list);
         return ATTEST_ERR;
     }
     do {
-        ret = AttestReadNetworkConfig(buffer, NETWORK_CONFIG_SIZE);
+        ret = AttestReadNetworkConfig(buffer, NETWORK_CONFIG_SIZE + 1);
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[NetworkInfoConfig] read networkconfig failed.");
             break;
         }
 
-        ret = ParseNetworkInfosConfig(buffer, NETWORK_CONFIG_SIZE, list);
+        ret = ParseNetworkInfosConfig(buffer, NETWORK_CONFIG_SIZE + 1, list);
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[NetworkInfoConfig] parse networkconfig failed.");
             break;
