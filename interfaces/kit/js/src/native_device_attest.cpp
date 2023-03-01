@@ -69,19 +69,20 @@ void SuccessCallBack(const JSIValue thisVal, const JSIValue args, JSIValue jsiVa
     JSI::ReleaseValueList(error, ARGS_END);
 }
 
-bool IsValidJSIValue(const JSIValue* args, uint8_t argsNum)
+bool IsValidParam(const JSIValue* args, uint8_t argsNum)
 {
-    if ((args == nullptr) || (argsNum == 0) || JSI::ValueIsUndefined(args[0])) {
-        return false;
+    if ((args != nullptr) && (argsNum == 1) && !JSI::ValueIsUndefined(args[0])) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 JSIValue ExecuteAsyncWork(const JSIValue thisVal, const JSIValue* args,
     uint8_t argsNum, AsyncWorkHandler ExecuteFunc)
 {
     JSIValue undefValue = JSI::CreateUndefined();
-    if (!IsValidJSIValue(args, argsNum)) {
+    if (!IsValidParam(args, argsNum)) {
+        FailCallBack(thisVal, args, DEVATTEST_ERR_JS_PARAMETER_ERROR);
         return undefValue;
     }
     FuncParams* params = new(std::nothrow) FuncParams();
