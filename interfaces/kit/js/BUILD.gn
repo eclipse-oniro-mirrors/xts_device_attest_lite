@@ -11,38 +11,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (defined(ohos_lite)) {
-  import("//build/lite/config/component/lite_component.gni")
-} else {
-  import("//build/ohos.gni")
-}
+import("//build/lite/config/component/lite_component.gni")
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 
-lite_library("ace_engine_lite_attest") {
-  if (ohos_kernel_type == "liteos_m") {
-    target_type = "static_library"
-    defines = [ "CRED_MINI_LOG = 1" ]
-  } else {
-    target_type = "shared_library"
-  }
+shared_library("ace_engine_lite_attest") {
   sources = [ "src/native_device_attest.cpp" ]
-
+  cflags = [
+    "-ftrapv",
+    "-Werror",
+    "-Wextra",
+    "-Wshadow",
+    "-fstack-protector-all",
+    "-D_FORTIFY_SOURCE=2",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+    "-fPIC",
+    "-pthread",
+  ]
   include_dirs = [
     "include",
     "${devattest_path}/interfaces/innerkits",
     "${devattest_path}/framework/small/include",
+    "//third_party/bounds_checking_function/include",
     "//foundation/arkui/ace_engine_lite/interfaces/inner_api/builtin/base",
     "//foundation/arkui/ace_engine_lite/interfaces/inner_api/builtin/jsi",
     "//foundation/arkui/ace_engine_lite/interfaces/inner_api/builtin/async",
   ]
-
-  if (ohos_kernel_type == "liteos_m") {
-    deps = [ "${devattest_path}/framework:devattest_sdk" ]
-  } else {
-    include_dirs += [ "//third_party/bounds_checking_function/include" ]
-    deps = [
-      "${devattest_path}/framework:devattest_client",
-      "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
-    ]
-  }
+  deps = [
+    "${devattest_path}/framework:devattest_client",
+    "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+  ]
 }

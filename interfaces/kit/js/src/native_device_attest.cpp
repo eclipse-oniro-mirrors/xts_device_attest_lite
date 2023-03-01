@@ -46,12 +46,11 @@ void FailCallBack(const JSIValue thisVal, const JSIValue args, int32_t ret)
         return;
     }
     JSIValue error = JSI::CreateObject();
-    uint32_t errorCode = 0;
     if (ret == DEVATTEST_FAIL) {
-        errorCode = DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+        ret = DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
-    JSI::SetStringProperty(error, "message", getErrorMessage(errorCode).c_str());
-    JSI::SetNumberProperty(error, "code", errorCode);
+    JSI::SetStringProperty(error, "message", getErrorMessage(ret).c_str());
+    JSI::SetNumberProperty(error, "code", ret);
     
     JSIValue data = JSI::CreateUndefined();
     JSIValue argv[ARGC_TWO] = {error, data};
@@ -101,7 +100,7 @@ void SetJsResult(JSIValue *result, AttestResultInfo *attestResultInfo)
     JSI::SetNumberProperty(*result, "softwareResult", attestResultInfo->softwareResult);
     
     JSIValue array = JSI::CreateNull();
-    int32_t size = sizeof(attestResultInfo->softwareResultDetail);
+    size_t size = sizeof(attestResultInfo->softwareResultDetail);
     if (size > 0) {
         bool isArray = false;
         array = JSI::CreateArray(size);
