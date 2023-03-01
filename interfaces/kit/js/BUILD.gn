@@ -18,7 +18,7 @@ if (defined(ohos_lite)) {
 }
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 
-lite_library("ace_kit_device_attest") {
+lite_library("ace_engine_lite_attest") {
   if (ohos_kernel_type == "liteos_m") {
     target_type = "static_library"
     defines = [ "CRED_MINI_LOG = 1" ]
