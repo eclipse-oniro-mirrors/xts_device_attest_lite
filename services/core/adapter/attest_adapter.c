@@ -27,7 +27,7 @@
 
 #ifdef __LITEOS_M__
 #define HI_NV_XTS_DEV_ATTEST_NET 0x60
-#define HI_NV_NET_SIZE 256
+#define HI_NV_NET_SIZE 164
 
 typedef struct {
     uint8_t nv_dev_attest_net[HI_NV_NET_SIZE];
@@ -273,9 +273,10 @@ static int32_t CopyNVData(char *dst, int32_t dstLen, unsigned char *src, int32_t
 int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen)
 {
     hi_nv_xts_dev_attest_net_cfg nv_net = { 0 };
-    int32_t ret = hi_nv_read(HI_NV_XTS_DEV_ATTEST_NET, &nv_net, sizeof(hi_nv_xts_dev_attest_net_cfg), 0);
+    int32_t ret = hi_nv_read(HI_NV_XTS_DEV_ATTEST_NET, (void*)&nv_net, sizeof(nv_net), 0);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[AttestReadNetworkConfig] hi_nv_read failed");
+        return ATTEST_ERR;
     }
     return CopyNVData(buffer, bufferLen, nv_net.nv_dev_attest_net, sizeof(hi_nv_xts_dev_attest_net_cfg));
 }

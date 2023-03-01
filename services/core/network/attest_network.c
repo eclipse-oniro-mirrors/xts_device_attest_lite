@@ -991,7 +991,12 @@ static int32_t ParseNetworkInfosConfig(char *inputData, int32_t inputLen, List *
         ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] Create ServerInfoStrList failed.");
         return ret;
     }
-    ret = SplitBySymbol(inputData, inputLen, ";", &ServerInfoStrList);
+
+    if (CountSymbolNum(inputData, ';') > 0) {
+        ret = SplitBySymbol(inputData, inputLen, ";", &ServerInfoStrList);
+    } else {
+        ret = AddListNode(&ServerInfoStrList, AttestStrdup(inputData));
+    }
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] CreateList failed.");
         ReleaseList(&ServerInfoStrList);
@@ -1005,6 +1010,7 @@ static int32_t ParseNetworkInfosConfig(char *inputData, int32_t inputLen, List *
             ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to split network info.");
             break;
         }
+        head = head->next;
     }
     ReleaseList(&ServerInfoStrList);
     return ret;

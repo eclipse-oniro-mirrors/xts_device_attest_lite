@@ -186,6 +186,13 @@ char* GetRandomUuid(void)
     return buff;
 }
 
+#ifdef __LITEOS_M__
+// Special handling
+char* GetPcid(void)
+{
+    return "0";
+}
+#else
 static int32_t MergePcid(char *pcidOs, int32_t pcidOsLen, char *pcidPrivate, int32_t pcidPrivateLen, char **output)
 {
     if (output == NULL || pcidOs == NULL || pcidOsLen == 0) {
@@ -272,3 +279,4 @@ char* GetPcid(void)
     ATTEST_MEM_FREE(pcidBuf);
     return pcidSha256;
 }
+#endif
