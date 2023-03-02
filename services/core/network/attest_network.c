@@ -969,6 +969,10 @@ static int32_t ParseNetworkInfosConfig(char *inputData, List *list)
     int32_t ret = ATTEST_OK;
     char *next = NULL;
     char *pNext = strtok_s(inputData, ";", &next);
+    if (pNext == NULL) {
+        ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] inputData or strtok_s wrong");
+        return ATTEST_ERR;
+    }
     while (pNext != NULL) {
         ret = SplitNetworkInfoSymbol(pNext, list);
         if (ret != ATTEST_OK) {
