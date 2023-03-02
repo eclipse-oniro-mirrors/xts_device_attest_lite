@@ -62,11 +62,12 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
         return DEVATTEST_FAIL;
     }
     int32_t *softwareResultDetail = ReadInt32Vector(reply, &len);
-    if (softwareResultDetail == NULL || (len != sizeof(attestResult->softwareResultDetail))) {
+    size_t size = sizeof(attestResult->softwareResultDetail) / sizeof(int32_t);
+    if (softwareResultDetail == NULL || (len != size)) {
         HILOGE("[ReadAttestResultInfo] Failed to softwareResultDetail_.");
         return DEVATTEST_FAIL;
     }
-    len = sizeof(int32_t) * sizeof(attestResult->softwareResultDetail);
+    len = sizeof(attestResult->softwareResultDetail);
     if (memcpy_s(attestResult->softwareResultDetail, len, softwareResultDetail, len) != 0) {
         HILOGE("[ReadAttestResultInfo] Failed to copy softwareResultDetail.");
         return DEVATTEST_FAIL;

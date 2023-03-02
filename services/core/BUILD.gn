@@ -70,6 +70,7 @@ config("devattest_core_config") {
     "//utils/native/lite/include",
     "//third_party/cJSON",
     "//third_party/bounds_checking_function/include",
+    "${devattest_path}/interfaces/innerkits",
   ]
 
   include_dirs += [

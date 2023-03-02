@@ -30,63 +30,9 @@ int32_t StartDevAttestTask(void)
     return DEVATTEST_SUCCESS;
 }
 
-static int32_t CopyAttestResult(int32_t *resultArray, AttestResultInfo *attestResultInfo)
-{
-    if (resultArray == NULL) {
-        return DEVATTEST_FAIL;
-    }
-    int32_t *head = resultArray;
-    attestResultInfo->authResult = *head;
-    head++;
-    attestResultInfo->softwareResult = *head;
-    for (int i = 0; i < SOFTWARE_RESULT_DETAIL_SIZE; i++) {
-        attestResultInfo.softwareResultDetail[i] = *(++head);
-    }
-    return DEVATTEST_SUCCESS;
-}
-
 int32_t GetAttestStatus(AttestResultInfo* attestResultInfo)
 {
-    if (attestResultInfo == NULL) {
-        return DEVATTEST_FAIL;
-    }
-    int32_t resultArraySize = MAX_ATTEST_RESULT_SIZE * sizeof(int32_t);
-    int32_t *resultArray = (int32_t *)malloc(resultArraySize);
-    if (resultArray == NULL) {
-        HILOGE("malloc resultArray failed");
-        return DEVATTEST_FAIL;
-    }
-    (void)memset_s(resultArray, resultArraySize, 0, resultArraySize);
-    int32_t ticketLenght = 0;
-    char* ticketStr = NULL;
-    int32_t ret = DEVATTEST_SUCCESS;
-    do {
-        ret = QueryAttest(&resultArray, MAX_ATTEST_RESULT_SIZE, &ticketStr, &ticketLenght);
-        if (ret != DEVATTEST_SUCCESS) {
-            HILOGE("QueryAttest failed");
-            break;
-        }
-        if (ticketStr == NULL || ticketLenght == 0) {
-            HILOGE("Get ticket failed");
-            ret = DEVATTEST_FAIL;
-            break;
-        }
-        attestResultInfo->ticketLength = ticketLenght;
-        attestResultInfo->ticket = ticketStr;
-        ret = CopyAttestResult(resultArray,  attestResultInfo);
-        if (ret != DEVATTEST_SUCCESS) {
-            HILOGE("copy attest result failed");
-            break;
-        }
-    } while (0);
-    if (ret != DEVATTEST_SUCCESS && ticketStr != NULL) {
-        free(ticketStr);
-        ticketStr = NULL;
-    }
-    free(resultArray);
-    resultArray = NULL;
-    HILOGI("GetAttestStatus end success");
-    return ret;
+    return EntryGetAttestStatus(attestResultInfo);
 }
 
 void ThreadMain(void)
