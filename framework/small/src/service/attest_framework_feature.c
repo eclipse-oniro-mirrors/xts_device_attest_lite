@@ -18,8 +18,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <securec.h>
-#include <bundle_manager.h>
-#include <bundle_info.h>
 #include <ohos_init.h>
 #include <iunknown.h>
 #include <samgr_lite.h>
@@ -127,19 +125,6 @@ static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResul
     return DEVATTEST_SUCCESS;
 }
 
-static int32_t IpcWriteErrorPermissionInfo(IpcIo *reply)
-{
-    if (reply == NULL) {
-        HILOGE("[IpcWritePermissionError] reply is null!");
-        return DEVATTEST_FAIL;
-    }
-    if (!WriteInt32(reply, DEVATTEST_ERR_JS_IS_NOT_SYSTEM_APP)) {
-        HILOGE("[IpcWritePermissionError] Write ret fail!");
-        return DEVATTEST_FAIL;
-    }
-    return DEVATTEST_SUCCESS;
-}
-
 static int32_t FeatureQueryAttest(IpcIo *reply)
 {
     if (reply == NULL) {
@@ -164,34 +149,11 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
     return ret;
 }
 
-static bool CheckPermission(int32_t uid)
-{
-    char *bundName = NULL;
-    GetBundleNameForUid(uid, &bundName);
-    if (bundName == NULL) {
-        HILOGE("[CheckPermission] Get  bundle name fail!");
-        return false;
-    }
-    BundleInfo bundleInfo = { 0 };
-    uint8_t ret = GetBundleInfo(bundName, 0, &bundleInfo);
-    if (ret != DEVATTEST_SUCCESS) {
-        HILOGE("[CheckPermission] Get  bundle info fail!");
-        return false;
-    }
-    bool isSystem = bundleInfo.isSystemApp;
-    ClearBundleInfo(&bundleInfo);
-    return isSystem;
-}
-
 static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req, IpcIo *reply)
 {
     (void)req;
     if (iProxy == NULL || origin == NULL) {
         return DEVATTEST_FAIL;
-    }
-    int32_t uid = GetCallingUid();
-    if (!CheckPermission(uid)) {
-        return IpcWriteErrorPermissionInfo(req);
     }
     int32_t ret = DEVATTEST_SUCCESS;
     switch (funcId) {
