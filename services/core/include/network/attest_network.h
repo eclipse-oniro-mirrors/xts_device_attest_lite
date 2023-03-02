@@ -28,6 +28,9 @@ extern "C" {
 
 #define NETWORK_CONFIG_SIZE 256
 #define NETWORK_CONFIG_SERVER_INFO_NAME "serverInfo"
+#define HOST_PATTERN "[a-zA-Z0-9-_.]"
+#define PORT_PATTERN "[0-9]"
+#define PARAM_TWO 2
 
 typedef enum {
     COAP_URI_PATH   = 11,
