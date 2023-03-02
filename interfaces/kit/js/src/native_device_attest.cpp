@@ -82,7 +82,8 @@ JSIValue ExecuteAsyncWork(const JSIValue thisVal, const JSIValue* args,
 {
     JSIValue undefValue = JSI::CreateUndefined();
     if (args == NULL) {
-        return undefValue;
+        string errorMsg = getErrorMessage(DEVATTEST_ERR_JS_PARAMETER_ERROR);
+        return JSI::CreateErrorWithCode(DEVATTEST_ERR_JS_PARAMETER_ERROR, errorMsg.c_str());
     }
     if (!IsValidParam(args, argsNum)) {
         FailCallBack(thisVal, *args, DEVATTEST_ERR_JS_PARAMETER_ERROR);
@@ -99,7 +100,7 @@ JSIValue ExecuteAsyncWork(const JSIValue thisVal, const JSIValue* args,
     return undefValue;
 }
 
-void SetJsResult(JSIValue *result, AttestResultInfo *attestResultInfo)
+int32_t SetJsResult(JSIValue *result, AttestResultInfo *attestResultInfo)
 {
     JSI::SetNumberProperty(*result, "authResult", attestResultInfo->authResult);
     JSI::SetNumberProperty(*result, "softwareResult", attestResultInfo->softwareResult);
@@ -112,7 +113,7 @@ void SetJsResult(JSIValue *result, AttestResultInfo *attestResultInfo)
         isArray = JSI::ValueIsArray(array);
         if (!isArray) {
             HILOGE("JSI_create_array fail");
-            return;
+            return DEVATTEST_FAIL;
         }
         JSIValue element = JSI::CreateNull();
         for (size_t i = 0; i != size; ++i) {
@@ -124,7 +125,7 @@ void SetJsResult(JSIValue *result, AttestResultInfo *attestResultInfo)
     JSI::SetNamedProperty(*result, "softwareResultDetail", array);
 
     JSI::SetStringProperty(*result, "ticket", attestResultInfo->ticket);
-    return;
+    return DEVATTEST_SUCCESS;
 }
 
 int32_t GetAttestResultInfo(JSIValue *result)
@@ -142,10 +143,10 @@ int32_t GetAttestResultInfo(JSIValue *result)
         return ret;
     }
     
-    SetJsResult(result, &attestResultInfo);
+    ret = SetJsResult(result, &attestResultInfo);
     free(attestResultInfo.ticket);
     attestResultInfo.ticket = NULL;
-    return DEVATTEST_SUCCESS;
+    return ret;
 }
 
 void ExecuteGetAttestResult(void* data)
