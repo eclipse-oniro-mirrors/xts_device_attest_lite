@@ -230,4 +230,3 @@ void AttestMemFree(void **point)
     free(*point);
     *point = NULL;
 }
-

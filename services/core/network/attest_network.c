@@ -28,14 +28,15 @@
 
 #include "securec.h"
 
-#include "attest_utils_log.h"
 #include "attest_utils.h"
-#include "attest_type.h"
-#include "attest_service_device.h"
+#include "attest_utils_log.h"
 #include "attest_utils_list.h"
+#include "attest_utils_json.h"
+#include "attest_service_device.h"
 #include "attest_coap.h"
 #include "attest_coap_def.h"
 #include "attest_channel.h"
+#include "attest_adapter.h"
 #include "attest_network.h"
 
 #define MSG_LENGTH_BIT 0XFF
@@ -46,8 +47,11 @@
 #define COAP_MSGLEN_LEN            2
 #define COAP_LENTKL_LEN            1
 #define MAX_OPTION_VAL_LEN         64
+#define MAX_NETWORK_CFG_LIST_SIZE  2
 
 TLSSession* g_attestSession = NULL;
+
+List g_attestNetworkList;
 
 typedef struct {
     uint16_t  optionType;
@@ -70,7 +74,6 @@ char *g_uriPath[ATTEST_ACTION_MAX] = {
     "device/v3/auth",
     "device/v3/token/activate",
 };
-
 
 DevicePacket* CreateDevicePacket(void)
 {
@@ -158,23 +161,25 @@ static int32_t BuildCoapMsg(List *optionList, CoapBuffer *payload, char *outputB
 }
 
 // 用户自定义配置接口
-static TLSSession* CustomConfig(const char* seed)
+static TLSSession* CustomConfig(const char* seed, ServerInfo* networkInfo)
 {
     ATTEST_LOG_DEBUG("[CustomConfig] Begin.");
-    if (seed == NULL) {
+    if (seed == NULL || networkInfo == NULL) {
         ATTEST_LOG_ERROR("[CustomConfig] config or seed is NULL.");
         return NULL;
     }
 
     TLSSession* session = (TLSSession*)ATTEST_MEM_MALLOC(sizeof(TLSSession));
     if (session == NULL) {
+        ATTEST_LOG_ERROR("[CustomConfig] session malloc failed");
         return NULL;
     }
 
     if (memcpy_s(session->entropySeed, MAX_SEED_LEN, seed, strlen(seed)) != 0 ||
-        memcpy_s(session->serverInfo.hostName, MAX_HOST_NAME_LEN, HTTPS_NETWORK_HOST,
-                 strlen(HTTPS_NETWORK_HOST)) != 0 ||
-        memcpy_s(session->serverInfo.port, MAX_PORT_LEN, HTTPS_NETWORK_PORT, strlen(HTTPS_NETWORK_PORT)) != 0) {
+        memcpy_s(session->serverInfo.hostName, MAX_HOST_NAME_LEN, networkInfo->hostName,
+                 strlen(networkInfo->hostName)) != 0 ||
+        memcpy_s(session->serverInfo.port, MAX_PORT_LEN, networkInfo->port,
+                 strlen(networkInfo->port)) != 0) {
         ATTEST_LOG_ERROR("[CustomConfig] Memcpy failed.");
         ATTEST_MEM_FREE(session);
         return NULL;
@@ -205,15 +210,35 @@ static int32_t ConnectNetWork(TLSSession **session, void* reserved)
     } else {
         seed = (const char*)reserved;
     }
-    TLSSession* tmpSession = CustomConfig(seed);
-    if (tmpSession == NULL) {
-        ATTEST_LOG_ERROR("[ConnectNetWork] Session is NULL.");
-        return ATTEST_ERR;
+    TLSSession* tmpSession = NULL;
+    ListNode* head = g_attestNetworkList.head;
+    int32_t currentIndex = 0;
+    int32_t ret = ATTEST_OK;
+    while (head != NULL && currentIndex < MAX_NETWORK_CFG_LIST_SIZE) {
+        currentIndex++;
+        ServerInfo* networkInfo = (ServerInfo*)head->data;
+        head = head->next;
+        tmpSession = CustomConfig(seed, networkInfo);
+        if (tmpSession == NULL) {
+            ATTEST_LOG_ERROR("[ConnectNetWork] Session is NULL.");
+            ret = ATTEST_ERR;
+            continue;
+        }
+        ret = TLSConnect(tmpSession);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[ConnectNetWork] TLSConnect fail, ret = %d.", ret);
+            CloseNetwork(tmpSession);
+            continue;
+        } else {
+            ATTEST_LOG_INFO("[ConnectNetWork] connect successfully.");
+            break;
+        }
     }
-    int32_t ret = TLSConnect(tmpSession);
+    if (currentIndex == 0 || currentIndex > MAX_NETWORK_CFG_LIST_SIZE) {
+        ATTEST_LOG_ERROR("[ConnectNetWork] listSize wrong.");
+    }
+
     if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[ConnectNetWork] TLSConnect fail, ret = %d.", ret);
-        CloseNetwork(tmpSession);
         return ret;
     }
 
@@ -235,7 +260,7 @@ int32_t D2CConnect(void)
         g_attestSession = NULL;
         return ret;
     }
-    ATTEST_LOG_DEBUG("[D2CConnect] End, ret = %d.", ret);
+    ATTEST_LOG_DEBUG("[D2CConnect] End.");
     return ATTEST_OK;
 }
 
@@ -817,7 +842,7 @@ static int32_t DecodeLenTkl(const TLSSession* session, CoapPacket* coapPkt)
         ATTEST_LOG_ERROR("[DecodeLenTkl] Decode extended length fail, ret = %d, extendedLength = %d.", ret, extendedLength);
         return ret;
     }
-	coapPkt->hdr.extendedLength.buffer = extendedLength;
+    coapPkt->hdr.extendedLength.buffer = extendedLength;
     coapPkt->hdr.extendedLength.len = extendedLengthSize;
     return ATTEST_OK;
 }
@@ -905,4 +930,162 @@ int32_t SendAttestMsg(const DevicePacket *devPacket, ATTEST_ACTION_TYPE actionTy
     *respBody = respData;
     ATTEST_LOG_DEBUG("[SendAttestMsg] End.");
     return retCode;
+}
+
+static int32_t SplitNetworkInfoSymbol(char *inputData, List *list)
+{
+    if (inputData == NULL || list == NULL) {
+        ATTEST_LOG_ERROR("[SplitNetworkInfoSymbol] paramter wrong.");
+        return ATTEST_ERR;
+    }
+
+    ServerInfo* networkServerInfo = (ServerInfo*)ATTEST_MEM_MALLOC(sizeof(ServerInfo));
+    if (networkServerInfo == NULL) {
+        ATTEST_LOG_ERROR("[SplitNetworkInfoSymbol] network infomation malloc failed.");
+        return ATTEST_ERR;
+    }
+
+    int32_t ret = sscanf_s(inputData, "%" HOST_PATTERN ":%" PORT_PATTERN,
+        networkServerInfo->hostName, MAX_HOST_NAME_LEN,
+        networkServerInfo->port, MAX_PORT_LEN);
+
+    if (ret != PARAM_TWO) {
+        ATTEST_LOG_ERROR("[SplitNetworkInfoSymbol] failed to split NetworkInfo, host[%s] port[%s]",
+            networkServerInfo->hostName, networkServerInfo->port);
+        ATTEST_MEM_FREE(networkServerInfo);
+        return ATTEST_ERR;
+    }
+    ret = AddListNode(list, (char *)networkServerInfo);
+    return ret;
+}
+
+#ifdef __LITEOS_M__
+static int32_t ParseNetworkInfosConfig(char *inputData, List *list)
+{
+    if (inputData == NULL || list == NULL) {
+        ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] paramter wrong.");
+        return ATTEST_ERR;
+    }
+    int32_t ret = ATTEST_OK;
+    char *next = NULL;
+    char *pNext = strtok_s(inputData, ";", &next);
+    if (pNext == NULL) {
+        ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] inputData or strtok_s wrong");
+        return ATTEST_ERR;
+    }
+    while (pNext != NULL) {
+        ret = SplitNetworkInfoSymbol(pNext, list);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to split network info.");
+            break;
+        }
+        pNext = strtok_s(NULL, ";", &next);
+    }
+    return ret;
+}
+#else
+static int32_t ParseNetworkInfosConfig(char *inputData, List *list)
+{
+    if (inputData == NULL || list == NULL) {
+        ATTEST_LOG_ERROR("[ParseNetworkInfoConfig] parameter wrong.");
+        return ATTEST_ERR;
+    }
+
+    cJSON* root = cJSON_Parse(inputData);
+    if (root == NULL) {
+        ATTEST_LOG_ERROR("[ParseNetworkInfoConfig] failed to parse json.");
+        return ATTEST_ERR;
+    }
+
+    int32_t ret = ATTEST_OK;
+    do {
+        cJSON* array = cJSON_GetObjectItem(root, NETWORK_CONFIG_SERVER_INFO_NAME);
+        if (array == NULL) {
+            ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to get ObjectItem");
+            ret = ATTEST_ERR;
+            break;
+        }
+        int32_t arraySize = cJSON_GetArraySize(array);
+        for (int32_t i = 0; i < arraySize; i++) {
+            char *valueString = cJSON_GetStringValue(cJSON_GetArrayItem(array, i));
+            if (valueString == NULL) {
+                ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to get string");
+                ret = ATTEST_ERR;
+                break;
+            }
+
+            ret = SplitNetworkInfoSymbol(valueString, list);
+            if (ret != ATTEST_OK) {
+                ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to get SplitNetworkInfo");
+                break;
+            }
+        }
+        if (ret != ATTEST_OK) {
+            break;
+        }
+    } while (0);
+
+    cJSON_Delete(root);
+    return ret;
+}
+#endif
+
+static int32_t NetworkInfoConfig(List* list)
+{
+    if (list == NULL) {
+        ATTEST_LOG_ERROR("[NetworkInfoConfig] paramter wrong");
+        return ATTEST_ERR;
+    }
+
+    // No need to initialize
+    if (GetListSize(list) != 0) {
+        ATTEST_LOG_WARN("[NetworkInfoConfig] already configed network list");
+        return ATTEST_OK;
+    }
+
+    int32_t ret = CreateList(list);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[NetworkInfoConfig] create network list failed");
+        return ATTEST_ERR;
+    }
+
+    // For reading network_config.json
+    char *buffer = (char *)ATTEST_MEM_MALLOC(NETWORK_CONFIG_SIZE + 1);
+    if (buffer == NULL) {
+        ATTEST_LOG_ERROR("[NetworkInfoConfig] buffer malloc failed.");
+        ReleaseList(list);
+        return ATTEST_ERR;
+    }
+    do {
+        ret = AttestReadNetworkConfig(buffer, NETWORK_CONFIG_SIZE);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[NetworkInfoConfig] read networkconfig failed.");
+            break;
+        }
+
+        ret = ParseNetworkInfosConfig(buffer, list);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[NetworkInfoConfig] parse networkconfig failed.");
+            break;
+        }
+    } while (0);
+    if (ret != ATTEST_OK) {
+        ReleaseList(list);
+    }
+    ATTEST_MEM_FREE(buffer);
+    return ret;
+}
+
+int32_t InitNetworkServerInfo(void)
+{
+    if (g_attestNetworkList.head != NULL) {
+        ATTEST_LOG_WARN("[InitNetworkServerInfo] already init g_attestNetworkList");
+        return ATTEST_OK;
+    }
+    int32_t ret = NetworkInfoConfig(&g_attestNetworkList);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_INFO("[InitNetworkServerInfo] init g_attestNetworkList failed");
+        return ret;
+    }
+    return ATTEST_OK;
 }
