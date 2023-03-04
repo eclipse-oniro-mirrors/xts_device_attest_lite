@@ -15,48 +15,42 @@ import("//build/lite/config/component/lite_component.gni")
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 
 sources_common = [
-      "attest_entry.c",
-      "adapter/attest_adapter.c",
-      "adapter/attest_adapter_os.c",
-      "adapter/attest_adapter_oem.c",
-      "adapter/attest_adapter_mock.c",
-      "attest/attest_service.c",
-      "attest/attest_service_auth.c",
-      "attest/attest_service_active.c",
-      "attest/attest_service_challenge.c",
-      "attest/attest_service_reset.c",
-      "attest/attest_service_device.c",
-      "network/attest_channel.c",
-      "network/attest_coap.c",
-      "network/attest_network.c",
-      "network/attest_tls.c",
-      "security/attest_security.c",
-      "security/attest_security_token.c",
-      "security/attest_security_ticket.c",
-      "utils/attest_utils_file.c",
-      "utils/attest_utils_json.c",
-      "utils/attest_utils_log.c",
-      "utils/attest_utils_timer.c",
-      "utils/attest_utils_list.c",
-      "utils/attest_utils.c",
+  "attest_entry.c",
+  "adapter/attest_adapter.c",
+  "adapter/attest_adapter_os.c",
+  "adapter/attest_adapter_oem.c",
+  "adapter/attest_adapter_mock.c",
+  "attest/attest_service.c",
+  "attest/attest_service_auth.c",
+  "attest/attest_service_active.c",
+  "attest/attest_service_challenge.c",
+  "attest/attest_service_reset.c",
+  "attest/attest_service_device.c",
+  "network/attest_channel.c",
+  "network/attest_coap.c",
+  "network/attest_network.c",
+  "network/attest_tls.c",
+  "security/attest_security.c",
+  "security/attest_security_token.c",
+  "security/attest_security_ticket.c",
+  "utils/attest_utils_file.c",
+  "utils/attest_utils_json.c",
+  "utils/attest_utils_log.c",
+  "utils/attest_utils_timer.c",
+  "utils/attest_utils_list.c",
+  "utils/attest_utils.c",
 ]
 
 if (enable_attest_mock_network && enable_attest_mock_device) {
-  sources_common += [
-    "${devattest_path}/test/unittest/src/attest_mock.c",
-  ]
+  sources_common += [ "${devattest_path}/test/unittest/src/attest_mock.c" ]
 }
 
 if (enable_attest_debug_memory_leak) {
-  sources_common += [
-    "utils/attest_utils_memleak.c",
-  ]
+  sources_common += [ "utils/attest_utils_memleak.c" ]
 }
 
 if (enable_attest_debug_dfx) {
-  sources_common += [
-    "dfx/attest_dfx.c",
-  ]
+  sources_common += [ "dfx/attest_dfx.c" ]
 }
 
 config("devattest_core_config") {
@@ -80,6 +74,8 @@ config("devattest_core_config") {
 
   include_dirs += [
     "//base/startup/init/interfaces/hals",
+    "//base/startup/init/interfaces/innerkits/include/syspara",
+    "//developtools/syscap_codec/interfaces/inner_api",
   ]
 
   defines = []
@@ -90,43 +86,29 @@ config("devattest_core_config") {
   }
 
   if (enable_attest_network_host_debug) {
-    defines += [
-      "HTTPS_NETWORK_HOST = \"wisedevice-saas-mirrorcn.hwcloudtest.cn\"",
-    ]
+    defines +=
+        [ "HTTPS_NETWORK_HOST = \"wisedevice-saas-mirrorcn.hwcloudtest.cn\"" ]
   } else {
-    defines += [
-      "HTTPS_NETWORK_HOST = \"wisedevice-lite-drcn.openharmony.cn\"",
-    ]
+    defines +=
+        [ "HTTPS_NETWORK_HOST = \"wisedevice-lite-drcn.openharmony.cn\"" ]
   }
 
   if (enable_attest_mock_network) {
-    defines += [
-      "__ATTEST_MOCK_NETWORK_STUB__",
-    ]
+    defines += [ "__ATTEST_MOCK_NETWORK_STUB__" ]
   }
 
   if (enable_attest_mock_device) {
-
-    defines += [
-      "__ATTEST_MOCK_DEVICE_STUB__",
-    ]
+    defines += [ "__ATTEST_MOCK_DEVICE_STUB__" ]
   }
 
   if (enable_attest_debug_memory_leak) {
-    defines += [
-      "__ATTEST_DEBUG_MEMORY_LEAK__",
-    ]
+    defines += [ "__ATTEST_DEBUG_MEMORY_LEAK__" ]
   }
 
   if (enable_attest_debug_dfx) {
-    defines += [
-      "__ATTEST_DEBUG_DFX__",
-    ]
+    defines += [ "__ATTEST_DEBUG_DFX__" ]
   }
-
-  defines += [
-    "MBEDTLS_ALLOW_PRIVATE_ACCESS",
-  ]
+  defines += [ "MBEDTLS_ALLOW_PRIVATE_ACCESS" ]
 }
 
 config("devattest_core_hi3861_config") {
@@ -143,7 +125,7 @@ if (ohos_kernel_type == "liteos_m") {
 
     public_configs = [
       ":devattest_core_config",
-      ":devattest_core_hi3861_config"
+      ":devattest_core_hi3861_config",
     ]
 
     cflags = [
@@ -158,22 +140,20 @@ if (ohos_kernel_type == "liteos_m") {
     ]
 
     deps = [
-      "//base/startup/init/interfaces/innerkits:parameter",
       "$ohos_product_adapter_dir/utils/token:hal_token_static",
+      "//base/startup/init/interfaces/innerkits:parameter",
     ]
     deps += [
-      "//third_party/mbedtls:mbedtls_static",
       "//build/lite/config/component/cJSON:cjson_static",
       "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/mbedtls:mbedtls_static",
     ]
   }
 } else if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
   shared_library("devattest_core") {
     sources = sources_common
 
-    public_configs = [
-      ":devattest_core_config",
-    ]
+    public_configs = [ ":devattest_core_config" ]
     cflags = [
       "-ftrapv",
       "-Werror",
@@ -187,13 +167,14 @@ if (ohos_kernel_type == "liteos_m") {
     ]
 
     deps = [
-      "//base/startup/init/interfaces/innerkits:parameter",
       "$ohos_product_adapter_dir/utils/token:haltoken_shared",
+      "//base/startup/init/interfaces/innerkits:parameter",
     ]
     deps += [
-      "//third_party/mbedtls:mbedtls",
-      "//build/lite/config/component/cJSON:cjson_shared",
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+      "//build/lite/config/component/cJSON:cjson_shared",
+      "//third_party/mbedtls:mbedtls",
     ]
+    deps += [ "//developtools/syscap_codec:syscap_interface_shared" ]
   }
 }

@@ -16,33 +16,24 @@ import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 
 # L1 client bin
 executable("devattest_client") {
-    sources = [
-        "attest_framework_client_start.c",
-    ]
-    
-    cflags = [
-        "-ftrapv",
-        "-Werror",
-        "-Wextra",
-        "-Wshadow",
-        "-fstack-protector-all",
-        "-D_FORTIFY_SOURCE=2",
-        "-Wformat=2",
-        "-Wfloat-equal",
-        "-Wdate-time",
-    ]
-    cflags_cc = cflags
-    
-    ldflags = [ "-pthread", ]
-    if (board_name != "omap_se") {
-        ldflags += [ "-Wl,-z,relro,-z,now", "-s" ]
-    }
+  sources = [ "attest_framework_client_start.c" ]
 
-    include_dirs = [
-        "${devattest_path}/interfaces",
-    ]
+  cflags = [
+    "-ftrapv",
+    "-Werror",
+    "-Wextra",
+    "-Wshadow",
+    "-fstack-protector-all",
+    "-D_FORTIFY_SOURCE=2",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+  ]
+  cflags_cc = cflags
 
-    deps = [
-        "${devattest_path}/framework:devattest_client",
-    ]
+  ldflags = [ "-pthread" ]
+
+  include_dirs = [ "${devattest_path}/interfaces/innerkits" ]
+
+  deps = [ "${devattest_path}/framework:devattest_client" ]
 }
