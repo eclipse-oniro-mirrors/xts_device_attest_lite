@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#ifndef __LITEOS_M__
 #include "syscap_interface.h"
+#endif
 #include "attest_type.h"
 #include "attest_utils.h"
 #include "attest_utils_log.h"
@@ -236,6 +237,7 @@ static int32_t EncodePcid(char *buf, int32_t bufLen, char **output)
     return ATTEST_OK;
 }
 
+#ifndef __LITEOS_M__
 char* GetPcid(void)
 {
     // get osSyscap
@@ -272,3 +274,10 @@ char* GetPcid(void)
     ATTEST_MEM_FREE(pcidBuf);
     return pcidSha256;
 }
+#else
+char* GetPcid(void)
+{
+    // LITEOS_M not support pcid, this function return default value, but don't use
+    return "pcid";
+}
+#endif
