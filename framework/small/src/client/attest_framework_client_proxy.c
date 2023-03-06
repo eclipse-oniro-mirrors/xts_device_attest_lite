@@ -67,7 +67,7 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
     }
 
     if (!ReadInt32(reply, (int32_t *)&attestResult->ticketLength)) {
-        HILOGE("[ReadAttestResultInfo] Failed to ticketLength.");
+        HILOGE("[ReadAttestResultInfo] Failed to read ticketLength.");
         return DEVATTEST_FAIL;
     }
 
@@ -79,7 +79,7 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
     len = strlen(ticket) + 1;
     char* backTicket = (char *)malloc(len);
     if (backTicket == NULL) {
-        HILOGE("[ReadAttestResultInfo] backTicket malloc failed");
+        HILOGE("[ReadAttestResultInfo] Failed to malloc backTicket  ");
         return DEVATTEST_FAIL;
     }
     (void)memset_s(backTicket, len, 0, len);
