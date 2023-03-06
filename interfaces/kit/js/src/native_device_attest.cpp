@@ -187,7 +187,11 @@ JSIValue NativeDeviceAttest::GetAttestResultInfoSync(const JSIValue thisVal, con
     }
 
     JSIValue result = JSI::CreateObject();
-    SetJsResult(&result, &attestResultInfo);
+    ret = SetJsResult(&result, &attestResultInfo);
+    if (ret != DEVATTEST_SUCCESS) {
+        JSI::ReleaseValueList(result, ARGS_END);
+        return JSI::CreateUndefined();
+    }
 
     free(attestResultInfo.ticket);
     attestResultInfo.ticket = NULL;
