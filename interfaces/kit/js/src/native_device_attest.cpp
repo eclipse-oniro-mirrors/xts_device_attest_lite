@@ -164,7 +164,7 @@ void ExecuteGetAttestResult(void* data)
     } else {
         SuccessCallBack(thisVal, args, result);
     }
-    JSI::ReleaseValueList(args, thisVal, ARGS_END);
+    JSI::ReleaseValueList(args, thisVal, result, ARGS_END);
     delete params;
     params = nullptr;
     return;
