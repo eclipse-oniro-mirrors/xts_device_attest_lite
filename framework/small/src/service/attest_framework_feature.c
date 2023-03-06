@@ -109,9 +109,7 @@ static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResul
     }
 
     if (!WriteInt32(reply, attestResultInfo->authResult) ||
-        !WriteInt32(reply, attestResultInfo->softwareResult) ||
-        !WriteInt32(reply, attestResultInfo->ticketLength) ||
-        !WriteString(reply, attestResultInfo->ticket)) {
+        !WriteInt32(reply, attestResultInfo->softwareResult)) {
         HILOGE("[WriteAttestResultInfo] Write data fail!");
         return DEVATTEST_FAIL;
     }
@@ -122,6 +120,11 @@ static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResul
         return DEVATTEST_FAIL;
     }
 
+    if (!WriteInt32(reply, attestResultInfo->ticketLength) ||
+        !WriteString(reply, attestResultInfo->ticket)) {
+        HILOGE("[WriteAttestResultInfo] Write ticket fail!!");
+        return DEVATTEST_FAIL;
+    }
     return DEVATTEST_SUCCESS;
 }
 
@@ -151,8 +154,9 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
 
 static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req, IpcIo *reply)
 {
+    (void)origin;
     (void)req;
-    if (iProxy == NULL || origin == NULL) {
+    if (iProxy == NULL) {
         return DEVATTEST_FAIL;
     }
     int32_t ret = DEVATTEST_SUCCESS;
