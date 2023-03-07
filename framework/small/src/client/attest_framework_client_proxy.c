@@ -43,13 +43,13 @@ typedef struct {
 
 static AttestClientProxy *g_clientProxy;
 
-static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatus)
+static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResult)
 {
-    if ((attestStatus == NULL) || (*attestStatus == NULL) || (reply == NULL)) {
+    if ((attestResult == NULL) || (reply == NULL)) {
         HILOGE("[ReadAttestResultInfo] Invalid parameter.");
         return DEVATTEST_FAIL;
     }
-    AttestResultInfo *attestResult = *attestStatus;
+
     if (!ReadInt32(reply, (int32_t *)&attestResult->authResult) ||
         !ReadInt32(reply, (int32_t *)&attestResult->softwareResult)) {
         HILOGE("[ReadAttestResultInfo] Failed to ReadInt32.");
@@ -59,7 +59,7 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
     size_t len = 0;
     int32_t *softwareResultDetail = ReadInt32Vector(reply, &len);
     size_t size = sizeof(attestResult->softwareResultDetail);
-    if (softwareResultDetail == NULL || (len != (size  / sizeof(int32_t)))) {
+    if (softwareResultDetail == NULL || (len != (size / sizeof(int32_t)))) {
         HILOGE("[ReadAttestResultInfo] Failed to softwareResultDetail_.");
         return DEVATTEST_FAIL;
     }
@@ -74,7 +74,7 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
     }
 
     char *ticket = (char *)ReadString(reply, &len);
-    if ((ticket == NULL) || (len == 0)) {
+    if (ticket == NULL) {
         HILOGE("[ReadAttestResultInfo] Failed to ReadString.");
         return DEVATTEST_FAIL;
     }
@@ -105,19 +105,8 @@ static int AttestClientQueryStatusCb(void *owner, int code, IpcIo *reply)
         return DEVATTEST_FAIL;
     }
 
-    int32_t ret;
-    ServiceRspMsg *respInfo = (ServiceRspMsg *)owner;
-
-    if (!ReadInt32(reply, &respInfo->result)) {
-        HILOGE("[AttestClientQueryStatusCb] Failed to ReadInt32.");
-        return DEVATTEST_FAIL;
-    }
-    if (respInfo->result != DEVATTEST_SUCCESS) {
-        HILOGE("[AttestClientQueryStatusCb] Failed to QueryStatus, result:%d.", respInfo->result);
-        return DEVATTEST_FAIL;
-    }
-    ret = ReadAttestResultInfo(reply, &respInfo->attestResultInfo);
-    return ret;
+    AttestResultInfo *respInfo = (AttestResultInfo *)owner;
+    return ReadAttestResultInfo(reply, respInfo);
 }
 
 static int32_t StartProc(IUnknown *iUnknown)
@@ -143,16 +132,10 @@ static int32_t QueryStatus(IUnknown *iUnknown, AttestResultInfo *attestResultInf
         return DEVATTEST_FAIL;
     }
     AttestClientProxy *proxy = (AttestClientProxy *)iUnknown;
-    ServiceRspMsg reply = {0};
-    reply.attestResultInfo = attestResultInfo;
-    int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_QUERY, NULL, &reply, AttestClientQueryStatusCb);
+    int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_QUERY, NULL, attestResultInfo, AttestClientQueryStatusCb);
 
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[QueryStatus] Invoke failed.");
-        return DEVATTEST_FAIL;
-    }
-    if (reply.result != DEVATTEST_SUCCESS) {
-        HILOGE("[QueryStatus] Service return failed, result = %d", reply.result);
         return DEVATTEST_FAIL;
     }
     return DEVATTEST_SUCCESS;

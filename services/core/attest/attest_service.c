@@ -376,12 +376,11 @@ static int32_t QueryAttestStatusImpl(int32_t** resultArray, int32_t arraySize, c
         return ATTEST_ERR;
     }
     retCode = CopyResultArray(authStatus, resultArray);
+    DestroyAuthStatus(&authStatus);
     if (retCode != ATTEST_OK) {
-        DestroyAuthStatus(&authStatus);
         ATTEST_MEM_FREE(decryptedTicket);
         return ATTEST_ERR;
     }
-    DestroyAuthStatus(&authStatus);
     *ticket = decryptedTicket;
     *ticketLength = strlen(*ticket);
     return ATTEST_OK;

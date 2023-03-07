@@ -34,11 +34,6 @@ typedef enum {
     ATTEST_FRAMEWORK_MSG_MAX
 } AttestFrameworkFuncID;
 
-typedef struct {
-    int32_t result;
-    AttestResultInfo *attestResultInfo;
-} ServiceRspMsg;
-
 #ifdef __cplusplus
 #if __cplusplus
 }

@@ -88,23 +88,10 @@ static BOOL FEATURE_OnMessage(Feature *feature, Request *request)
     return FALSE;
 }
 
-static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResultInfo)
+static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResultInfo, char *ticket)
 {
     if (reply == NULL) {
         HILOGE("[WriteAttestResultInfo] reply is null!");
-        return DEVATTEST_FAIL;
-    }
-
-    if (attestResultInfo->ticket == NULL) {
-        HILOGE("[WriteAttestResultInfo] ticket is NULL!");
-        if (!WriteInt32(reply, DEVATTEST_FAIL)) {
-            HILOGE("[WriteAttestResultInfo] Write ret fail!");
-        }
-        return DEVATTEST_FAIL;
-    }
-
-    if (!WriteInt32(reply, DEVATTEST_SUCCESS)) {
-        HILOGE("[WriteAttestResultInfo] Write result fail!");
         return DEVATTEST_FAIL;
     }
 
@@ -120,9 +107,14 @@ static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResul
         return DEVATTEST_FAIL;
     }
 
+    if (!WriteInt32(reply, attestResultInfo->ticketLength)) {
+        HILOGE("[WriteAttestResultInfo] Write ticketLength fail!!");
+        return DEVATTEST_FAIL;
+    }
+
     if (!WriteInt32(reply, attestResultInfo->ticketLength) ||
-        !WriteString(reply, attestResultInfo->ticket)) {
-        HILOGE("[WriteAttestResultInfo] Write ticket fail!!");
+        !WriteString(reply, ticket)) {
+        HILOGE("[WriteAttestResultInfo] Write ticket fail!");
         return DEVATTEST_FAIL;
     }
     return DEVATTEST_SUCCESS;
@@ -135,6 +127,7 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         return DEVATTEST_FAIL;
     }
     AttestResultInfo attestResultInfo = { .softwareResultDetail = {-2, -2, -2, -2, -2} };
+    attestResultInfo.authResult = -2;
     attestResultInfo.ticket = NULL;
     int32_t ret = EntryGetAttestStatus(&attestResultInfo);
     if (ret != DEVATTEST_SUCCESS) {
@@ -145,7 +138,8 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         return DEVATTEST_FAIL;
     }
 
-    ret = WriteAttestResultInfo(reply, &attestResultInfo);
+    char *ticket = (attestResultInfo.ticket == NULL) ? "" : attestResultInfo.ticket;
+    ret = WriteAttestResultInfo(reply, &attestResultInfo, ticket);
     if (attestResultInfo.ticket != NULL) {
         free(attestResultInfo.ticket);
         attestResultInfo.ticket = NULL;
