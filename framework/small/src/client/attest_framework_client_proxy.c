@@ -29,7 +29,7 @@
 #include "attest_framework_define.h"
 #include "devattest_interface.h"
 
-#define MAX_TICKET_LEN 49
+#define MAX_TICKET_SIZE 49
 
 typedef struct {
     INHERIT_CLIENT_IPROXY;
@@ -79,7 +79,7 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
         return DEVATTEST_FAIL;
     }
     len = strlen(ticket) + 1;
-    if (len > MAX_TICKET_LEN) {
+    if (len > MAX_TICKET_SIZE) {
         HILOGE("[ReadAttestResultInfo] The len is too large.");
         return DEVATTEST_FAIL;
     }
