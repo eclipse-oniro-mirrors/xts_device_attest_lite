@@ -29,6 +29,8 @@
 #include "attest_framework_define.h"
 #include "devattest_interface.h"
 
+#define MAX_TICKET_LEN 49
+
 typedef struct {
     INHERIT_CLIENT_IPROXY;
     int32_t(*StartProc)(IUnknown *iUnknown);
@@ -56,12 +58,12 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
 
     size_t len = 0;
     int32_t *softwareResultDetail = ReadInt32Vector(reply, &len);
-    size_t size = sizeof(attestResult->softwareResultDetail) / sizeof(int32_t);
-    if (softwareResultDetail == NULL || (len != size)) {
+    size_t size = sizeof(attestResult->softwareResultDetail);
+    if (softwareResultDetail == NULL || (len != (size  / sizeof(int32_t)))) {
         HILOGE("[ReadAttestResultInfo] Failed to softwareResultDetail_.");
         return DEVATTEST_FAIL;
     }
-    if (memcpy_s(attestResult->softwareResultDetail, len * sizeof(int32_t), softwareResultDetail, len * sizeof(int32_t)) != 0) {
+    if (memcpy_s(attestResult->softwareResultDetail, size, softwareResultDetail, size) != 0) {
         HILOGE("[ReadAttestResultInfo] Failed to copy softwareResultDetail.");
         return DEVATTEST_FAIL;
     }
@@ -77,9 +79,13 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
         return DEVATTEST_FAIL;
     }
     len = strlen(ticket) + 1;
+    if (len > MAX_TICKET_LEN) {
+        HILOGE("[ReadAttestResultInfo] The len is too large.");
+        return DEVATTEST_FAIL;
+    }
     char* backTicket = (char *)malloc(len);
     if (backTicket == NULL) {
-        HILOGE("[ReadAttestResultInfo] Failed to malloc backTicket  ");
+        HILOGE("[ReadAttestResultInfo] Failed to malloc backTicket.");
         return DEVATTEST_FAIL;
     }
     (void)memset_s(backTicket, len, 0, len);
