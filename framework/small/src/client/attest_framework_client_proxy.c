@@ -151,7 +151,7 @@ static int32_t QueryStatus(IUnknown *iUnknown, AttestResultInfo *attestResultInf
         return DEVATTEST_FAIL;
     }
     if (reply.result != DEVATTEST_SUCCESS) {
-        HILOGE("[AttestClientQueryStatusCb] Failed to QueryStatus, result:%d.", reply.result);
+        HILOGE("[QueryStatus] Service return failed, result = %d", reply.result);
         return DEVATTEST_FAIL;
     }
     return DEVATTEST_SUCCESS;
