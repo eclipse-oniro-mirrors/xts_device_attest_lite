@@ -43,12 +43,13 @@ typedef struct {
 
 static AttestClientProxy *g_clientProxy;
 
-static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResult)
+static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatus)
 {
-    if ((attestResult == NULL) || (reply == NULL)) {
+    if ((attestStatus == NULL) || (*attestStatus == NULL) || (reply == NULL)) {
         HILOGE("[ReadAttestResultInfo] Invalid parameter.");
         return DEVATTEST_FAIL;
     }
+    AttestResultInfo *attestResult = *attestStatus;
 
     if (!ReadInt32(reply, (int32_t *)&attestResult->authResult) ||
         !ReadInt32(reply, (int32_t *)&attestResult->softwareResult)) {
@@ -105,8 +106,17 @@ static int AttestClientQueryStatusCb(void *owner, int code, IpcIo *reply)
         return DEVATTEST_FAIL;
     }
 
-    AttestResultInfo *respInfo = (AttestResultInfo *)owner;
-    return ReadAttestResultInfo(reply, respInfo);
+    ServiceRspMsg *respInfo = (ServiceRspMsg *)owner;
+
+    if (!ReadInt32(reply, &respInfo->result)) {
+        HILOGE("[AttestClientQueryStatusCb] Failed to ReadInt32.");
+        return DEVATTEST_FAIL;
+    }
+    if (respInfo->result != DEVATTEST_SUCCESS) {
+        HILOGE("[AttestClientQueryStatusCb] Failed to QueryStatus, result:%d.", respInfo->result);
+        return DEVATTEST_FAIL;
+    }
+    return ReadAttestResultInfo(reply, &respInfo->attestResultInfo);
 }
 
 static int32_t StartProc(IUnknown *iUnknown)
@@ -132,10 +142,16 @@ static int32_t QueryStatus(IUnknown *iUnknown, AttestResultInfo *attestResultInf
         return DEVATTEST_FAIL;
     }
     AttestClientProxy *proxy = (AttestClientProxy *)iUnknown;
-    int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_QUERY, NULL, attestResultInfo, AttestClientQueryStatusCb);
+    ServiceRspMsg reply = {0};
+    reply.attestResultInfo = attestResultInfo;
+    int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_QUERY, NULL, &reply, AttestClientQueryStatusCb);
 
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[QueryStatus] Invoke failed.");
+        return DEVATTEST_FAIL;
+    }
+    if (reply.result != DEVATTEST_SUCCESS) {
+        HILOGE("[AttestClientQueryStatusCb] Failed to QueryStatus, result:%d.", reply.result);
         return DEVATTEST_FAIL;
     }
     return DEVATTEST_SUCCESS;

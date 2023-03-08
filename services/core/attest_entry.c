@@ -101,11 +101,6 @@ int32_t AttestTask(void)
     return ret;
 }
 
-static int32_t QueryAttest(int32_t** resultArray, int32_t arraySize, char** ticket, int32_t* ticketLength)
-{
-    return QueryAttestStatus(resultArray, arraySize, ticket, ticketLength);
-}
-
 static int32_t CopyAttestResult(int32_t *resultArray, AttestResultInfo *attestResultInfo)
 {
     if (resultArray == NULL) {
@@ -137,14 +132,9 @@ int32_t EntryGetAttestStatus(AttestResultInfo* attestResultInfo)
     char* ticketStr = NULL;
     int32_t ret = DEVATTEST_SUCCESS;
     do {
-        ret = QueryAttest(&resultArray, MAX_ATTEST_RESULT_SIZE, &ticketStr, &ticketLenght);
+        ret = QueryAttestStatus(&resultArray, MAX_ATTEST_RESULT_SIZE, &ticketStr, &ticketLenght);
         if (ret != DEVATTEST_SUCCESS) {
             ATTEST_LOG_ERROR("QueryAttest failed");
-            break;
-        }
-        if (ticketStr == NULL || ticketLenght == 0) {
-            ATTEST_LOG_ERROR("Get ticket failed");
-            ret = DEVATTEST_FAIL;
             break;
         }
         attestResultInfo->ticketLength = ticketLenght;

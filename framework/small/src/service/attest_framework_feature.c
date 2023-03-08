@@ -95,6 +95,11 @@ static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResul
         return DEVATTEST_FAIL;
     }
 
+    if (!WriteInt32(reply, DEVATTEST_SUCCESS)) {
+        HILOGE("[WriteAttestResultInfo] Write ret fail!");
+        return DEVATTEST_FAIL;
+    }
+
     if (!WriteInt32(reply, attestResultInfo->authResult) ||
         !WriteInt32(reply, attestResultInfo->softwareResult)) {
         HILOGE("[WriteAttestResultInfo] Write data fail!");
@@ -104,11 +109,6 @@ static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResul
     size_t size = sizeof(attestResultInfo->softwareResultDetail) / sizeof(int32_t);
     if (!WriteInt32Vector(reply, attestResultInfo->softwareResultDetail, size)) {
         HILOGE("[WriteAttestResultInfo] Write softwareResultDetail_ fail!");
-        return DEVATTEST_FAIL;
-    }
-
-    if (!WriteInt32(reply, attestResultInfo->ticketLength)) {
-        HILOGE("[WriteAttestResultInfo] Write ticketLength fail!!");
         return DEVATTEST_FAIL;
     }
 
@@ -128,6 +128,7 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
     }
     AttestResultInfo attestResultInfo = { .softwareResultDetail = {-2, -2, -2, -2, -2} };
     attestResultInfo.authResult = -2;
+    attestResultInfo.softwareResult = -2;
     attestResultInfo.ticket = NULL;
     int32_t ret = EntryGetAttestStatus(&attestResultInfo);
     if (ret != DEVATTEST_SUCCESS) {
