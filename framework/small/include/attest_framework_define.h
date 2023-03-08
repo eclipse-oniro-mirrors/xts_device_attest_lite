@@ -27,7 +27,7 @@ extern "C" {
 #define ATTEST_QUEUE_SIZE     20
 #define ATTEST_SERVICE        "attest_service"
 #define ATTEST_FEATURE        "attest_feature"
-#define ATTEST_DEFAULT_RESULT -2
+#define ATTEST_DEFAULT_RESULT (-2)
 
 typedef enum {
     ATTEST_FRAMEWORK_MSG_PROC,
