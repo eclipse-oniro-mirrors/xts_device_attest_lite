@@ -319,6 +319,41 @@ char* BuildCoapResetBody(const DevicePacket *postValue)
     return bodyData;
 }
 
+static int32_t BuildCoapAuthBodySoftware(const DevicePacket *postValue, cJSON *outData)
+{
+    if (postValue == NULL || outData == NULL) {
+        ATTEST_LOG_ERROR("[BuildCoapAuthBodySoftware] Invalid parameter");
+        return ATTEST_ERR;
+    }
+
+    cJSON *software = cJSON_CreateObject();
+    if (software == NULL) {
+        ATTEST_LOG_ERROR("[BuildCoapAuthBodySoftware] software Create Object fail");
+        return ATTEST_ERR;
+    }
+
+    if (!cJSON_AddItemToObject(outData, "software", software)) {
+        cJSON_Delete(software);
+        ATTEST_LOG_ERROR("[BuildCoapAuthBodySoftware] postData Add Item To Object fail");
+        return ATTEST_ERR;
+    }
+
+    if (cJSON_AddStringToObject(software, "versionId", postValue->productInfo.versionId) == NULL ||
+        cJSON_AddStringToObject(software, "manufacture", postValue->productInfo.manu) == NULL ||
+        cJSON_AddStringToObject(software, "model", postValue->productInfo.model) == NULL ||
+        cJSON_AddStringToObject(software, "brand", postValue->productInfo.brand) == NULL ||
+        cJSON_AddStringToObject(software, "rootHash", postValue->productInfo.rootHash) == NULL ||
+        cJSON_AddStringToObject(software, "version", postValue->productInfo.displayVersion) == NULL ||
+#ifndef __LITEOS_M__
+        cJSON_AddStringToObject(software, "pcid", postValue->pcid) == NULL ||
+#endif
+        cJSON_AddStringToObject(software, "patchLevel", postValue->productInfo.patchTag) == NULL) {
+        ATTEST_LOG_ERROR("[BuildCoapAuthBodySoftware] software Add productInfo values fail");
+        return ATTEST_ERR;
+    }
+    return ATTEST_OK;
+}
+
 char* BuildCoapAuthBody(const DevicePacket *postValue)
 {
     ATTEST_LOG_DEBUG("[BuildCoapAuthBody] Begin.");
@@ -356,29 +391,7 @@ char* BuildCoapAuthBody(const DevicePacket *postValue)
             ATTEST_LOG_ERROR("[BuildCoapAuthBody] tokenInfo Add uuid or token fail");
             break;
         }
-        cJSON *software = cJSON_CreateObject();
-        if (software == NULL) {
-            ret = ATTEST_ERR;
-            ATTEST_LOG_ERROR("[BuildCoapAuthBody] software Create Object fail");
-            break;
-        }
-        if (!cJSON_AddItemToObject(postData, "software", software)) {
-            cJSON_Delete(software);
-            ret = ATTEST_ERR;
-            ATTEST_LOG_ERROR("[BuildCoapAuthBody] postData Add Item To Object fail");
-            break;
-        }
-        if (cJSON_AddStringToObject(software, "versionId", postValue->productInfo.versionId) == NULL ||
-            cJSON_AddStringToObject(software, "manufacture", postValue->productInfo.manu) == NULL ||
-            cJSON_AddStringToObject(software, "model", postValue->productInfo.model) == NULL ||
-            cJSON_AddStringToObject(software, "brand", postValue->productInfo.brand) == NULL ||
-            cJSON_AddStringToObject(software, "rootHash", postValue->productInfo.rootHash) == NULL ||
-            cJSON_AddStringToObject(software, "version", postValue->productInfo.displayVersion) == NULL ||
-            cJSON_AddStringToObject(software, "patchLevel", postValue->productInfo.patchTag) == NULL) {
-            ret = ATTEST_ERR;
-            ATTEST_LOG_ERROR("[BuildCoapAuthBody] software Add productInfo values fail");
-            break;
-        }
+        ret = BuildCoapAuthBodySoftware(postValue, postData);
     } while (0);
     if (ret == ATTEST_ERR) {
         cJSON_Delete(postData);

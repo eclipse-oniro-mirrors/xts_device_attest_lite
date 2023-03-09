@@ -12,13 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "parameter.h"
+#ifndef __LITEOS_M__
+#include "syscap_interface.h"
+#endif
 #include "attest_type.h"
 #include "attest_utils.h"
 #include "attest_utils_log.h"
 #include "attest_adapter.h"
 #include "attest_service_device.h"
+
+#define PCID_STRING_LEN 64
 
 char* g_devSysInfos[SYS_DEV_MAX] = {NULL};
 const char* g_devSysInfosStr[] = {
@@ -33,6 +36,7 @@ const char* g_devSysInfosStr[] = {
     "RANDOM_UUID",
     "APP_ID",
     "TENANT_ID",
+    "PCID",
 };
 
 SetDataFunc g_setDataFunc[] = {
@@ -47,6 +51,7 @@ SetDataFunc g_setDataFunc[] = {
     &GetRandomUuid,
     &GetAppId,
     &GetTenantId,
+    &GetPcid,
 };
 
 static int32_t SetSysData(SYS_DEV_TYPE_E type)
@@ -84,7 +89,7 @@ static void PrintDevSysInfo(void)
         return;
     }
     for (int32_t i = 0; i < SYS_DEV_MAX; i++) {
-        if (i == UDID || i == APP_ID) {
+        if (i == UDID || i == APP_ID || i == PCID_ID) {
             continue;
         }
         if (g_devSysInfos[i] == NULL) {
@@ -182,3 +187,97 @@ char* GetRandomUuid(void)
     return buff;
 }
 
+static int32_t MergePcid(char *pcidOs, int32_t pcidOsLen, char *pcidPrivate, int32_t pcidPrivateLen, char **output)
+{
+    if (output == NULL || pcidOs == NULL || pcidOsLen == 0) {
+        ATTEST_LOG_ERROR("[MergePcid] Invalid parameter.");
+        return ATTEST_ERR;
+    }
+
+    int32_t size = pcidOsLen + pcidPrivateLen;
+    char *pcidBuf = (char *)ATTEST_MEM_MALLOC(size);
+    if (pcidBuf == NULL) {
+        ATTEST_LOG_ERROR("[MergePcid] Failed to malloc.");
+        return ATTEST_ERR;
+    }
+    if (memcpy_s(pcidBuf, size, pcidOs, pcidOsLen) != 0) {
+        ATTEST_LOG_ERROR("[MergePcid] Failed to memcpy osSyscaps.");
+        ATTEST_MEM_FREE(pcidBuf);
+        return ATTEST_ERR;
+    }
+    if ((pcidPrivateLen > 0 && pcidPrivate != NULL) &&
+        (memcpy_s(pcidBuf, size, pcidPrivate, pcidPrivateLen) != 0)) {
+        ATTEST_LOG_ERROR("[MergePcid] Failed to memcpy privateSyscaps.");
+        ATTEST_MEM_FREE(pcidBuf);
+        return ATTEST_ERR;
+    }
+    *output = pcidBuf;
+    return ATTEST_OK;
+}
+
+static int32_t EncodePcid(char *buf, int32_t bufLen, char **output)
+{
+    if (output == NULL || buf == NULL || bufLen == 0) {
+        ATTEST_LOG_ERROR("[EncodePcid] Invalid parameter.");
+        return ATTEST_ERR;
+    }
+
+    char *pcidSha256 = (char *)ATTEST_MEM_MALLOC(PCID_STRING_LEN + 1);
+    if (pcidSha256 == NULL) {
+        ATTEST_LOG_ERROR("[EncodePcid] Failed to malloc.");
+        return ATTEST_ERR;
+    }
+    int32_t ret = Sha256Value((const unsigned char *)buf, bufLen, pcidSha256, PCID_STRING_LEN + 1);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[EncodePcid] Failed to encode.");
+        ATTEST_MEM_FREE(pcidSha256);
+        return ATTEST_ERR;
+    }
+    *output = pcidSha256;
+    return ATTEST_OK;
+}
+
+#ifndef __LITEOS_M__
+char* GetPcid(void)
+{
+    // get osSyscap
+    char osSyscaps[PCID_MAIN_BYTES] = { 0 };
+    if (!EncodeOsSyscap(osSyscaps, PCID_MAIN_BYTES)) {
+        ATTEST_LOG_ERROR("[GetPcid] EncodeOsSyscap failed");
+        return NULL;
+    }
+
+    // get privateSyscap
+    char *privateSyscaps = NULL;
+    int32_t pcidPrivateLen = 0;
+    if (!EncodePrivateSyscap(&privateSyscaps, &pcidPrivateLen)) {
+        ATTEST_LOG_ERROR("[GetPcid] EncodePrivateSyscap failed");
+        return NULL;
+    }
+
+    // merge OsSyscap and PrivateSyscap
+    char *pcidBuf = NULL;
+    int32_t ret = MergePcid(osSyscaps, PCID_MAIN_BYTES, privateSyscaps, pcidPrivateLen, &pcidBuf);
+    if (ret != ATTEST_OK || pcidBuf == NULL) {
+        ATTEST_LOG_ERROR("[GetPcid] Failed to Merge Pcid.");
+        return NULL;
+    }
+
+    // SHA256转换
+    char *pcidSha256 = NULL;
+    ret = EncodePcid(pcidBuf, PCID_MAIN_BYTES + pcidPrivateLen, &pcidSha256);
+    if (ret != ATTEST_OK || pcidSha256 == NULL) {
+        ATTEST_LOG_ERROR("[GetPcid] Failed to SHA256.");
+        ATTEST_MEM_FREE(pcidBuf);
+        return NULL;
+    }
+    ATTEST_MEM_FREE(pcidBuf);
+    return pcidSha256;
+}
+#else
+char* GetPcid(void)
+{
+    // LITEOS_M not support pcid, this function return default value, but don't use
+    return "pcid";
+}
+#endif
