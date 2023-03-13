@@ -248,6 +248,22 @@ static int32_t ProcAttestImpl(void)
             break;
         }
 
+        // 结果保存到本地
+        ATTEST_LOG_INFO("[ProcAttestImpl] Flush auth result.");
+        ret = FlushAuthResult(authResult->ticket, authResult->authStatus);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_WARN("[ProcAttestImpl] Flush auth result failed, ret = %d.", ret);
+        }
+        // 结果保存到启动子系统parameter,方便展示
+        ret = FlushAttestStatusPara(authResult->authStatus);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_WARN("[ProcAttestImpl] Flush attest para failed, ret = %d.", ret);
+        }
+        ret = GetAttestStatusPara();
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_WARN("[ProcAttestImpl] Get para failed, ret = %d.", ret);
+        }
+
         // token激活
         ATTEST_LOG_INFO("[ProcAttestImpl] Active token.");
         for (int32_t i = 0; i <= WISE_RETRY_CNT; i++) {
@@ -259,21 +275,6 @@ static int32_t ProcAttestImpl(void)
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ProcAttestImpl] Active token failed, ret = %d.", ret);
             break;
-        }
-        // 结果保存到本地
-        ATTEST_LOG_INFO("[ProcAttestImpl] Flush auth result.");
-        ret = FlushAuthResult(authResult->ticket, authResult->authStatus);
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttestImpl] Flush auth result failed, ret = %d.", ret);
-        }
-        // 结果保存到启动子系统parameter,方便展示
-        ret = FlushAttestStatusPara(authResult->authStatus);
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttestImpl] Flush attest para failed, ret = %d.", ret);
-        }
-        ret = GetAttestStatusPara();
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttestImpl] Get para failed, ret = %d.", ret);
         }
     } while (0);
     DestroySysData();
@@ -417,3 +418,4 @@ int32_t QueryAttestStatus(int32_t** resultArray, int32_t arraySize, char** ticke
     pthread_mutex_unlock(&g_mtxAttest);
     return ret;
 }
+

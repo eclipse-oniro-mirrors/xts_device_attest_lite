@@ -30,15 +30,21 @@ int main(void)
 
         AttestResultInfo attestResultInfo = { 0 };
         attestResultInfo.ticket = NULL;
-        
+        printf("[CLIENT MAIN] query.\n");
         ret = GetAttestStatus(&attestResultInfo);
         if (ret != DEVATTEST_SUCCESS) {
-            printf("[CLIENT MAIN] wrong.\n");
+            printf("[CLIENT MAIN] wrong. ret:%d\n", ret);
         }
+        printf("[CLIENT MAIN] auth:%d, software:%d, versionId:%d, patchLevel:%d, roothash:%d, pcid:%d\n",
+                attestResultInfo.authResult, attestResultInfo.softwareResult,
+                attestResultInfo.softwareResultDetail[0],
+                attestResultInfo.softwareResultDetail[1],
+                attestResultInfo.softwareResultDetail[2],
+                attestResultInfo.softwareResultDetail[3]);
 
         if (attestResultInfo.ticket != NULL) {
-            printf("[CLIENT MAIN] auth:%d, software:%d, ticket:%s\n",
-                attestResultInfo.authResult, attestResultInfo.softwareResult, attestResultInfo.ticket);
+            printf("[CLIENT MAIN] ticketLength:%d, ticket:%s\n",
+                attestResultInfo.ticketLength, attestResultInfo.ticket);
 
             free(attestResultInfo.ticket);
             attestResultInfo.ticket = NULL;
