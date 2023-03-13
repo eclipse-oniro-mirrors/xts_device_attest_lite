@@ -37,7 +37,7 @@ int main(void)
             printf("[CLIENT MAIN] wrong. ret:%d\n", ret);
         }
 
-        printf("[CLIENT MAIN] auth:%d, software:%d\n",attestResultInfo.authResult, attestResultInfo.softwareResult);
+        printf("[CLIENT MAIN] auth:%d, software:%d\n", attestResultInfo.authResult, attestResultInfo.softwareResult);
         for (int32_t i = 0; i < ATTEST_SOFTWARE_RESULT_SIZE; i++) {
             printf("[CLIENT MAIN] softwareResultDetail[%d]:%d\n", i, attestResultInfo.softwareResultDetail[i]);
         }
