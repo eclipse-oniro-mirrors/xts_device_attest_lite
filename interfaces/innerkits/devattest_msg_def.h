@@ -23,15 +23,21 @@ extern "C" {
 #endif
 #endif
 
-#define DEVATTEST_FAIL (-1)
+#define DEVATTEST_FAIL                            (-1)
 
-#define DEVATTEST_SUCCESS 0
+#define DEVATTEST_SUCCESS                         0
+
+#define DEVATTEST_ERR_JS_IS_NOT_SYSTEM_APP        202
+#define DEVATTEST_ERR_JS_PARAMETER_ERROR          401
+#define DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION 20000001
 
 #define ATTEST_RESULT_INIT (-1)
 
 typedef struct {
     int32_t authResult;
     int32_t softwareResult;
+    int32_t softwareResultDetail[5];
+    int32_t ticketLength;
     char* ticket;
 } AttestResultInfo;
 
