@@ -316,61 +316,98 @@ int32_t ProcAttest(void)
     return ret;
 }
 
-static int32_t QueryAttestStatusImpl(int32_t* authResult, int32_t* softwareResult, char** ticket)
+static int32_t CopyResultArray(AuthStatus* authStatus, int32_t** resultArray)
 {
-    ATTEST_LOG_DEBUG("[QueryAttestStatusImpl] Query attest status begin.");
-    if (authResult == NULL || softwareResult == NULL || ticket == NULL) {
+    if (authStatus == NULL || resultArray == NULL) {
         return ATTEST_ERR;
     }
-    *authResult = DEVICE_ATTEST_FAIL;
-    *softwareResult = DEVICE_ATTEST_FAIL;
-    *ticket = "";
+    int32_t *head = *resultArray;
+    head[ATTEST_RESULT_AUTH] = authStatus->hardwareResult;
+    head[ATTEST_RESULT_SOFTWARE] = authStatus->softwareResult;
+    SoftwareResultDetail *softwareResultDetail = (SoftwareResultDetail *)authStatus->softwareResultDetail;
+    if (softwareResultDetail == NULL) {
+        ATTEST_LOG_ERROR("[CopyResultArray] failed to get softwareResultDetail");
+        return ATTEST_ERR;
+    }
+    head[ATTEST_RESULT_VERSIONID] = softwareResultDetail->versionIdResult;
+    head[ATTEST_RESULT_PATCHLEVEL] = softwareResultDetail->patchLevelResult;
+    head[ATTEST_RESULT_ROOTHASH] = softwareResultDetail->rootHashResult;
+    head[ATTEST_RESULT_PCID] = softwareResultDetail->pcidResult;
+    head[ATTEST_RESULT_RESERVE] = DEVICE_ATTEST_INIT;
+    return ATTEST_OK;
+}
 
-    // 获取认证结果
+static int32_t LoadDefaultResultArray(int32_t** resultArray)
+{
+    if (resultArray == NULL) {
+        return ATTEST_ERR;
+    }
+    int32_t *head = *resultArray;
+    for (int32_t i = 0; i < ATTEST_RESULT_MAX; i++) {
+        head[i] = DEVICE_ATTEST_INIT;
+    }
+    return ATTEST_OK;
+}
+
+static int32_t QueryAttestStatusImpl(int32_t** resultArray, int32_t arraySize, char** ticket, int32_t* ticketLength)
+{
+    if (resultArray == NULL || arraySize != ATTEST_RESULT_MAX || ticket == NULL) {
+        ATTEST_LOG_ERROR("[QueryAttestStatusImpl] parameter wrong");
+        return ATTEST_ERR;
+    }
     char* authStatusBase64 = NULL;
-    if (GetAuthStatus(&authStatusBase64) != 0) {
-        ATTEST_LOG_ERROR("[QueryAttestStatusImpl] Load Auth Status failed, auth file not exist");
-        return ATTEST_ERR;
-    }
     AuthStatus* authStatus = CreateAuthStatus();
-    if (DecodeAuthStatus((const char*)authStatusBase64, authStatus) != 0) {
-        ATTEST_MEM_FREE(authStatusBase64);
-        DestroyAuthStatus(&authStatus);
-        ATTEST_LOG_ERROR("[QueryAttestStatusImpl] Decode Auth Status failed");
-        return ATTEST_ERR;
-    }
+    int32_t retCode = ATTEST_OK;
+    do {
+        *ticket = NULL;
+        *ticketLength = 0;
+        // 获取认证结果
+        if (GetAuthStatus(&authStatusBase64) != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[QueryAttestStatusImpl] Load Auth Status failed, auth file not exist");
+            retCode = ATTEST_ERR;
+            break;
+        }
+        if (DecodeAuthStatus((const char*)authStatusBase64, authStatus) != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[QueryAttestStatusImpl] Decode Auth Status failed");
+            retCode = ATTEST_ERR;
+            break;
+        }
+        // 获取token
+        char* decryptedTicket = (char *)ATTEST_MEM_MALLOC(MAX_TICKET_LEN + 1);
+        if (decryptedTicket == NULL) {
+            ATTEST_LOG_ERROR("[QueryAttestStatusImpl] buff malloc memory failed");
+            retCode = ATTEST_ERR;
+            break;
+        }
+        if (ReadTicketFromDevice(decryptedTicket, MAX_TICKET_LEN) != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[QueryAttestStatusImpl] read ticket from device failed");
+            ATTEST_MEM_FREE(decryptedTicket);
+            retCode = ATTEST_ERR;
+            break;
+        }
+        *ticket = decryptedTicket;
+        *ticketLength = strlen(*ticket);
+    } while (0);
     ATTEST_MEM_FREE(authStatusBase64);
-
-    // 获取token
-    char* decryptedTicket = (char *)ATTEST_MEM_MALLOC(MAX_TICKET_LEN);
-    if (decryptedTicket == NULL) {
-        DestroyAuthStatus(&authStatus);
-        ATTEST_LOG_ERROR("[QueryAttestStatusImpl] buff malloc memory failed");
-        return ATTEST_ERR;
-    }
-    int32_t retCode = ReadTicketFromDevice(decryptedTicket, MAX_TICKET_LEN);
     if (retCode != ATTEST_OK) {
         DestroyAuthStatus(&authStatus);
-        ATTEST_MEM_FREE(decryptedTicket);
-        ATTEST_LOG_ERROR("[QueryAttestStatusImpl] read ticket from device failed");
-        return ATTEST_ERR;
+        return LoadDefaultResultArray(resultArray);
     }
-
-    *authResult = authStatus->hardwareResult;
-    *softwareResult = authStatus->softwareResult;
-    *ticket = decryptedTicket;
+    retCode = CopyResultArray(authStatus, resultArray);
+    if (retCode != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[QueryAttestStatusImpl] CopyResultArray failed");
+    }
     DestroyAuthStatus(&authStatus);
     return ATTEST_OK;
 }
 
-int32_t QueryAttestStatus(int32_t* authResult, int32_t* softwareResult, char** ticket)
+int32_t QueryAttestStatus(int32_t** resultArray, int32_t arraySize, char** ticket, int32_t* ticketLength)
 {
     pthread_mutex_lock(&g_mtxAttest);
-    int32_t ret = QueryAttestStatusImpl(authResult, softwareResult, ticket);
+    int32_t ret = QueryAttestStatusImpl(resultArray, arraySize, ticket, ticketLength);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[QueryAttestStatus] failed ret = %d.", ret);
     }
     pthread_mutex_unlock(&g_mtxAttest);
     return ret;
 }
-

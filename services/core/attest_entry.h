@@ -17,6 +17,7 @@
 #define ATTEST_ENTRY_H
 
 #include <stdint.h>
+#include "devattest_msg_def.h"
 
 #ifdef __LITEOS_M__
 #include "cmsis_os2.h"
@@ -29,15 +30,26 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
-#define LITEOS_M_STACK_SIZE 8192
+#define LITEOS_M_STACK_SIZE           8192
 
-#define ATTEST_TASK_THREAD_NAME "AttestSdk"
+#define SOFTWARE_RESULT_DETAIL_SIZE   5
+#define MAX_ATTEST_RESULT_SIZE        (SOFTWARE_RESULT_DETAIL_SIZE + 2)
 
-#define ATTEST_CALLBACK_THREAD_NAME "AttestAuth"
+#define ATTEST_TASK_THREAD_NAME       "AttestSdk"
+
+#define ATTEST_CALLBACK_THREAD_NAME   "AttestAuth"
+
+typedef enum {
+    SOFTWARE_RESULT_VERSIONID,
+    SOFTWARE_RESULT_PATCHLEVEL,
+    SOFTWARE_RESULT_ROOTHASH,
+    SOFTWARE_RESULT_PCID,
+    SOFTWARE_RESULT_RESERVE,
+} SOFTWARE_RESULT_DETAIL_TYPE;
 
 int32_t AttestTask(void);
 
-int32_t QueryAttest(int32_t* authResult, int32_t* softwareResult, char** ticket);
+int32_t EntryGetAttestStatus(AttestResultInfo* attestResultInfo);
 
 #ifdef __cplusplus
 #if __cplusplus

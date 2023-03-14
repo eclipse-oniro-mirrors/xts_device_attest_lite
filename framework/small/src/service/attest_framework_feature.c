@@ -87,29 +87,33 @@ static BOOL FEATURE_OnMessage(Feature *feature, Request *request)
     return FALSE;
 }
 
-static int32_t WriteAttestResultInfo(IpcIo *reply, int32_t authResult, int32_t softwareResult, char *ticket)
+static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResultInfo, char *ticket)
 {
     if (reply == NULL) {
         HILOGE("[WriteAttestResultInfo] reply is null!");
         return DEVATTEST_FAIL;
     }
 
-    if (ticket == NULL) {
-        HILOGE("[WriteAttestResultInfo] ticket is NULL!");
-        if (!WriteInt32(reply, DEVATTEST_FAIL)) {
-            HILOGE("[WriteAttestResultInfo] Write ret fail!");
-        }
-        return DEVATTEST_FAIL;
-    }
-
     if (!WriteInt32(reply, DEVATTEST_SUCCESS)) {
-        HILOGE("[WriteAttestResultInfo] Write result fail!");
+        HILOGE("[WriteAttestResultInfo] Write ret fail!");
         return DEVATTEST_FAIL;
     }
 
-    if (!WriteInt32(reply, authResult) || !WriteInt32(reply, softwareResult) ||
-        !WriteString(reply, ticket)) {
+    if (!WriteInt32(reply, attestResultInfo->authResult) ||
+        !WriteInt32(reply, attestResultInfo->softwareResult)) {
         HILOGE("[WriteAttestResultInfo] Write data fail!");
+        return DEVATTEST_FAIL;
+    }
+
+    size_t size = sizeof(attestResultInfo->softwareResultDetail) / sizeof(int32_t);
+    if (!WriteInt32Vector(reply, attestResultInfo->softwareResultDetail, size)) {
+        HILOGE("[WriteAttestResultInfo] Write softwareResultDetail_ fail!");
+        return DEVATTEST_FAIL;
+    }
+
+    if (!WriteInt32(reply, attestResultInfo->ticketLength) ||
+        !WriteString(reply, ticket)) {
+        HILOGE("[WriteAttestResultInfo] Write ticket fail!");
         return DEVATTEST_FAIL;
     }
     return DEVATTEST_SUCCESS;
@@ -121,12 +125,11 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         HILOGE("[FeatureQueryAttest] reply is null!");
         return DEVATTEST_FAIL;
     }
-
-    int32_t authResult = ATTEST_RESULT_INIT;
-    int32_t softwareResult = ATTEST_RESULT_INIT;
-    char *ticket = "";
-
-    int32_t ret = QueryAttest(&authResult, &softwareResult, &ticket);
+    AttestResultInfo attestResultInfo = { .softwareResultDetail = {-2, -2, -2, -2, -2} };
+    attestResultInfo.authResult = ATTEST_DEFAULT_RESULT;
+    attestResultInfo.softwareResult = ATTEST_DEFAULT_RESULT;
+    attestResultInfo.ticket = NULL;
+    int32_t ret = EntryGetAttestStatus(&attestResultInfo);
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[FeatureQueryAttest] Query status fail!");
         if (!WriteInt32(reply, ret)) {
@@ -135,7 +138,12 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         return DEVATTEST_FAIL;
     }
 
-    ret = WriteAttestResultInfo(reply, authResult, softwareResult, ticket);
+    char *ticket = (attestResultInfo.ticket == NULL) ? "" : attestResultInfo.ticket;
+    ret = WriteAttestResultInfo(reply, &attestResultInfo, ticket);
+    if (attestResultInfo.ticket != NULL) {
+        free(attestResultInfo.ticket);
+        attestResultInfo.ticket = NULL;
+    }
     return ret;
 }
 

@@ -32,15 +32,7 @@ int32_t StartDevAttestTask(void)
 
 int32_t GetAttestStatus(AttestResultInfo* attestResultInfo)
 {
-    if (attestResultInfo == NULL) {
-        return DEVATTEST_FAIL;
-    }
-    char* ticketStr = NULL;
-    int ret = QueryAttest(&attestResultInfo->authResult, &attestResultInfo->softwareResult, &ticketStr);
-    if (ret == DEVATTEST_SUCCESS && ticketStr != NULL) {
-        attestResultInfo->ticket = ticketStr;
-    }
-    return ret;
+    return EntryGetAttestStatus(attestResultInfo);
 }
 
 void ThreadMain(void)

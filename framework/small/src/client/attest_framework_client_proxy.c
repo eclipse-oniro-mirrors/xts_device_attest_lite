@@ -29,6 +29,8 @@
 #include "attest_framework_define.h"
 #include "devattest_interface.h"
 
+#define MAX_TICKET_SIZE 49
+
 typedef struct {
     INHERIT_CLIENT_IPROXY;
     int32_t(*StartProc)(IUnknown *iUnknown);
@@ -48,18 +50,52 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
         return DEVATTEST_FAIL;
     }
     AttestResultInfo *attestResult = *attestStatus;
+
     if (!ReadInt32(reply, (int32_t *)&attestResult->authResult) ||
         !ReadInt32(reply, (int32_t *)&attestResult->softwareResult)) {
         HILOGE("[ReadAttestResultInfo] Failed to ReadInt32.");
         return DEVATTEST_FAIL;
     }
 
-    size_t ticketLen = 0;
-    attestResult->ticket = (char *)ReadString(reply, &ticketLen);
-    if ((attestResult->ticket == NULL) || (ticketLen == 0)) {
+    size_t len = 0;
+    int32_t *softwareResultDetail = ReadInt32Vector(reply, &len);
+    size_t size = sizeof(attestResult->softwareResultDetail);
+    if (softwareResultDetail == NULL || (len != (size / sizeof(int32_t)))) {
+        HILOGE("[ReadAttestResultInfo] Failed to softwareResultDetail_.");
+        return DEVATTEST_FAIL;
+    }
+    if (memcpy_s(attestResult->softwareResultDetail, size, softwareResultDetail, size) != 0) {
+        HILOGE("[ReadAttestResultInfo] Failed to copy softwareResultDetail.");
+        return DEVATTEST_FAIL;
+    }
+
+    if (!ReadInt32(reply, (int32_t *)&attestResult->ticketLength)) {
+        HILOGE("[ReadAttestResultInfo] Failed to read ticketLength.");
+        return DEVATTEST_FAIL;
+    }
+
+    char *ticket = (char *)ReadString(reply, &len);
+    if (ticket == NULL) {
         HILOGE("[ReadAttestResultInfo] Failed to ReadString.");
         return DEVATTEST_FAIL;
     }
+    len = strlen(ticket) + 1;
+    if (len > MAX_TICKET_SIZE) {
+        HILOGE("[ReadAttestResultInfo] The len is too large.");
+        return DEVATTEST_FAIL;
+    }
+    char* backTicket = (char *)malloc(len);
+    if (backTicket == NULL) {
+        HILOGE("[ReadAttestResultInfo] Failed to malloc backTicket.");
+        return DEVATTEST_FAIL;
+    }
+    (void)memset_s(backTicket, len, 0, len);
+    if (memcpy_s(backTicket, len, ticket, len) != 0) {
+        HILOGE("[ReadAttestResultInfo] Failed to copy ticket.");
+	free(backTicket);
+        return DEVATTEST_FAIL;
+    }
+    attestResult->ticket = backTicket;
     return DEVATTEST_SUCCESS;
 }
 
@@ -71,7 +107,6 @@ static int AttestClientQueryStatusCb(void *owner, int code, IpcIo *reply)
         return DEVATTEST_FAIL;
     }
 
-    int32_t ret;
     ServiceRspMsg *respInfo = (ServiceRspMsg *)owner;
 
     if (!ReadInt32(reply, &respInfo->result)) {
@@ -82,8 +117,7 @@ static int AttestClientQueryStatusCb(void *owner, int code, IpcIo *reply)
         HILOGE("[AttestClientQueryStatusCb] Failed to QueryStatus, result:%d.", respInfo->result);
         return DEVATTEST_FAIL;
     }
-    ret = ReadAttestResultInfo(reply, &respInfo->attestResultInfo);
-    return ret;
+    return ReadAttestResultInfo(reply, &respInfo->attestResultInfo);
 }
 
 static int32_t StartProc(IUnknown *iUnknown)
