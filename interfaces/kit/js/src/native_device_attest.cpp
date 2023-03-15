@@ -30,7 +30,7 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION, "System service exception, please try again or reboot your device"},
 };
 
-string getErrorMessage(uint32_t errorCode)
+string GetErrorMessage(uint32_t errorCode)
 {
     auto iter = g_errorStringMap.find(errorCode);
     if (iter != g_errorStringMap.end()) {
