@@ -49,7 +49,7 @@ void FailCallBack(const JSIValue thisVal, const JSIValue args, int32_t ret)
     if (ret == DEVATTEST_FAIL) {
         ret = DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
-    JSI::SetStringProperty(error, "message", getErrorMessage(ret).c_str());
+    JSI::SetStringProperty(error, "message", GetErrorMessage(ret).c_str());
     JSI::SetNumberProperty(error, "code", ret);
     
     JSIValue data = JSI::CreateUndefined();
@@ -82,7 +82,7 @@ JSIValue ExecuteAsyncWork(const JSIValue thisVal, const JSIValue* args,
 {
     JSIValue undefValue = JSI::CreateUndefined();
     if (args == NULL) {
-        string errorMsg = getErrorMessage(DEVATTEST_ERR_JS_PARAMETER_ERROR);
+        string errorMsg = GetErrorMessage(DEVATTEST_ERR_JS_PARAMETER_ERROR);
         return JSI::CreateErrorWithCode(DEVATTEST_ERR_JS_PARAMETER_ERROR, errorMsg.c_str());
     }
     if (!IsValidParam(args, argsNum)) {
