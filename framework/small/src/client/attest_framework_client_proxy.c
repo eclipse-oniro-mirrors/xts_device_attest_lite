@@ -92,6 +92,7 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
     (void)memset_s(backTicket, len, 0, len);
     if (memcpy_s(backTicket, len, ticket, len) != 0) {
         HILOGE("[ReadAttestResultInfo] Failed to copy ticket.");
+        free(backTicket);
         return DEVATTEST_FAIL;
     }
     attestResult->ticket = backTicket;
