@@ -109,7 +109,8 @@ int32_t AttestStopTimerTask(const ATTEST_TIMER_ID attestTimerId)
     return (ret != 0) ? ATTEST_ERR : ATTEST_OK;
 }
 
-int32_t AttestCreateTimerTask(AttestTimerType isOnce, uint32_t milliseconds, void *func, void *arg, ATTEST_TIMER_ID *timerHandle)
+int32_t AttestCreateTimerTask(AttestTimerType isOnce, uint32_t milliseconds,
+                              void *func, void *arg, ATTEST_TIMER_ID *timerHandle)
 {
     if (func == NULL || timerHandle == NULL) {
         ATTEST_LOG_ERROR("[AttestCreateTimerTask] callBackFunc or timerHandle is null");

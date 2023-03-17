@@ -523,12 +523,8 @@ static int32_t GenCoapMsg(const DevicePacket *devPacket, ATTEST_ACTION_TYPE acti
 
 static int32_t SplitBySymbol(const char* src, size_t srcLen, const char* separator, List* list)
 {
-    if (src == NULL || srcLen == 0 || list == NULL) {
+    if (src == NULL || srcLen == 0 || list == NULL || separator == NULL || strlen(separator) == 0) {
         ATTEST_LOG_ERROR("[SplitBySymbol] Invalid parameter.");
-        return ATTEST_ERR;
-    }
-    if (separator == NULL || strlen(separator) == 0) {
-        ATTEST_LOG_ERROR("[SplitBySymbol] Invalid empty separator to split src.");
         return ATTEST_ERR;
     }
     char *tempSrc = (char *)ATTEST_MEM_MALLOC(srcLen + 1);
@@ -539,35 +535,41 @@ static int32_t SplitBySymbol(const char* src, size_t srcLen, const char* separat
         ATTEST_MEM_FREE(tempSrc);
         return ATTEST_ERR;
     }
-
+    int32_t ret = ATTEST_OK;
     char* next = NULL;
     char* pNext = (char*)strtok_s(tempSrc, separator, &next);
+    if (pNext == NULL) {
+        ATTEST_LOG_ERROR("[SplitBySymbol] No separator found.");
+        return ATTEST_ERR;
+    }
     while (pNext != NULL) {
         uint32_t pNextLen = strlen(pNext);
         if (pNextLen == 0 || pNextLen > MAX_MESSAGE_LEN) {
-            ATTEST_MEM_FREE(tempSrc);
-            ReleaseList(list);
-            return ATTEST_ERR;
+            ATTEST_LOG_ERROR("[SplitBySymbol] pNextLen wrong");
+            ret = ATTEST_ERR;
+            break;
         }
         uint32_t tempLen = pNextLen + 1;
         char* tempStr = (char*)ATTEST_MEM_MALLOC(tempLen);
         if (tempStr == NULL) {
             ATTEST_LOG_ERROR("[SplitBySymbol] Malloc mem failed");
-            ATTEST_MEM_FREE(tempSrc);
-            ReleaseList(list);
-            return ATTEST_ERR;
+            ret = ATTEST_ERR;
+            break;
         }
         if (memcpy_s(tempStr, tempLen, pNext, pNextLen) != 0) {
             ATTEST_LOG_ERROR("[SplitBySymbol] Mem copy failed");
-            ATTEST_MEM_FREE(tempSrc);
             ATTEST_MEM_FREE(tempStr);
-            ReleaseList(list);
-            return ATTEST_ERR;
+            ret = ATTEST_ERR;
+            break;
         }
         AddListNode(list, tempStr);
         pNext = (char*)strtok_s(NULL, separator, &next);
     }
     ATTEST_MEM_FREE(tempSrc);
+    if (ret != ATTEST_OK) {
+        ReleaseList(list);
+        return ATTEST_ERR;
+    }
     return ATTEST_OK;
 }
 
@@ -729,8 +731,8 @@ static int32_t SendTLSMsg(const TLSSession* session, char *coapMessage, size_t c
     return ATTEST_OK;
 }
 
-static int32_t SendCoapMsg(const TLSSession* session, const DevicePacket* devPacket, const ATTEST_ACTION_TYPE actionType,
-                           CoapBuffer* payload)
+static int32_t SendCoapMsg(const TLSSession* session, const DevicePacket* devPacket,
+                           const ATTEST_ACTION_TYPE actionType, CoapBuffer* payload)
 {
     ATTEST_LOG_DEBUG("[SendCoapMsg] Start.");
     if (devPacket == NULL || session == NULL || payload == NULL) {
@@ -813,7 +815,7 @@ static int32_t DecodeExtendedLength(const TLSSession* session, size_t messageLen
         if (tempLength > (MAX_VALUE_TWO_BYTES - COAP_MESSAGE_DIFF_VALUE_TWO_BYTES)) {
             return COAP_ERR_CODE_BAD_REQUEST;
         }
-        *extendedLength = tempLength + COAP_MESSAGE_DIFF_VALUE_TWO_BYTES;                 
+        *extendedLength = tempLength + COAP_MESSAGE_DIFF_VALUE_TWO_BYTES;
     } else if (messageLen == COAP_MESSAGE_OFFSET_FOUR_BYTES) {
         ATTEST_MEM_FREE(messageExtendedLength);
         return COAP_ERR_CODE_EXTENDED_LENGTH_INVALID;
@@ -841,7 +843,8 @@ static int32_t DecodeLenTkl(const TLSSession* session, CoapPacket* coapPkt)
         return ret;
     }
     if ((ret = DecodeExtendedLength(session, msgLen, extendedLengthSize, &extendedLength)) != 0) {
-        ATTEST_LOG_ERROR("[DecodeLenTkl] Decode extended length fail, ret = %d, extendedLength = %d.", ret, extendedLength);
+        ATTEST_LOG_ERROR("[DecodeLenTkl] Decode extended length fail, ret = %d, extendedLength = %d.",
+            ret, extendedLength);
         return ret;
     }
     coapPkt->hdr.extendedLength.buffer = extendedLength;
