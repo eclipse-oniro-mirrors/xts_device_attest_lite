@@ -210,6 +210,11 @@ static void FlushAttestData(const char* ticket, const char* authStatus)
     if (FlushAttestStatusPara(authStatus) != ATTEST_OK) {
         ATTEST_LOG_WARN("[FlushAttestData] Flush attest para failed");
     }
+    // 获取启动子系统parameter结果
+    ret = GetAttestStatusPara();
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_WARN("[ProcAttestImpl] Get para failed, ret = %d.", ret);
+    }
 }
 
 static int32_t AttestStartup(AuthResult *authResult)
@@ -247,10 +252,6 @@ static int32_t AttestStartup(AuthResult *authResult)
     // 保存结果
     ATTEST_LOG_INFO("[AttestStartup] Flush auth result.");
     FlushAttestData(authResult->ticket, authResult->authStatus);
-    ret = GetAttestStatusPara();
-    if (ret != ATTEST_OK) {
-        ATTEST_LOG_WARN("[ProcAttestImpl] Get para failed, ret = %d.", ret);
-    }
     // token激活
     ATTEST_LOG_INFO("[AttestStartup] Active token.");
     for (int32_t i = 0; i <= WISE_RETRY_CNT; i++) {
@@ -288,7 +289,6 @@ static int32_t ProcAttestImpl(void)
         return ATTEST_ERR;
     }
     ret = AttestStartup(authResult);
-
     DestroySysData();
     DestroyAuthResult(&authResult);
     return ret;
