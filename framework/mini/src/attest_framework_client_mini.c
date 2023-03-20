@@ -37,7 +37,7 @@ int32_t GetAttestStatus(AttestResultInfo* attestResultInfo)
 
 void ThreadMain(void)
 {
-    // 开机自启动
+    // 寮�鏈鸿嚜鍚姩
 }
 
 APP_FEATURE_INIT(ThreadMain);
