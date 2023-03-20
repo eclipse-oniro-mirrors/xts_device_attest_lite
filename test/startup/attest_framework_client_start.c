@@ -20,6 +20,7 @@
 #include "devattest_interface.h"
 
 #define ATTEST_QUERY_INTERVAL 5
+#define ATTEST_SOFTWARE_RESULT_SIZE 5
 
 int main(void)
 {
@@ -30,15 +31,19 @@ int main(void)
 
         AttestResultInfo attestResultInfo = { 0 };
         attestResultInfo.ticket = NULL;
-        
+        printf("[CLIENT MAIN] query.\n");
         ret = GetAttestStatus(&attestResultInfo);
         if (ret != DEVATTEST_SUCCESS) {
-            printf("[CLIENT MAIN] wrong.\n");
+            printf("[CLIENT MAIN] wrong. ret:%d\n", ret);
         }
 
+        printf("[CLIENT MAIN] auth:%d, software:%d\n", attestResultInfo.authResult, attestResultInfo.softwareResult);
+        for (int32_t i = 0; i < ATTEST_SOFTWARE_RESULT_SIZE; i++) {
+            printf("[CLIENT MAIN] softwareResultDetail[%d]:%d\n", i, attestResultInfo.softwareResultDetail[i]);
+        }
         if (attestResultInfo.ticket != NULL) {
-            printf("[CLIENT MAIN] auth:%d, software:%d, ticket:%s\n",
-                attestResultInfo.authResult, attestResultInfo.softwareResult, attestResultInfo.ticket);
+            printf("[CLIENT MAIN] ticketLength:%d, ticket:%s\n",
+                attestResultInfo.ticketLength, attestResultInfo.ticket);
 
             free(attestResultInfo.ticket);
             attestResultInfo.ticket = NULL;

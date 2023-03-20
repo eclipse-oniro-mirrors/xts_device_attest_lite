@@ -59,7 +59,6 @@ static int32_t SetSysData(SYS_DEV_TYPE_E type)
     if (type >= SYS_DEV_MAX) {
         return ATTEST_ERR;
     }
-
     SetDataFunc setDataFunc = g_setDataFunc[type];
     if (setDataFunc == NULL) {
         ATTEST_LOG_ERROR("[SetSysData] g_setDataFunc failed");
@@ -89,7 +88,7 @@ static void PrintDevSysInfo(void)
         return;
     }
     for (int32_t i = 0; i < SYS_DEV_MAX; i++) {
-        if (i == UDID || i == APP_ID || i == PCID_ID) {
+        if (i == UDID || i == APP_ID || i == PCID) {
             continue;
         }
         if (g_devSysInfos[i] == NULL) {
@@ -187,37 +186,40 @@ char* GetRandomUuid(void)
     return buff;
 }
 
-static int32_t MergePcid(char *pcidOs, int32_t pcidOsLen, char *pcidPrivate, int32_t pcidPrivateLen, char **output)
+static int32_t MergePcid(char *osPcid, int32_t osPcidLen, char *privatePcid, int32_t privatePcidLen, char **output)
 {
-    if (output == NULL || pcidOs == NULL || pcidOsLen == 0) {
+    if (output == NULL || osPcid == NULL || osPcidLen == 0) {
         ATTEST_LOG_ERROR("[MergePcid] Invalid parameter.");
         return ATTEST_ERR;
     }
 
-    int32_t size = pcidOsLen + pcidPrivateLen;
-    char *pcidBuf = (char *)ATTEST_MEM_MALLOC(size);
-    if (pcidBuf == NULL) {
+    int32_t pcidLen = osPcidLen + privatePcidLen;
+    char *pcidBuff = (char *)ATTEST_MEM_MALLOC(pcidLen);
+    if (pcidBuff == NULL) {
         ATTEST_LOG_ERROR("[MergePcid] Failed to malloc.");
         return ATTEST_ERR;
     }
-    if (memcpy_s(pcidBuf, size, pcidOs, pcidOsLen) != 0) {
+
+    if (memcpy_s(pcidBuff, pcidLen, osPcid, osPcidLen) != 0) {
         ATTEST_LOG_ERROR("[MergePcid] Failed to memcpy osSyscaps.");
-        ATTEST_MEM_FREE(pcidBuf);
+        ATTEST_MEM_FREE(pcidBuff);
         return ATTEST_ERR;
     }
-    if ((pcidPrivateLen > 0 && pcidPrivate != NULL) &&
-        (memcpy_s(pcidBuf, size, pcidPrivate, pcidPrivateLen) != 0)) {
+
+    if ((privatePcidLen > 0 && privatePcid != NULL) &&
+        (memcpy_s(pcidBuff, pcidLen, privatePcid, privatePcidLen) != 0)) {
         ATTEST_LOG_ERROR("[MergePcid] Failed to memcpy privateSyscaps.");
-        ATTEST_MEM_FREE(pcidBuf);
+        ATTEST_MEM_FREE(pcidBuff);
         return ATTEST_ERR;
     }
-    *output = pcidBuf;
+
+    *output = pcidBuff;
     return ATTEST_OK;
 }
 
-static int32_t EncodePcid(char *buf, int32_t bufLen, char **output)
+static int32_t EncodePcid(char *buff, int32_t bufLen, char **output)
 {
-    if (output == NULL || buf == NULL || bufLen == 0) {
+    if (output == NULL || buff == NULL || bufLen == 0) {
         ATTEST_LOG_ERROR("[EncodePcid] Invalid parameter.");
         return ATTEST_ERR;
     }
@@ -227,12 +229,14 @@ static int32_t EncodePcid(char *buf, int32_t bufLen, char **output)
         ATTEST_LOG_ERROR("[EncodePcid] Failed to malloc.");
         return ATTEST_ERR;
     }
-    int32_t ret = Sha256Value((const unsigned char *)buf, bufLen, pcidSha256, PCID_STRING_LEN + 1);
+
+    int32_t ret = Sha256Value((const uint8_t *)buff, bufLen, pcidSha256, PCID_STRING_LEN + 1);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[EncodePcid] Failed to encode.");
         ATTEST_MEM_FREE(pcidSha256);
         return ATTEST_ERR;
     }
+
     *output = pcidSha256;
     return ATTEST_OK;
 }
@@ -240,38 +244,37 @@ static int32_t EncodePcid(char *buf, int32_t bufLen, char **output)
 #ifndef __LITEOS_M__
 char* GetPcid(void)
 {
-    // get osSyscap
-    char osSyscaps[PCID_MAIN_BYTES] = { 0 };
+    char osSyscaps[PCID_MAIN_BYTES] = {0};
     if (!EncodeOsSyscap(osSyscaps, PCID_MAIN_BYTES)) {
         ATTEST_LOG_ERROR("[GetPcid] EncodeOsSyscap failed");
         return NULL;
     }
 
-    // get privateSyscap
     char *privateSyscaps = NULL;
-    int32_t pcidPrivateLen = 0;
-    if (!EncodePrivateSyscap(&privateSyscaps, &pcidPrivateLen)) {
+    int32_t privatePcidLen = 0;
+    if (!EncodePrivateSyscap(&privateSyscaps, &privatePcidLen)) {
         ATTEST_LOG_ERROR("[GetPcid] EncodePrivateSyscap failed");
         return NULL;
     }
 
-    // merge OsSyscap and PrivateSyscap
-    char *pcidBuf = NULL;
-    int32_t ret = MergePcid(osSyscaps, PCID_MAIN_BYTES, privateSyscaps, pcidPrivateLen, &pcidBuf);
-    if (ret != ATTEST_OK || pcidBuf == NULL) {
-        ATTEST_LOG_ERROR("[GetPcid] Failed to Merge Pcid.");
+    // Merge OsSyscap and PrivateSyscap
+    char *pcidBuff = NULL;
+    int32_t ret = MergePcid(osSyscaps, PCID_MAIN_BYTES, privateSyscaps, privatePcidLen, &pcidBuff);
+    if (ret != ATTEST_OK || pcidBuff == NULL) {
+        ATTEST_LOG_ERROR("[GetPcid] Failed to merge Pcid.");
         return NULL;
     }
 
     // SHA256转换
     char *pcidSha256 = NULL;
-    ret = EncodePcid(pcidBuf, PCID_MAIN_BYTES + pcidPrivateLen, &pcidSha256);
+    ret = EncodePcid(pcidBuff, PCID_MAIN_BYTES + privatePcidLen, &pcidSha256);
     if (ret != ATTEST_OK || pcidSha256 == NULL) {
         ATTEST_LOG_ERROR("[GetPcid] Failed to SHA256.");
-        ATTEST_MEM_FREE(pcidBuf);
+        ATTEST_MEM_FREE(pcidBuff);
         return NULL;
     }
-    ATTEST_MEM_FREE(pcidBuf);
+
+    ATTEST_MEM_FREE(pcidBuff);
     return pcidSha256;
 }
 #else

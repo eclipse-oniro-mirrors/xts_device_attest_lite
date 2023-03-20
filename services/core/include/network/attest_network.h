@@ -43,7 +43,7 @@ typedef struct CoapOptList {
 int32_t D2CConnect(void);
 
 void D2CClose(void);
-    
+
 DevicePacket* CreateDevicePacket(void);
 
 void DestroyDevicePacket(DevicePacket** devicePacket);
