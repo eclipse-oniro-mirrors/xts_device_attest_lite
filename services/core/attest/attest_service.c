@@ -211,9 +211,8 @@ static void FlushAttestData(const char* ticket, const char* authStatus)
         ATTEST_LOG_WARN("[FlushAttestData] Flush attest para failed");
     }
     // 获取启动子系统parameter结果
-    ret = GetAttestStatusPara();
-    if (ret != ATTEST_OK) {
-        ATTEST_LOG_WARN("[ProcAttestImpl] Get para failed, ret = %d.", ret);
+    if (GetAttestStatusPara() != ATTEST_OK) {
+        ATTEST_LOG_WARN("[ProcAttestImpl] Get para failed");
     }
 }
 
