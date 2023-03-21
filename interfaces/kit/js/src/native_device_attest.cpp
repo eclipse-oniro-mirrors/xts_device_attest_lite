@@ -40,18 +40,27 @@ string GetErrorMessage(uint32_t errorCode)
     }
 }
 
+static JSIValue GetJsiErrorMessage(int32_t errorCode)
+{
+    JSIValue error = JSI::CreateObject();
+    if (error == nullptr) {
+        return nullptr;
+    }
+    if (errorCode == DEVATTEST_FAIL) {
+        errorCode = DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    }
+    JSI::SetStringProperty(error, "message", GetErrorMessage(errorCode).c_str());
+    JSI::SetNumberProperty(error, "code", errorCode);
+    return error;
+}
+
+
 void FailCallBack(const JSIValue thisVal, const JSIValue args, int32_t ret)
 {
     if (JSI::ValueIsUndefined(args)) {
         return;
     }
-    JSIValue error = JSI::CreateObject();
-    if (ret == DEVATTEST_FAIL) {
-        ret = DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION;
-    }
-    JSI::SetStringProperty(error, "message", GetErrorMessage(ret).c_str());
-    JSI::SetNumberProperty(error, "code", ret);
-    
+    JSIValue error = GetJsiErrorMessage(ret);
     JSIValue data = JSI::CreateUndefined();
     JSIValue argv[ARGC_TWO] = {error, data};
     JSI::CallFunction(args, thisVal, argv, ARGC_TWO);
@@ -82,8 +91,7 @@ JSIValue ExecuteAsyncWork(const JSIValue thisVal, const JSIValue* args,
 {
     JSIValue undefValue = JSI::CreateUndefined();
     if (args == NULL) {
-        string errorMsg = GetErrorMessage(DEVATTEST_ERR_JS_PARAMETER_ERROR);
-        return JSI::CreateErrorWithCode(DEVATTEST_ERR_JS_PARAMETER_ERROR, errorMsg.c_str());
+        return GetJsiErrorMessage(DEVATTEST_ERR_JS_PARAMETER_ERROR);
     }
     if (!IsValidParam(args, argsNum)) {
         FailCallBack(thisVal, *args, DEVATTEST_ERR_JS_PARAMETER_ERROR);
@@ -132,7 +140,6 @@ int32_t GetAttestResultInfo(JSIValue *result)
 {
     AttestResultInfo attestResultInfo = { 0 };
     attestResultInfo.ticket = NULL;
-    
     int32_t ret = GetAttestStatus(&attestResultInfo);
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[GetAttestResultInfo] Failed to GetAttestStatus");
@@ -179,18 +186,18 @@ JSIValue NativeDeviceAttest::GetAttestResultInfoSync(const JSIValue thisVal, con
     int32_t ret = GetAttestStatus(&attestResultInfo);
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[GetAttestResultInfoSync] Failed to GetAttestStatus");
-        return JSI::CreateUndefined();
+        return GetJsiErrorMessage(ret);
     }
 
     if (attestResultInfo.ticket == NULL) {
-        return JSI::CreateUndefined();
+        return GetJsiErrorMessage(DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION);
     }
 
     JSIValue result = JSI::CreateObject();
     ret = SetJsResult(&result, &attestResultInfo);
     if (ret != DEVATTEST_SUCCESS) {
         JSI::ReleaseValueList(result, ARGS_END);
-        return JSI::CreateUndefined();
+        return GetJsiErrorMessage(DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION);
     }
 
     free(attestResultInfo.ticket);
