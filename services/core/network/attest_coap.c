@@ -362,7 +362,9 @@ static int32_t CoapCopyMessage(CoapPacket* pkt, CoapRWBuffer *buf, CoapRWBuffer 
         return ret;
     }
 
-    if (memcpy_s(outBuf->rwBuffer + index, pkt->len - LENTKL_LEN, buf->rwBuffer + LENTKL_LEN, pkt->len - LENTKL_LEN) != 0) {
+    ret = memcpy_s(outBuf->rwBuffer + index, pkt->len - LENTKL_LEN,
+        buf->rwBuffer + LENTKL_LEN, pkt->len - LENTKL_LEN);
+    if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[CoapCopyMessage] Invalid parameter");
         return COAP_ERR_CODE_INVALID_ARGUMENT;
     }
