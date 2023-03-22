@@ -46,7 +46,7 @@ int32_t GetRandomNum(void)
             mbedtls_ctr_drbg_init(&randomContext);
             mbedtls_entropy_init(&randomEntropy);
             ret = mbedtls_ctr_drbg_seed(&randomContext, mbedtls_entropy_func, &randomEntropy,
-                                    (const unsigned char *)pers, strlen(pers));
+                                        (const unsigned char *)pers, strlen(pers));
             if (ret != ATTEST_OK) {
                 break;
             }
