@@ -34,10 +34,3 @@ int32_t GetAttestStatus(AttestResultInfo* attestResultInfo)
 {
     return EntryGetAttestStatus(attestResultInfo);
 }
-
-void ThreadMain(void)
-{
-
-}
-
-APP_FEATURE_INIT(ThreadMain);

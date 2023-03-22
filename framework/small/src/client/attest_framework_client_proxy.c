@@ -128,7 +128,6 @@ static int32_t StartProc(IUnknown *iUnknown)
     }
     AttestClientProxy *proxy = (AttestClientProxy *)iUnknown;
     int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_PROC, NULL, NULL, NULL);
-
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[StartProc] Invoke failed.");
         return DEVATTEST_FAIL;
@@ -145,8 +144,8 @@ static int32_t QueryStatus(IUnknown *iUnknown, AttestResultInfo *attestResultInf
     AttestClientProxy *proxy = (AttestClientProxy *)iUnknown;
     ServiceRspMsg reply = {0};
     reply.attestResultInfo = attestResultInfo;
-    int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_QUERY, NULL, &reply, AttestClientQueryStatusCb);
-
+    int32_t ret = proxy->Invoke((IClientProxy *)proxy, ATTEST_FRAMEWORK_MSG_QUERY, NULL,
+                                &reply, AttestClientQueryStatusCb);
     if (ret != DEVATTEST_SUCCESS) {
         HILOGE("[QueryStatus] Invoke failed.");
         return DEVATTEST_FAIL;

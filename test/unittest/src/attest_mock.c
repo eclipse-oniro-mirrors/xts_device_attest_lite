@@ -70,76 +70,148 @@ int32_t InitMockData(AttestMockData *attestMockData)
     return ret;
 }
 
-int32_t WriteNetWorkMock(AttestNetworkMockData *NetworkMockData)
+static int32_t BuildMockNetworkParaChallenge(cJSON ** networkParaChallenge,
+    long long currentTime, char* challenge, int errCode)
 {
-    cJSON *netWorkMockJson = cJSON_CreateObject();
-    // Network 数据
-    // authStatusChange
-    cJSON *authStatusChange = cJSON_CreateObject();
+    if (networkParaChallenge == NULL || challenge == NULL) {
+        return ATTEST_ERR;
+    }
     cJSON *authStatusChallenge = cJSON_CreateObject();
-    cJSON_AddNumberToObject(authStatusChallenge, ATTEST_MOCK_NETWORK_PARA_CURRENTTIME,
-                            (NetworkMockData->authStatusChange.currentTime));
-    cJSON_AddStringToObject(authStatusChallenge, ATTEST_MOCK_NETWORK_PARA_CHALLENGE,
-                            NetworkMockData->authStatusChange.challenge);
-    cJSON_AddNumberToObject(authStatusChallenge, ATTEST_MOCK_NETWORK_PARA_ERRCODE,
+    cJSON_AddNumberToObject(authStatusChallenge, ATTEST_MOCK_NETWORK_PARA_CURRENTTIME, currentTime);
+    cJSON_AddStringToObject(authStatusChallenge, ATTEST_MOCK_NETWORK_PARA_CHALLENGE, challenge);
+    cJSON_AddNumberToObject(authStatusChallenge, ATTEST_MOCK_NETWORK_PARA_ERRCODE, errCode);
                             NetworkMockData->authStatusChange.errCode);
-    cJSON_AddItemToObject(authStatusChange, ATTEST_MOCK_NETWORK_PARA_CHALLENGE, authStatusChallenge);
+    cJSON_AddItemToObject(&networkParaChallenge, ATTEST_MOCK_NETWORK_PARA_CHALLENGE, authStatusChallenge);
+    return ATTEST_OK;
+}
 
-    // resetDevice
+
+static int32_t WriteAuthChangeMock(AttestNetworkMockData *NetworkMockData, cJSON ** netWorkMockJson)
+{
+    if (netWorkMockJson == NULL) {
+        return ATTEST_ERR;
+    }
+
+    cJSON *authStatusChange = cJSON_CreateObject();
+    int32_t ret = BuildMockNetworkParaChallenge(&authStatusChange,
+        NetworkMockData->authStatusChange.currentTime,
+        NetworkMockData->authStatusChange.challenge,
+        NetworkMockData->authStatusChange.errCode);
+    if (ret != ATTEST_OK) {
+        cJSON_Delete(authStatusChange);
+        return ATTEST_ERR;
+    }
+
+    cJSON_AddItemToObject(&netWorkMockJson, ATTEST_MOCK_NETWORK_AUTHCHANGE, authStatusChange);
+}
+
+static int32_t WriteResetMock(AttestNetworkMockData *NetworkMockData, cJSON ** netWorkMockJson)
+{
+    if (netWorkMockJson == NULL) {
+        return ATTEST_ERR;
+    }
+
     cJSON *resetDevice = cJSON_CreateObject();
     cJSON *resetResponse = cJSON_CreateObject();
-    cJSON *resetChallenge = cJSON_CreateObject();
+    ret = BuildMockNetworkParaChallenge(&resetDevice,
+        NetworkMockData->resetNetMockData.currentTime,
+        NetworkMockData->resetNetMockData.challenge,
+        NetworkMockData->resetNetMockData.errCode);
+    if (ret != ATTEST_OK) {
+        cJSON_Delete(resetDevice);
+        cJSON_Delete(resetResponse);
+        return ATTEST_ERR;
+    }
     cJSON_AddNumberToObject(resetResponse, ATTEST_MOCK_NETWORK_PARA_ERRCODE,
                             NetworkMockData->resetNetMockData.responseErrCode);
-    cJSON_AddNumberToObject(resetChallenge, ATTEST_MOCK_NETWORK_PARA_CURRENTTIME,
-                            (NetworkMockData->resetNetMockData.currentTime));
-    cJSON_AddStringToObject(resetChallenge, ATTEST_MOCK_NETWORK_PARA_CHALLENGE,
-                            NetworkMockData->resetNetMockData.challenge);
-    cJSON_AddNumberToObject(resetChallenge, ATTEST_MOCK_NETWORK_PARA_ERRCODE,
-                            NetworkMockData->resetNetMockData.errCode);
-    cJSON_AddItemToObject(resetDevice, ATTEST_MOCK_NETWORK_PARA_CHALLENGE, resetChallenge);
     cJSON_AddItemToObject(resetDevice, ATTEST_MOCK_NETWORK_RESPONSE, resetResponse);
 
-    // authDevice
+    cJSON_AddItemToObject(netWorkMockJson, ATTEST_MOCK_NETWORK_RESET, resetDevice);
+}
+
+static int32_t WriteAuthMock(AttestNetworkMockData *NetworkMockData, cJSON ** netWorkMockJson)
+{
+    if (netWorkMockJson == NULL) {
+        return ATTEST_ERR;
+    }
+
     cJSON *authDevice = cJSON_CreateObject();
     cJSON *authResponse = cJSON_CreateObject();
-    cJSON *authChallenge = cJSON_CreateObject();
-    cJSON_AddNumberToObject(authChallenge, ATTEST_MOCK_NETWORK_PARA_CURRENTTIME,
-                            (NetworkMockData->authDevice.currentTime));
-    cJSON_AddStringToObject(authChallenge, ATTEST_MOCK_NETWORK_PARA_CHALLENGE, NetworkMockData->authDevice.challenge);
-    cJSON_AddNumberToObject(authChallenge, ATTEST_MOCK_NETWORK_PARA_ERRCODE, NetworkMockData->authDevice.errCode);
+    int32_t ret = BuildMockNetworkParaChallenge(&authDevice,
+        NetworkMockData->authDevice.currentTime,
+        NetworkMockData->authDevice.challenge,
+        NetworkMockData->authDevice.errCode);
+    if (ret != ATTEST_OK) {
+        cJSON_Delete(authDevice);
+        cJSON_Delete(authResponse);
+        return ATTEST_ERR;
+    }
     cJSON_AddStringToObject(authResponse, ATTEST_MOCK_NETWORK_PARA_TICKET, NetworkMockData->authDevice.ticket);
     cJSON_AddStringToObject(authResponse, ATTEST_MOCK_NETWORK_PARA_UUID, NetworkMockData->authDevice.uuid);
     cJSON_AddStringToObject(authResponse, ATTEST_MOCK_NETWORK_PARA_AUTHSTATS, NetworkMockData->authDevice.authStats);
     cJSON_AddStringToObject(authResponse, ATTEST_MOCK_NETWORK_PARA_TOKEN, NetworkMockData->authDevice.token);
     cJSON_AddNumberToObject(authResponse, ATTEST_MOCK_NETWORK_PARA_ERRCODE,
                             NetworkMockData->authDevice.responseErrCode);
-    cJSON_AddItemToObject(authDevice, ATTEST_MOCK_NETWORK_PARA_CHALLENGE, authChallenge);
     cJSON_AddItemToObject(authDevice, ATTEST_MOCK_NETWORK_RESPONSE, authResponse);
 
-    // activeToken
+    cJSON_AddItemToObject(netWorkMockJson, ATTEST_MOCK_NETWORK_AUTH, authDevice);
+}
+
+static int32_t WriteActiveMock(AttestNetworkMockData *NetworkMockData, cJSON ** netWorkMockJson)
+{
+    if (netWorkMockJson == NULL) {
+        return ATTEST_ERR;
+    }
+
     cJSON *activeToken = cJSON_CreateObject();
-    cJSON *activeChallenge = cJSON_CreateObject();
     cJSON *activeResponse = cJSON_CreateObject();
+    int32_t ret = BuildMockNetworkParaChallenge(&activeToken,
+        NetworkMockData->activeToken.currentTime,
+        NetworkMockData->activeToken.challenge,
+        NetworkMockData->activeToken.errCode);
+    if (ret != ATTEST_OK) {
+        cJSON_Delete(activeToken);
+        cJSON_Delete(activeResponse);
+        return ATTEST_ERR;
+    }
     cJSON_AddNumberToObject(activeResponse, ATTEST_MOCK_NETWORK_PARA_ERRCODE,
                             NetworkMockData->activeToken.responseErrCode);
-    cJSON_AddNumberToObject(activeChallenge, ATTEST_MOCK_NETWORK_PARA_CURRENTTIME,
-                            (NetworkMockData->activeToken.currentTime));
-    cJSON_AddStringToObject(activeChallenge, ATTEST_MOCK_NETWORK_PARA_CHALLENGE,
-                            NetworkMockData->activeToken.challenge);
-    cJSON_AddNumberToObject(activeChallenge, ATTEST_MOCK_NETWORK_PARA_ERRCODE, NetworkMockData->activeToken.errCode);
-
-    cJSON_AddItemToObject(activeToken, ATTEST_MOCK_NETWORK_PARA_CHALLENGE, activeChallenge);
     cJSON_AddItemToObject(activeToken, ATTEST_MOCK_NETWORK_RESPONSE, activeResponse);
 
-    // 添加到最外层的json中
-    cJSON_AddItemToObject(netWorkMockJson, ATTEST_MOCK_NETWORK_AUTHCHANGE, authStatusChange);
-    cJSON_AddItemToObject(netWorkMockJson, ATTEST_MOCK_NETWORK_RESET, resetDevice);
-    cJSON_AddItemToObject(netWorkMockJson, ATTEST_MOCK_NETWORK_AUTH, authDevice);
     cJSON_AddItemToObject(netWorkMockJson, ATTEST_MOCK_NETWORK_ACTIVE, activeToken);
+}
+
+int32_t WriteNetWorkMock(AttestNetworkMockData *NetworkMockData)
+{
+    cJSON *netWorkMockJson = cJSON_CreateObject();
+    int32_t ret = WriteAuthChangeMock(NetworkMockData, &netWorkMockJson);
+    if (ret != ATTEST_OK) {
+        cJSON_Delete(netWorkMockJson);
+        return ATTEST_ERR;
+    }
+
+    ret = WriteResetMock(NetworkMockData, &netWorkMockJson);
+    if (ret != ATTEST_OK) {
+        cJSON_Delete(netWorkMockJson);
+        return ATTEST_ERR;
+    }
+
+    ret = WriteAuthMock(NetworkMockData, &netWorkMockJson);
+    if (ret != ATTEST_OK) {
+        cJSON_Delete(netWorkMockJson);
+        return ATTEST_ERR;
+    }
+
+    ret = WriteActiveMock(NetworkMockData, &netWorkMockJson);
+    if (ret != ATTEST_OK) {
+        cJSON_Delete(netWorkMockJson);
+        return ATTEST_ERR;
+    }
+
     const char *networkPara = cJSON_PrintUnformatted(netWorkMockJson);
     cJSON_Delete(netWorkMockJson);
-    int32_t ret = WriteFile(ATTEST_MOCK_STUB_PATH, ATTEST_MOCK_STUB_NETWORK_NAME, networkPara, strlen(networkPara));
+    int32_t ret = WriteFile(ATTEST_MOCK_STUB_PATH, ATTEST_MOCK_STUB_NETWORK_NAME,
+                            networkPara, strlen(networkPara));
     if (ret != ATTEST_OK) {
         return ATTEST_ERR;
     }

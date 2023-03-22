@@ -35,7 +35,8 @@ static void ATTEST_SystemInit(void *argv)
 int main(void)
 {
     // delay start to make sure register success
-    int32_t ret = AttestCreateTimerTask(ATTEST_TIMER_TYPE_ONCE, ATTEST_SLEEP_TIME, &ATTEST_SystemInit, NULL, &g_AttestSaTimerId);
+    int32_t ret = AttestCreateTimerTask(ATTEST_TIMER_TYPE_ONCE, ATTEST_SLEEP_TIME,
+        &ATTEST_SystemInit, NULL, &g_AttestSaTimerId);
     if (ret != 0) {
         HILOGE("[ATTEST SERVICE]Create TimerTask err");
     }
