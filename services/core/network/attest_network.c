@@ -820,7 +820,7 @@ static int32_t DecodeLenTkl(const TLSSession* session, CoapPacket* coapPkt)
             ret, extendedLength);
         return ret;
     }
-	coapPkt->hdr.extendedLength.buffer = extendedLength;
+    coapPkt->hdr.extendedLength.buffer = extendedLength;
     coapPkt->hdr.extendedLength.len = extendedLengthSize;
     return ATTEST_OK;
 }
