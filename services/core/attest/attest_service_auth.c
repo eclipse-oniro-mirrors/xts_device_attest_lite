@@ -222,13 +222,12 @@ static int32_t ParseSoftwareResultDetail(const cJSON* root, AuthStatus* authStat
         return ATTEST_ERR;
     }
 
-    size_t len = sizeof(SoftwareResultDetail);
-    authStatus->softwareResultDetail = (char *)ATTEST_MEM_MALLOC(len);
+    authStatus->softwareResultDetail = (SoftwareResultDetail *)ATTEST_MEM_MALLOC(sizeof(SoftwareResultDetail));
     if (authStatus->softwareResultDetail == NULL) {
         ATTEST_LOG_ERROR("[ParseSoftwareResultDetail] Failed to malloc.");
         return ATTEST_ERR;
     }
-    (void)memset_s(authStatus->softwareResultDetail, len, 0, len);
+    InitSoftwareResultDetail(authStatus->softwareResultDetail);
     int32_t ret = ATTEST_ERR;
     do {
         if (ParseVersionIdResult(json, (SoftwareResultDetail *)authStatus->softwareResultDetail) != ATTEST_OK) {
@@ -591,6 +590,19 @@ AuthStatus* CreateAuthStatus(void)
     return authStatus;
 }
 
+void InitSoftwareResultDetail(SoftwareResultDetail* softwareResultDetail)
+{
+    if (softwareResultDetail == NULL) {
+        ATTEST_LOG_ERROR("[InitSoftwareResultDetail] Parameter invalid");
+        return;
+    }
+    softwareResultDetail->patchLevelResult = DEVICE_ATTEST_INIT;
+    softwareResultDetail->rootHashResult = DEVICE_ATTEST_INIT;
+    softwareResultDetail->versionIdResult = DEVICE_ATTEST_INIT;
+    softwareResultDetail->pcidResult = DEVICE_ATTEST_INIT;
+    return;
+}
+
 void DestroyAuthStatus(AuthStatus** authStat)
 {
     if (authStat == NULL) {
@@ -864,40 +876,40 @@ int32_t SendAuthMsg(const DevicePacket* devicePacket, char** respMsg)
 
 static int32_t ParseAuthResultRespImpl(cJSON *json, AuthResult* authResult, AuthStatus* authStatus)
 {
-    int32_t ret = -1;
+    int32_t ret = ATTEST_ERR;
     do {
         // 解析错误码为4999或140001时，重试一次
         if ((ret = ParseErrcode(json, authResult)) != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ParseAuthResultResp] Invalid error code or get it failed, ret = %d", ret);
+            ATTEST_LOG_ERROR("[ParseAuthResultRespImpl] Invalid error code or get it failed, ret = %d", ret);
             break;
         }
         if ((ret = ParseAuthStats(json, authResult)) != ATTEST_OK) {
             ATTEST_LOG_ERROR(
-                "[ParseAuthResultResp] Parse auth status from symbol authentication response failed, ret = %d", ret);
+                "[ParseAuthResultRespImpl] Parse auth status from symbol authentication response failed, ret = %d", ret);
             break;
         }
         if ((ret = DecodeAuthStatus(authResult->authStatus, authStatus)) != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ParseAuthResultResp] Decode authentication status data damaged, ret = %d", ret);
+            ATTEST_LOG_ERROR("[ParseAuthResultRespImpl] Decode authentication status data damaged, ret = %d", ret);
             break;
         }
         if ((authStatus != NULL) && (authStatus->hardwareResult != ATTEST_OK)) {
-            ATTEST_LOG_ERROR("[ParseAuthResultResp] Hardware result is [%d]", authStatus->hardwareResult);
-            ret = 0;
+            ATTEST_LOG_ERROR("[ParseAuthResultRespImpl] Hardware result is [%d]", authStatus->hardwareResult);
+            ret = ATTEST_OK;
             break;
         }
         if (ParseTicket(json, authResult) != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ParseAuthResultResp] Parse ticket from symbol authentication response failed");
+            ATTEST_LOG_ERROR("[ParseAuthResultRespImpl] Parse ticket from symbol authentication response failed");
             break;
         }
         if (ParseTokenValue(json, authResult) != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ParseAuthResultResp] Parse token value from symbol authentication response failed");
+            ATTEST_LOG_ERROR("[ParseAuthResultRespImpl] Parse token value from symbol authentication response failed");
             break;
         }
         if (ParseTokenId(json, authResult) != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ParseAuthResultResp] Parse token id from symbol authentication response failed");
+            ATTEST_LOG_ERROR("[ParseAuthResultRespImpl] Parse token id from symbol authentication response failed");
             break;
         }
-        ret = 0;
+        ret = ATTEST_OK;
     } while (0);
     return ret;
 }

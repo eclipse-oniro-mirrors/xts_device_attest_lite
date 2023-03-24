@@ -128,27 +128,23 @@ int32_t EntryGetAttestStatus(AttestResultInfo* attestResultInfo)
         return DEVATTEST_FAIL;
     }
     (void)memset_s(resultArray, resultArraySize, 0, resultArraySize);
-    int32_t ticketLenght = 0;
+    int32_t ticketLength = 0;
     char* ticketStr = NULL;
     int32_t ret = DEVATTEST_SUCCESS;
     do {
-        ret = QueryAttestStatus(&resultArray, MAX_ATTEST_RESULT_SIZE, &ticketStr, &ticketLenght);
+        ret = QueryAttestStatus(&resultArray, MAX_ATTEST_RESULT_SIZE, &ticketStr, &ticketLength);
         if (ret != DEVATTEST_SUCCESS) {
             ATTEST_LOG_ERROR("QueryAttest failed");
             break;
         }
-        attestResultInfo->ticketLength = ticketLenght;
-        attestResultInfo->ticket = ticketStr;
         ret = CopyAttestResult(resultArray,  attestResultInfo);
         if (ret != DEVATTEST_SUCCESS) {
             ATTEST_LOG_ERROR("copy attest result failed");
             break;
         }
+        attestResultInfo->ticketLength = ticketLength;
+        attestResultInfo->ticket = ticketStr;
     } while (0);
-    if (ret != DEVATTEST_SUCCESS && ticketStr != NULL) {
-        free(ticketStr);
-        ticketStr = NULL;
-    }
     free(resultArray);
     resultArray = NULL;
     ATTEST_LOG_INFO("GetAttestStatus end success");

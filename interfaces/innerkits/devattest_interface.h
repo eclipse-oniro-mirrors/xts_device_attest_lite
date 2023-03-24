@@ -23,8 +23,10 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
+// 异步接口
 int32_t StartDevAttestTask(void);
 
+// 同步接口 10ms级别
 int32_t GetAttestStatus(AttestResultInfo* attestResultInfo);
 
 #ifdef __cplusplus
