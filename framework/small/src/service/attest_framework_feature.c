@@ -139,6 +139,10 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
     }
 
     ret = WriteAttestResultInfo(reply, &attestResultInfo);
+    if (attestResultInfo.ticketLength != 0) {
+        free(attestResultInfo.ticket);
+        attestResultInfo.ticket = NULL;
+    }
     return ret;
 }
 

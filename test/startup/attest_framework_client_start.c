@@ -21,12 +21,13 @@
 #include "devattest_interface.h"
 
 #define ATTEST_SOFTWARE_RESULT_SIZE 5
+#define ATTEST_ARGC_PARAM_2 2
 
 int main(int argc, char **argv)
 {
     int32_t ret = DEVATTEST_SUCCESS;
 
-    if (argc == 2 && strcmp(argv[1], "start") == 0) {
+    if (argc == ATTEST_ARGC_PARAM_2 && strcmp(argv[1], "start") == 0) {
         ret = StartDevAttestTask();
         printf("[CLIENT MAIN] StartDevAttestTask ret:%d.\n", ret);
     } else {
@@ -38,7 +39,8 @@ int main(int argc, char **argv)
             printf("[CLIENT MAIN] wrong. ret:%d\n", ret);
         }
 
-        printf("[CLIENT MAIN] auth:%d, software:%d\n", attestResultInfo.authResult, attestResultInfo.softwareResult);
+        printf("[CLIENT MAIN] auth:%d, software:%d\n",
+            attestResultInfo.authResult, attestResultInfo.softwareResult);
         for (int32_t i = 0; i < ATTEST_SOFTWARE_RESULT_SIZE; i++) {
             printf("[CLIENT MAIN] softwareResultDetail[%d]:%d\n", i, attestResultInfo.softwareResultDetail[i]);
         }
