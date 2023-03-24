@@ -87,7 +87,7 @@ static BOOL FEATURE_OnMessage(Feature *feature, Request *request)
     return FALSE;
 }
 
-static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResultInfo, char *ticket)
+static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResultInfo)
 {
     if (reply == NULL) {
         HILOGE("[WriteAttestResultInfo] reply is null!");
@@ -112,7 +112,7 @@ static int32_t WriteAttestResultInfo(IpcIo *reply, AttestResultInfo *attestResul
     }
 
     if (!WriteInt32(reply, attestResultInfo->ticketLength) ||
-        !WriteString(reply, ticket)) {
+        !WriteString(reply, attestResultInfo->ticket)) {
         HILOGE("[WriteAttestResultInfo] Write ticket fail!");
         return DEVATTEST_FAIL;
     }
@@ -138,12 +138,7 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         return DEVATTEST_FAIL;
     }
 
-    char *ticket = (attestResultInfo.ticket == NULL) ? "" : attestResultInfo.ticket;
-    ret = WriteAttestResultInfo(reply, &attestResultInfo, ticket);
-    if (attestResultInfo.ticket != NULL) {
-        free(attestResultInfo.ticket);
-        attestResultInfo.ticket = NULL;
-    }
+    ret = WriteAttestResultInfo(reply, &attestResultInfo);
     return ret;
 }
 
@@ -160,7 +155,7 @@ static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req
             AttestTask();
             break;
         case ATTEST_FRAMEWORK_MSG_QUERY:
-            FeatureQueryAttest(reply);
+            ret = FeatureQueryAttest(reply);
             break;
         default:
             break;

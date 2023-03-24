@@ -16,19 +16,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "devattest_interface.h"
 
-#define ATTEST_QUERY_INTERVAL 5
 #define ATTEST_SOFTWARE_RESULT_SIZE 5
 
-int main(void)
+int main(int argc, char **argv)
 {
-    int32_t ret = StartDevAttestTask();
-    if (ret == DEVATTEST_SUCCESS) {
-        // delay query to make sure AttestTask
-        sleep(ATTEST_QUERY_INTERVAL); // 延后5s再查询
+    int32_t ret = DEVATTEST_SUCCESS;
 
+    if (argc == 2 && strcmp(argv[1], "start") == 0) {
+        ret = StartDevAttestTask();
+        printf("[CLIENT MAIN] StartDevAttestTask ret:%d.\n", ret);
+    } else {
         AttestResultInfo attestResultInfo = { 0 };
         attestResultInfo.ticket = NULL;
         printf("[CLIENT MAIN] query.\n");
@@ -41,10 +42,10 @@ int main(void)
         for (int32_t i = 0; i < ATTEST_SOFTWARE_RESULT_SIZE; i++) {
             printf("[CLIENT MAIN] softwareResultDetail[%d]:%d\n", i, attestResultInfo.softwareResultDetail[i]);
         }
-        if (attestResultInfo.ticket != NULL) {
-            printf("[CLIENT MAIN] ticketLength:%d, ticket:%s\n",
-                attestResultInfo.ticketLength, attestResultInfo.ticket);
 
+        printf("[CLIENT MAIN] ticketLength:%d, ticket:%s\n",
+            attestResultInfo.ticketLength, attestResultInfo.ticket);
+        if (attestResultInfo.ticketLength != 0) {
             free(attestResultInfo.ticket);
             attestResultInfo.ticket = NULL;
         }
