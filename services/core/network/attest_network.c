@@ -71,7 +71,6 @@ char *g_uriPath[ATTEST_ACTION_MAX] = {
     "device/v3/token/activate",
 };
 
-
 DevicePacket* CreateDevicePacket(void)
 {
     DevicePacket* devicePacket = (DevicePacket *)ATTEST_MEM_MALLOC(sizeof(DevicePacket));
@@ -168,13 +167,15 @@ static TLSSession* CustomConfig(const char* seed)
 
     TLSSession* session = (TLSSession*)ATTEST_MEM_MALLOC(sizeof(TLSSession));
     if (session == NULL) {
+        ATTEST_LOG_ERROR("[CustomConfig] session malloc failed");
         return NULL;
     }
 
     if (memcpy_s(session->entropySeed, MAX_SEED_LEN, seed, strlen(seed)) != 0 ||
         memcpy_s(session->serverInfo.hostName, MAX_HOST_NAME_LEN, HTTPS_NETWORK_HOST,
                  strlen(HTTPS_NETWORK_HOST)) != 0 ||
-        memcpy_s(session->serverInfo.port, MAX_PORT_LEN, HTTPS_NETWORK_PORT, strlen(HTTPS_NETWORK_PORT)) != 0) {
+        memcpy_s(session->serverInfo.port, MAX_PORT_LEN, HTTPS_NETWORK_PORT,
+                 strlen(HTTPS_NETWORK_PORT)) != 0) {
         ATTEST_LOG_ERROR("[CustomConfig] Memcpy failed.");
         ATTEST_MEM_FREE(session);
         return NULL;
@@ -235,7 +236,7 @@ int32_t D2CConnect(void)
         g_attestSession = NULL;
         return ret;
     }
-    ATTEST_LOG_DEBUG("[D2CConnect] End, ret = %d.", ret);
+    ATTEST_LOG_DEBUG("[D2CConnect] End.");
     return ATTEST_OK;
 }
 
@@ -510,7 +511,6 @@ static int32_t SplitBySymbol(const char* src, size_t srcLen, const char* separat
         ATTEST_MEM_FREE(tempSrc);
         return ATTEST_ERR;
     }
-
     int32_t ret = ATTEST_OK;
     char* next = NULL;
     char* pNext = (char*)strtok_s(tempSrc, separator, &next);
@@ -528,10 +528,13 @@ static int32_t SplitBySymbol(const char* src, size_t srcLen, const char* separat
         uint32_t tempLen = pNextLen + 1;
         char* tempStr = (char*)ATTEST_MEM_MALLOC(tempLen);
         if (tempStr == NULL) {
+            ATTEST_LOG_ERROR("[SplitBySymbol] Malloc mem failed");
             ret = ATTEST_ERR;
             break;
         }
         if (memcpy_s(tempStr, tempLen, pNext, pNextLen) != 0) {
+            ATTEST_LOG_ERROR("[SplitBySymbol] Mem copy failed");
+            ATTEST_MEM_FREE(tempStr);
             ret = ATTEST_ERR;
             break;
         }
