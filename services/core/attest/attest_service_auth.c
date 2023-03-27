@@ -244,7 +244,7 @@ static int32_t ParseSoftwareResultDetail(const cJSON* root, AuthStatus* authStat
             ATTEST_LOG_ERROR("[ParseSoftwareResultDetail] Failed to parse rootHashResult.");
             break;
         }
-#ifdef __LITEOS_A__
+#if defined __LITEOS_A__ && defined LINUX
         if (ParsePcidResult(json, softwareResultDetail) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseSoftwareResultDetail] Failed to parse pcidResult.");
             break;
