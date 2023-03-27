@@ -159,7 +159,7 @@ static int32_t Invoke(IServerProxy *iProxy, int funcId, void *origin, IpcIo *req
             AttestTask();
             break;
         case ATTEST_FRAMEWORK_MSG_QUERY:
-            ret = FeatureQueryAttest(reply);
+            FeatureQueryAttest(reply);
             break;
         default:
             break;
