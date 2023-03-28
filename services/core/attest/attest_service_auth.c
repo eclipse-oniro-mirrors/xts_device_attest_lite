@@ -231,23 +231,26 @@ static int32_t ParseSoftwareResultDetail(const cJSON* root, AuthStatus* authStat
     (void)memset_s(authStatus->softwareResultDetail, len, 0, len);
     int32_t ret = ATTEST_ERR;
     do {
-        if (ParseVersionIdResult(json, (SoftwareResultDetail *)authStatus->softwareResultDetail) != ATTEST_OK) {
+        SoftwareResultDetail *softwareResultDetail = (SoftwareResultDetail *)authStatus->softwareResultDetail;
+        if (ParseVersionIdResult(json, softwareResultDetail) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseSoftwareResultDetail] Failed to parse versionIdResult.");
             break;
         }
-        if (ParsePatchLevelResult(json, (SoftwareResultDetail *)authStatus->softwareResultDetail) != ATTEST_OK) {
+        if (ParsePatchLevelResult(json, softwareResultDetail) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseSoftwareResultDetail] Failed to parse patchLevelResult.");
             break;
         }
-        if (ParseRootHashResult(json, (SoftwareResultDetail *)authStatus->softwareResultDetail) != ATTEST_OK) {
+        if (ParseRootHashResult(json, softwareResultDetail) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseSoftwareResultDetail] Failed to parse rootHashResult.");
             break;
         }
-#ifndef __LITEOS_M__
-        if (ParsePcidResult(json, (SoftwareResultDetail *)authStatus->softwareResultDetail) != ATTEST_OK) {
+#if defined __LITEOS_A__ || defined __LINUX__
+        if (ParsePcidResult(json, softwareResultDetail) != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseSoftwareResultDetail] Failed to parse pcidResult.");
             break;
         }
+#elif defined __LITEOS_M__
+        softwareResultDetail->pcidResult = DEVICE_ATTEST_INIT;
 #endif
         ret = ATTEST_OK;
     } while (0);
