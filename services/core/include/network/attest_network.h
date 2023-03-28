@@ -26,7 +26,11 @@ extern "C" {
 #endif
 #endif
 
-#define HTTPS_NETWORK_PORT "5684"
+#define NETWORK_CONFIG_SIZE 256
+#define NETWORK_CONFIG_SERVER_INFO_NAME "serverInfo"
+#define HOST_PATTERN "[a-zA-Z0-9-_.]"
+#define PORT_PATTERN "[0-9]"
+#define PARAM_TWO 2
 
 typedef enum {
     COAP_URI_PATH   = 11,
@@ -61,6 +65,8 @@ char* BuildCoapResetBody(const DevicePacket *devPacket);
 char* BuildCoapAuthBody(const DevicePacket *devPacket);
 
 char* BuildCoapActiveBody(const DevicePacket *devPacket);
+
+int32_t InitNetworkServerInfo(void);
 
 #ifdef __cplusplus
 #if __cplusplus
