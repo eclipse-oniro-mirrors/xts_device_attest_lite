@@ -35,8 +35,13 @@ using namespace testing::ext;
 namespace OHOS {
 namespace DevAttest {
 int32_t g_netType = 0;
-bool g_isEnableNetWork = true;
-
+const char* ATTEST_TICKET = "vbVYmHYmc5i/jiEVITvDOHzevJgU/Ghe";
+const char* ATTEST_STATUS = ".eyJhdXRoUmVzdWx0IjowLCJhdXRoVHlwZSI6IlRPS0VOX0VOQUJMRSIsImV4cGlyZVRpbWUi \
+    OjE2ODMwNDIyNTEyOTEsImtpdFBvbGljeSI6W10sInNvZnR3YXJlUmVzdWx0IjozMDAwMiwic29mdHdhcmVSZXN1bHREZXRhaWwiOnsic \
+    GF0Y2hMZXZlbFJlc3VsdCI6MzAwMDgsInBjaWRSZXN1bHQiOjMwMDExLCJyb290SGFzaFJlc3VsdCI6MzAwMDksInZlcnNpb25JZFJlc3V \
+    sdCI6MzAwMDJ9LCJ1ZGlkIjoiODFDOTQ0NTI3OUEzQTQxN0Q0MTU5RkRGQzYyNjkxQkM4REEwMDJFODQ2M0M3MEQyM0FCNENCRjRERjk4 \
+    MjYxQyIsInZlcnNpb25JZCI6ImRlZmF1bHQvaHVhLXdlaS9rZW1pbi9kZWZhdWx0L09wZW5IYXJtb255LTQuMC4zLjIoQ2FuYXJ5MSkvb2 \
+    hvcy9tYXgvMTAvT3Blbkhhcm1vbnkgMi4zIGJldGEvZGVidWcifQ.";
 class AttestTddTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -101,7 +106,8 @@ static DevicePacket* TddGenActiveMsg()
     if (reqMsg == nullptr) {
         return nullptr;
     }
-    ChallengeResult chap = {.challenge = (char*)ATTEST_ACTIVE_CHAP, .currentTime = ATTEST_ACTIVE_CHAP_TIME};
+    char* ATTEST_ACTIVE_CHAP = "7bf570910d3e1fcdf3959e10ffddc5c2777164a4a2f55d9fd65b1896f65b3f97";
+    ChallengeResult chap = {.challenge = ATTEST_ACTIVE_CHAP, .currentTime = ATTEST_ACTIVE_CHAP_TIME};
     int32_t ret = GenActiveMsg(authResult, &chap, &reqMsg);
     EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
     DestroyAuthResult(&authResult);
@@ -137,7 +143,6 @@ HWTEST_F(AttestTddTest, TestGenActiveMsg001, TestSize.Level1)
 HWTEST_F(AttestTddTest, TestSendActiveMsg001, TestSize.Level1)
 {
     g_netType = ATTEST_ACTIVE;
-    g_isEnableNetWork = true;
     DevicePacket* reqMsg = TddGenActiveMsg();
     if (reqMsg == NULL) {
         return;
@@ -154,6 +159,7 @@ HWTEST_F(AttestTddTest, TestSendActiveMsg001, TestSize.Level1)
         ATTEST_LOG_ERROR("[SendActiveMsgTdd] Send active message failed, ret = %d.", ret);
         return;
     }
+    const char* ATTEST_ACTIVE_EXPECT_RESULT = "{\"errcode\":0}";
     EXPECT_TRUE(strcmp(ATTEST_ACTIVE_EXPECT_RESULT, respMsg) == 0);
     free(respMsg);
 }
@@ -249,8 +255,11 @@ HWTEST_F(AttestTddTest, TestDecodeAuthStatus001, TestSize.Level1)
         FreeAuthStatus(outStatus);
         return;
     }
+    const char* ATTEST_VERSIONID = "default/hua-wei/kemin/default/OpenHarmony-4.0.3.2(Canary1)/ohos/max/10 \
+        /OpenHarmony 2.3 beta/debug";
+    const char* ATTEST_AUTH_TYPE = "TOKEN_ENABLE";
     EXPECT_TRUE(strcmp(outStatus->versionId, ATTEST_VERSIONID) == 0);
-    EXPECT_TRUE(strcmp(outStatus->authType, ATTEST_AUTHTYP) == 0);
+    EXPECT_TRUE(strcmp(outStatus->authType, ATTEST_AUTH_TYPE) == 0);
     EXPECT_TRUE((outStatus->hardwareResult == ATTEST_HARDWARERESULT) && (outStatus->expireTime == ATTEST_EXPIRRTIME));
     FreeAuthStatus(outStatus);
 }

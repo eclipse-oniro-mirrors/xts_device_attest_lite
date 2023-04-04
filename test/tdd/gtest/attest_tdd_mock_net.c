@@ -25,9 +25,9 @@
 
 #define ATTEST_RESET_CHAP_FIRST_MSG   "2,0"
 #define ATTEST_RESET_CHAP_SECOND_MSG   "1"
-#define ATTEST_RESET_CHAP_THIRD_MSG   "6,9,9,2,1,3,9,1,9,1,1,1,1,1,1,3,5,3,1,5,5,5,9,5,5,5,5,5,5,5,9,5,5,5,5,5,5,1,5,5,1,5,5, \
-5,5,5,9,5,9,5,5,5,5,9,5,5,5,9,4,1,5,9,5,9,1,5,5,9,5,1,1,1,4,4,5,5,5,5,4,1,9,5,3,4,3,9,1,1,1,1,1,1,8,1,1,1,3,5,4,5,5,4,5,5,4,5,5, \
-4,5,5,5,4,3,1,1,1,9,1,1,1,3,5,4,1,0"
+#define ATTEST_RESET_CHAP_THIRD_MSG   "6,9,9,2,1,3,9,1,9,1,1,1,1,1,1,3,5,3,1,5,5,5,9,5,5,5,5,5,5,5,9,5,5,5,5,5,5, \
+1,5,5,1,5,5,5,5,5,9,5,9,5,5,5,5,9,5,5,5,9,4,1,5,9,5,9,1,5,5,9,5,1,1,1,4,4,5,5,5,5,4,1,9,5,3,4,3,9,1,1,1,1,1,1,8,1, \
+1,1,3,5,4,5,5,4,5,5,4,5,5,4,5,5,5,4,3,1,1,1,9,1,1,1,3,5,4,1,0"
 
 #define ATTEST_REST_ERROR_FIRST_MSG     "2,0"
 #define ATTEST_REST_ERROR_SECOND_MSG    "5,0"
@@ -94,7 +94,7 @@ int32_t TLSConnect(TLSSession* session)
     if (session == NULL) {
         return ERR_NET_INVALID_ARG;
     }
-    return g_isEnableNetWork ? ATTEST_OK : ERR_NET_SETUP_FAIL;
+    return ATTEST_OK;
 }
 
 int32_t TLSWrite(const TLSSession* session, const uint8_t* buf, size_t len)

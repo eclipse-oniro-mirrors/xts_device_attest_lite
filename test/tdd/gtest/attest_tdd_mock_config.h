@@ -16,7 +16,6 @@
 #define ATTEST_TDD_MOCK_CONFIG_H
 
 extern int32_t g_netType;
-extern bool g_isEnableNetWork;
 
 const int32_t ATTEST_GET_CHANLLEGE = 0;
 const int32_t ATTEST_RESET = 1;
