@@ -61,5 +61,5 @@ char* AttestGetUdid(void)
 
 char* AttestGetManufacture(void)
 {
-    return OsGetManufacture();
+    return AttestStrdup(OsGetManufacture());
 }

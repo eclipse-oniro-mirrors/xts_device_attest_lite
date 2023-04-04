@@ -44,6 +44,7 @@ unittest("device_attest_tdd") {
     "attest_tdd_mock_hal.c",
     "attest_tdd_mock_net.c",
     "attest_tdd_mock_property.c",
+    "attest_tdd_data_transfer.c",
   ]
   sources += sources_common
   deps = [

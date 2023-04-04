@@ -12,14 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ATTEST_TDD_MOCK_CONFIG_H
-#define ATTEST_TDD_MOCK_CONFIG_H
-
-extern int32_t g_netType;
-
-const int32_t ATTEST_GET_CHANLLEGE = 0;
-const int32_t ATTEST_RESET = 1;
-const int32_t ATTEST_ACTIVE = 2;
-const int32_t ATTEST_AUTH = 3;
-
+#ifndef ATTEST_TDD_TEST_DATA_TRANSFER_H
+#define ATTEST_TDD_TEST_DATA_TRANSFER_H
+int32_t AttestSeriaToBinary(const char* input, uint8_t** buf);
 #endif
