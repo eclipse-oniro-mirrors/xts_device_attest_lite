@@ -15,17 +15,18 @@
 #include "attest_utils.h"
 #include "attest_adapter_os.h"
 
-#define ATTEST_VERSION_ID       "default/hua-wei/kemin/default/OpenHarmony-4.0.3.2(Canary1)/ohos/max/10/OpenHarmony 2.3 beta/debug"
-#define ATTEST_BUILD_ROOT_HASH  "test666"
-#define ATTEST_SOFTWARE_VERSION "OpenHarmony 4.0.3.2"
-#define ATTEST_PRODUCT_MODEL    "ohos"
-#define ATTEST_BRAND            "kemin"
-#define ATTEST_SECURITY_PATCH   "2022-09-01"
-#define ATTEST_UDID             "81C9445279A3A417D4159FDFC62691BC8DA002E8463C70D23AB4CBF4DF98261C"
+const char* ATTEST_NET_VERSIONID = "default/hua-wei/kemin/default/OpenHarmony-4.0.3.2(Canary1)/ohos/max/10 \
+                                   /OpenHarmony 2.3 beta/debug";
+const char* ATTEST_BUILD_ROOT_HASH = "test666";
+const char* ATTEST_SOFTWARE_VERSION = "OpenHarmony 4.0.3.2";
+const char* ATTEST_PRODUCT_MODEL = "ohos";
+const char* ATTEST_BRAND = "kemin";
+const char* ATTEST_SECURITY_PATCH = "2022-09-01";
+const char* ATTEST_UDID = "81C9445279A3A417D4159FDFC62691BC8DA002E8463C70D23AB4CBF4DF98261C";
 
 char* AttestGetVersionId(void)
 {
-    return AttestStrdup(ATTEST_VERSION_ID);
+    return AttestStrdup(ATTEST_NET_VERSIONID);
 }
 
 char* AttestGetBuildRootHash(void)
@@ -50,7 +51,7 @@ char* AttestGetBrand(void)
 
 char* AttestGetSecurityPatchTag(void)
 {
-    return AttestStrdup(ATTEST_SECURITY_PATCH);;
+    return AttestStrdup(ATTEST_SECURITY_PATCH);
 }
 
 char* AttestGetUdid(void)

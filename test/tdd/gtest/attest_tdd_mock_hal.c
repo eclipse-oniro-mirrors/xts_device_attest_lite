@@ -16,10 +16,10 @@
 #include "attest_adapter_mock.h"
 #include "attest_type.h"
 
-#define ATTEST_TOKENID      "cb8cf67a-2c3e-44d6-b7bf-3eeed7724a55"
-#define ATTEST_TOKEVALUE    "XwTzVFdKzX/L8rJmDuqHnDlipM9QBT1d"
-#define ATTEST_SALT         "sfdsfTASDA"
-#define ATTEST_VERSION      "SFDSfdsSFSD"
+const char* ATTEST_TOKENID = "cb8cf67a-2c3e-44d6-b7bf-3eeed7724a55";
+const char* ATTEST_TOKEVALUE = "XwTzVFdKzX/L8rJmDuqHnDlipM9QBT1d";
+const char* ATTEST_SALT = "sfdsfTASDA";
+const char* ATTEST_VERSION = "SFDSfdsSFSD";
 
 // 读取Manufacturekey
 int32_t AttestGetManufacturekey(uint8_t manufacturekey[], uint32_t len)

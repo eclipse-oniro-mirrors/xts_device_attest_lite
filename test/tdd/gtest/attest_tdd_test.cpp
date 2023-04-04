@@ -34,7 +34,6 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace DevAttest {
-
 int32_t g_netType = 0;
 bool g_isEnableNetWork = true;
 
@@ -51,12 +50,10 @@ public:
 
 void AttestTddTest::SetUpTestCase(void)
 {
-
 }
 
 void AttestTddTest::TearDownTestCase(void)
 {
-
 }
 
 void AttestTddTest::SetUp()
@@ -67,7 +64,6 @@ void AttestTddTest::SetUp()
 
 void AttestTddTest::TearDown()
 {
-
 }
 
 static AuthResult *GetAuthResult()
@@ -85,12 +81,15 @@ static AuthResult *GetAuthResult()
 static void WriteAuthResult(AuthResult *authResult)
 {
     int32_t ret = FlushToken(authResult);
-    EXPECT_TRUE((ret == DEVATTEST_SUCCESS));    
+    EXPECT_TRUE((ret == DEVATTEST_SUCCESS));
 }
 
 static DevicePacket* ConstructDevicePacket()
 {
     DevicePacket* result = (DevicePacket*)malloc(sizeof(DevicePacket));
+    if (result == nullptr) {
+        return nullptr;
+    }
     EXPECT_TRUE(result != NULL);
     return result;
 }
@@ -99,11 +98,11 @@ static DevicePacket* TddGenActiveMsg()
 {
     AuthResult *authResult = GetAuthResult();
     DevicePacket* reqMsg = ConstructDevicePacket();
-    if (reqMsg == NULL) {
-        return NULL;
+    if (reqMsg == nullptr) {
+        return nullptr;
     }
-    ChallengeResult challenge = {.challenge = ATTEST_ACTIVE_CHALLENGE, .currentTime = ATTEST_ACTIVE_CHALLENGE_TIME};
-    int32_t ret = GenActiveMsg(authResult, &challenge, &reqMsg);
+    ChallengeResult chap = {.challenge = (char*)ATTEST_ACTIVE_CHAP, .currentTime = ATTEST_ACTIVE_CHAP_TIME};
+    int32_t ret = GenActiveMsg(authResult, &chap, &reqMsg);
     EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
     DestroyAuthResult(&authResult);
     return reqMsg;
@@ -116,7 +115,6 @@ static DevicePacket* TddGenActiveMsg()
  */
 HWTEST_F(AttestTddTest, TestGenActiveMsg001, TestSize.Level1)
 {
-
     DevicePacket* reqMsg = TddGenActiveMsg();
     if (reqMsg == NULL) {
         return;
@@ -139,6 +137,7 @@ HWTEST_F(AttestTddTest, TestGenActiveMsg001, TestSize.Level1)
 HWTEST_F(AttestTddTest, TestSendActiveMsg001, TestSize.Level1)
 {
     g_netType = ATTEST_ACTIVE;
+    g_isEnableNetWork = true;
     DevicePacket* reqMsg = TddGenActiveMsg();
     if (reqMsg == NULL) {
         return;
@@ -244,8 +243,9 @@ HWTEST_F(AttestTddTest, TestDecodeAuthStatus001, TestSize.Level1)
     }
     int32_t ret = DecodeAuthStatus(status, outStatus);
     EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
-    EXPECT_TRUE((outStatus->versionId != nullptr) && (outStatus->authType != nullptr) && (outStatus->softwareResultDetail != nullptr));
-    if ((outStatus->versionId == nullptr) || (outStatus->authType == nullptr) || (outStatus->softwareResultDetail == nullptr)) {
+    SoftwareResultDetail* detail = outStatus->softwareResultDetail;
+    EXPECT_TRUE((outStatus->versionId != nullptr) && (outStatus->authType != nullptr) && (detail != nullptr));
+    if ((outStatus->versionId == nullptr) || (outStatus->authType == nullptr) || (detail == nullptr)) {
         FreeAuthStatus(outStatus);
         return;
     }
@@ -284,7 +284,7 @@ static DevicePacket* TddGenAuthMsg()
     if (reqMsg == NULL) {
         return NULL;
     }
-    ChallengeResult challenge = {.challenge = ATTEST_AUTH_CHALLENGE, .currentTime = ATTEST_AUTH_CHALLENGE_TIME};
+    ChallengeResult challenge = {.challenge = (char*)ATTEST_AUTH_CHAP, .currentTime = ATTEST_AUTH_CHAP_TIME};
     int32_t ret = GenAuthMsg(&challenge, &reqMsg);
     EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
     return reqMsg;
@@ -334,9 +334,8 @@ HWTEST_F(AttestTddTest, TestSendAuthMsg001, TestSize.Level1)
         return;
     }
     EXPECT_TRUE(strcmp(respMsg, ATTEST_AUTH_EXPECT_RESULT) == 0);
-    free(respMsg);        
+    free(respMsg);
 }
-
 
 /*
  * @tc.name: TestParseAuthResultResp001
@@ -350,7 +349,8 @@ HWTEST_F(AttestTddTest, TestParseAuthResultResp001, TestSize.Level1)
     if (authResult == nullptr) {
         return;
     }
-    EXPECT_TRUE((authResult->ticket != nullptr) && (authResult->tokenValue != nullptr)&&(authResult->authStatus != nullptr));
+    EXPECT_TRUE((authResult->ticket != nullptr) && (authResult->tokenValue != nullptr) &&
+        (authResult->authStatus != nullptr));
     if (authResult->ticket != nullptr) {
         EXPECT_TRUE(strcmp(authResult->ticket, ATTEST_TICKET) == 0);
     }
@@ -373,7 +373,7 @@ HWTEST_F(AttestTddTest, TestGetChallenge001, TestSize.Level1)
         ATTEST_LOG_ERROR("[AttestTdd] GetChallenge failed, ret = %d.", ret);
         return;
     }
-    EXPECT_TRUE(strcmp(ATTEST_RESET_EXPECT_CHALLENGE, challenge->challenge) == 0);
+    EXPECT_TRUE(strcmp(ATTEST_RESET_EXPECT_CHAP, challenge->challenge) == 0);
     FREE_CHALLENGE_RESULT(challenge);
 }
 
@@ -383,8 +383,11 @@ static DevicePacket* TddGenResetMsg()
     if (reqMsg == NULL) {
         return NULL;
     }
-    ChallengeResult challenge = {.challenge = ATTEST_RESET_EXPECT_CHALLENGE, .currentTime = ATTEST_RESET_EXPECT_CHALLENGE_TIME};
-    int32_t ret = GenResetMsg(&challenge, &reqMsg);
+    ChallengeResult chap = {
+        .challenge = (char*)ATTEST_RESET_EXPECT_CHAP,
+        .currentTime = ATTEST_RESET_EXPECT_CHAP_TIME
+    };
+    int32_t ret = GenResetMsg(&chap, &reqMsg);
     EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
     return reqMsg;
 }

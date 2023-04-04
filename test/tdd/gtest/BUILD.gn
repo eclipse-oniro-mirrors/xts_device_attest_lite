@@ -16,10 +16,6 @@ import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 import("//test/xts/device_attest_lite/services/core/attestsource.gni")
 import("//build/ohos.gni")
 
-#test_output_root = "$root_out_dir/test/unittest/attest"
-#test_output_root = "$root_out_dir/hispark_taurus/ipcamera_hispark_taurus/bin"
-
-#output_dir = test_output_root
 unittest("device_attest_tdd") {
   output_extension = "bin"
   cflags = [

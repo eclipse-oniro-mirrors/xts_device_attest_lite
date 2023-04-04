@@ -18,9 +18,9 @@
 extern int32_t g_netType;
 extern bool g_isEnableNetWork;
 
-#define ATTEST_GET_CHANLLEGE    (0)
-#define ATTEST_RESET            (1)
-#define ATTEST_ACTIVE           (2)
-#define ATTEST_AUTH             (3)
+const int32_t ATTEST_GET_CHANLLEGE = 0;
+const int32_t ATTEST_RESET = 1;
+const int32_t ATTEST_ACTIVE = 2;
+const int32_t ATTEST_AUTH = 3;
 
 #endif
