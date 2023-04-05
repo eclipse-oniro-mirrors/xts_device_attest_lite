@@ -34,6 +34,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace DevAttest {
+<<<<<<< HEAD
 const int32_t ATTEST_GET_CHANLLEGE = 0;
 const int32_t ATTEST_RESET = 1;
 const int32_t ATTEST_ACTIVE = 2;
@@ -48,6 +49,16 @@ const char* ATTEST_STATUS = ".eyJhdXRoUmVzdWx0IjowLCJhdXRoVHlwZSI6IlRPS0VOX0VOQU
     lkIjoiODFDOTQ0NTI3OUEzQTQxN0Q0MTU5RkRGQzYyNjkxQkM4REEwMDJFODQ2M0M3MEQyM0FCNENCRjRERjk4MjYxQyIsInZlcnNpb25JZCI6 \
     ImRlZmF1bHQvaHVhLXdlaS9rZW1pbi9kZWZhdWx0L09wZW5IYXJtb255LTQuMC4zLjIoQ2FuYXJ5MSkvb2hvcy9tYXgvMTAvT3Blbkhhcm1vbn \
     kgMi4zIGJldGEvZGVidWcifQ.";
+=======
+int32_t g_netType = 0;
+const char* ATTEST_TICKET = "vbVYmHYmc5i/jiEVITvDOHzevJgU/Ghe";
+const char* ATTEST_STATUS = ".eyJhdXRoUmVzdWx0IjowLCJhdXRoVHlwZSI6IlRPS0VOX0VOQUJMRSIsImV4cGlyZVRpbWUi \
+    OjE2ODMwNDIyNTEyOTEsImtpdFBvbGljeSI6W10sInNvZnR3YXJlUmVzdWx0IjozMDAwMiwic29mdHdhcmVSZXN1bHREZXRhaWwiOnsic \
+    GF0Y2hMZXZlbFJlc3VsdCI6MzAwMDgsInBjaWRSZXN1bHQiOjMwMDExLCJyb290SGFzaFJlc3VsdCI6MzAwMDksInZlcnNpb25JZFJlc3V \
+    sdCI6MzAwMDJ9LCJ1ZGlkIjoiODFDOTQ0NTI3OUEzQTQxN0Q0MTU5RkRGQzYyNjkxQkM4REEwMDJFODQ2M0M3MEQyM0FCNENCRjRERjk4 \
+    MjYxQyIsInZlcnNpb25JZCI6ImRlZmF1bHQvaHVhLXdlaS9rZW1pbi9kZWZhdWx0L09wZW5IYXJtb255LTQuMC4zLjIoQ2FuYXJ5MSkvb2 \
+    hvcy9tYXgvMTAvT3Blbkhhcm1vbnkgMi4zIGJldGEvZGVidWcifQ.";
+>>>>>>> b4e7b8cd1c9f95a053fc12afcd947cfa1a654579
 class AttestTddTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
