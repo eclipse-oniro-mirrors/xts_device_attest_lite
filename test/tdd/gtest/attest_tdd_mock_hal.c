@@ -43,8 +43,6 @@ const char* ATTEST_SECOND_TOKEVALUE = "87,89,88,108,73,43,84,73,111,118,48,65,10
 const char* ATTEST_SECOND_SALT = "130,1,1,1,44,1,1,1,65,1,1,1,217,1,1,1,49,48,48,48,0";
 const char* ATTEST_SECOND_VERSION = "49,48,48,48,0";
 
-
-
 // 读取Manufacturekey
 int32_t AttestGetManufacturekey(uint8_t manufacturekey[], uint32_t len)
 {

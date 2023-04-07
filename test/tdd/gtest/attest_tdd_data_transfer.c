@@ -15,6 +15,7 @@
 #include "securec.h"
 #include "attest_utils.h"
 #include "attest_utils_log.h"
+#include "attest_tdd_data_transfer.h"
 static size_t AttestGetMallocLen(const char* input)
 {
     size_t totalFlag = 0;
@@ -52,18 +53,17 @@ int32_t AttestSeriaToBinary(const char* input, uint8_t** buf, size_t len)
             *indexTemp++ = total;
             total = 0;
         } else {
-            total = total * 10 + (*indexInput - '0');
+            total = total * ATTEST_DECIMAL + (*indexInput - ATTEST_ZERO_CHAR);
         }
         if (*indexInput == '\0') {
             break;
         }
         indexInput++;
     }
-    ATTEST_LOG_INFO("[AttestSeriaToBinary] end print len = %d, mollocLen = %d", len, mollocLen);
     if (memcpy_s(*buf, len, temp, len) != 0) {
         free(temp);
         return ATTEST_ERR;
     }
     free(temp);
-    return ATTEST_OK;    
+    return ATTEST_OK;
 }

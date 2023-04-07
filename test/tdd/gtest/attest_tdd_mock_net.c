@@ -80,7 +80,6 @@ int32_t TLSRead(const TLSSession* session, uint8_t* buf, size_t len)
     if (g_cout > MAX_INVOKE_TIME || (g_netType < 0 || g_netType > INTERFACE_COUNT - 1)) {
         return ATTEST_ERR;
     }
-    ATTEST_LOG_INFO("[TLSConnect mock] g_cout = %d, g_netType = %d.",g_cout, g_netType);
     int32_t ret = AttestSeriaToBinary(mockTlsData[g_cout][g_netType], &buf, len);
     g_cout++;
     int32_t maxInvokeTime = isHasExtend[g_netType] ? MAX_INVOKE_TIME : MAX_NO_EXTEND_TIME;

@@ -14,5 +14,7 @@
  */
 #ifndef ATTEST_TDD_TEST_DATA_TRANSFER_H
 #define ATTEST_TDD_TEST_DATA_TRANSFER_H
+#define ATTEST_DECIMAL   (10)
+#define ATTEST_ZERO_CHAR '0'
 int32_t AttestSeriaToBinary(const char* input, uint8_t** buf, size_t len);
 #endif

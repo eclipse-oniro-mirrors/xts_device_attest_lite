@@ -29,21 +29,49 @@
 #include "attest_security_token.h"
 #include "attest_service_reset.h"
 #include "attest_tdd_mock_config.h"
-#include "attest_tdd_test_data.h"
 #include "attest_network.h"
 #include "attest_adapter.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace DevAttest {
-#define TDD_AUTH_RESULT 0
-const int32_t ATTEST_GET_CHANLLEGE = 0;
-const int32_t ATTEST_RESET = 1;
-const int32_t ATTEST_ACTIVE = 2;
-const int32_t ATTEST_AUTH = 3;
+static const int32_t TDD_AUTH_RESULT = 0;
 
-const char* ATTEST_TICKET = "svnR0unsciaFi7S4hcpBa/LCSiYwNSt6";
-const char* ATTEST_STATUS = ".eyJhdXRoUmVzdWx0IjowLCJhdXRoVHlwZSI6IlRPS0VOX0VOQUJMRSI\
+static const int32_t ATTEST_GET_CHANLLEGE = 0;
+static const int32_t ATTEST_RESET = 1;
+static const int32_t ATTEST_ACTIVE = 2;
+static const int32_t ATTEST_AUTH = 3;
+
+static const char* ATTEST_RESET_EXPECT_TOKEN = "WOetrEFOcjw8Px2TZNmq3ckoMzXEkkoLfgQeGNnG3XA=";
+
+static const char* ATTEST_AUTH_EXPECT_RESULT = "{\"authStats\":\".eyJhdXRoUmVzdWx0IjowLCJhdXRoVHlwZSI6IlRPS0VOX0VOQUJMRSI\
+sImV4cGlyZVRpbWUiOjE2ODMzNzM2NzE2NzQsImtpdFBvbGljeSI6W10sInNvZnR3YXJlUmVzdWx0IjozMDAwMiwic29mdHdhcmVSZXN1bHREZXRh\
+aWwiOnsicGF0Y2hMZXZlbFJlc3VsdCI6MzAwMDgsInBjaWRSZXN1bHQiOjMwMDExLCJyb290SGFzaFJlc3VsdCI6MzAwMDksInZlcnNpb25JZFJlc\
+3VsdCI6MzAwMDJ9LCJ1ZGlkIjoiODFDOTQ0NTI3OUEzQTQxN0Q0MTU5RkRGQzYyNjkxQkM4REEwMDJFODQ2M0M3MEQyM0FCNENCRjRERjk4MjYxQy\
+IsInZlcnNpb25JZCI6ImRlZmF1bHQvaHVhLXdlaS9rZW1pbi9kZWZhdWx0L09wZW5IYXJtb255LTQuMC4zLjIoQ2FuYXJ5MSkvb2hvcy9tYXgvMTAv\
+T3Blbkhhcm1vbnkgMi4zIGJldGEvZGVidWcifQ.\",\
+\"errcode\":0,\
+\"ticket\":\"svnR0unsciaFi7S4hcpBa/LCSiYwNSt6\",\
+\"token\":\"yh9te54pfTb91CrSqpD5fQsVBA/etKNb\",\
+\"uuid\":\"156dcff8-0ab0-4521-ac8f-ba682e6ca5a0\"\
+}3";
+static const char* ATTEST_AUTH_CHAP = "a81441e3c0d8d6a78907fa0888f9241be9591c4d6b7a533318b010fb2c3d9b80";
+static const int64_t ATTEST_AUTH_CHAP_TIME = 1449458719;
+static const char* ATTEST_AUTH_GEN_TOKEN = "5HWNhKgnJ+sVZM313rCsNa3QK2RhrC4+bClH9SX5O84=";
+
+static const char* ATTEST_ACTIVE_EXPECT_TOKEN = "648390656";
+static const int64_t ATTEST_ACTIVE_CHAP_TIME = 1449459365;
+
+static const int64_t ATTEST_EXPIRRTIME = -584928741;
+static const int32_t ATTEST_HARDWARERESULT = 0;
+
+static const char* ATTEST_REST_ERROR_EXPECT_RESULT = "15003";
+
+static const char* ATTEST_RESET_EXPECT_CHAP = "39a9d04d41617162893c3312ceb030acac8d8bd0cc9fcebcab5402a43891341d";
+static const int64_t ATTEST_RESET_EXPECT_CHAP_TIME = 1449458490;
+
+static const char* ATTEST_TICKET = "svnR0unsciaFi7S4hcpBa/LCSiYwNSt6";
+static const char* ATTEST_STATUS = ".eyJhdXRoUmVzdWx0IjowLCJhdXRoVHlwZSI6IlRPS0VOX0VOQUJMRSI\
 sImV4cGlyZVRpbWUiOjE2ODMzNzM2NzE2NzQsImtpdFBvbGljeSI6W10sInNvZnR3YXJlUmVzdWx0IjozMDAwMiwic29mdHdhcmVSZXN1bHREZXRh\
 aWwiOnsicGF0Y2hMZXZlbFJlc3VsdCI6MzAwMDgsInBjaWRSZXN1bHQiOjMwMDExLCJyb290SGFzaFJlc3VsdCI6MzAwMDksInZlcnNpb25JZFJlc\
 3VsdCI6MzAwMDJ9LCJ1ZGlkIjoiODFDOTQ0NTI3OUEzQTQxN0Q0MTU5RkRGQzYyNjkxQkM4REEwMDJFODQ2M0M3MEQyM0FCNENCRjRERjk4MjYxQy\
@@ -108,10 +136,10 @@ static void WriteAuthResult(AuthResult *authResult)
 static DevicePacket* ConstructDevicePacket()
 {
     DevicePacket* result = (DevicePacket*)malloc(sizeof(DevicePacket));
-    memset_s(result, sizeof(DevicePacket), 0, sizeof(DevicePacket));
     if (result == nullptr) {
         return nullptr;
     }
+    memset_s(result, sizeof(DevicePacket), 0, sizeof(DevicePacket));
     EXPECT_TRUE(result != NULL);
     return result;
 }
@@ -312,7 +340,7 @@ static DevicePacket* TddGenAuthMsg()
     EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
     if (ret != DEVATTEST_SUCCESS) {
         FREE_DEVICE_PACKET(reqMsg);
-        return nullptr; 
+        return nullptr;
     }
     return reqMsg;
 }
