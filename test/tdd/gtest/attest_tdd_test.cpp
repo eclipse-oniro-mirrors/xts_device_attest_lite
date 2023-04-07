@@ -146,7 +146,6 @@ static DevicePacket* ConstructDevicePacket()
 
 static DevicePacket* TddGenActiveMsg()
 {
-    g_isFirstToken = true;
     AuthResult *authResult = GetAuthResult();
     if (authResult == nullptr) {
         return nullptr;

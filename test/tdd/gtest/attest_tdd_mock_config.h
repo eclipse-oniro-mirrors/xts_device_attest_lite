@@ -16,6 +16,5 @@
 #define ATTEST_TDD_MOCK_CONFIG_H
 
 extern int32_t g_netType;
-extern bool g_isFirstToken;
 
 #endif
