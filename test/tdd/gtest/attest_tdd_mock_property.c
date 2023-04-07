@@ -15,8 +15,8 @@
 #include "attest_utils.h"
 #include "attest_adapter_os.h"
 
-const char* ATTEST_NET_VERSIONID = "default/hua-wei/kemin/default/OpenHarmony-4.0.3.2(Canary1)/ohos/max/10 \
-                                   /OpenHarmony 2.3 beta/debug";
+const char* ATTEST_NET_VERSIONID = "default/hua-wei/kemin/default/OpenHarmony-4.0.3.2(Canary1)/ohos/max/10\
+/OpenHarmony 2.3 beta/debug";
 const char* ATTEST_BUILD_ROOT_HASH = "test666";
 const char* ATTEST_SOFTWARE_VERSION = "OpenHarmony 4.0.3.2";
 const char* ATTEST_PRODUCT_MODEL = "ohos";

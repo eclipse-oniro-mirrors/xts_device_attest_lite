@@ -16,10 +16,6 @@
 #define ATTEST_TDD_MOCK_CONFIG_H
 
 extern int32_t g_netType;
-
-const int32_t ATTEST_GET_CHANLLEGE = 0;
-const int32_t ATTEST_RESET = 1;
-const int32_t ATTEST_ACTIVE = 2;
-const int32_t ATTEST_AUTH = 3;
+extern bool g_isFirstToken;
 
 #endif

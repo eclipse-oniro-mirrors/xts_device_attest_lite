@@ -15,26 +15,55 @@
 #include "securec.h"
 #include "attest_utils.h"
 #include "attest_utils_log.h"
-int32_t AttestSeriaToBinary(const char* input, uint8_t** buf)
+static size_t AttestGetMallocLen(const char* input)
+{
+    size_t totalFlag = 0;
+    char *indexInput = (char *)input;
+    while (*indexInput != '\0') {
+        if (*indexInput == ',') {
+            totalFlag++;
+        }
+        indexInput++;
+    }
+    size_t totalByte = totalFlag + 1;
+    size_t charLen = sizeof(unsigned char);
+    size_t mallocLen = charLen * totalByte + 1;
+    return mallocLen;
+}
+
+int32_t AttestSeriaToBinary(const char* input, uint8_t** buf, size_t len)
 {
     if (buf == NULL || *buf == NULL) {
         return ATTEST_ERR;
     }
-    size_t strLen = strlen(input);
-    size_t realLen = strLen + 1;
-    size_t charLen = sizeof(unsigned char);
-    size_t mallocLen = (strLen == 1) ? charLen : (size_t)(charLen * realLen);
-    uint8_t *temp = (uint8_t *)malloc(mallocLen);
+    size_t mollocLen = AttestGetMallocLen(input);
+    uint8_t *temp = (uint8_t *)malloc(mollocLen);
     if (temp == NULL) {
         return ATTEST_ERR;
     }
-    memset_s(temp, mallocLen, 0, mallocLen);
+    memset_s(temp, mollocLen, 0, mollocLen);
 
-    unsigned char *indexInput = (unsigned char *)input;
+    char *indexInput = (char *)input;
     unsigned char *indexTemp = (unsigned char*)temp;
-    while (*indexInput != '\0') {
-        *indexTemp++ = *indexInput++;
+    unsigned char total = 0;
+    ATTEST_LOG_INFO("[AttestSeriaToBinary] begin print ");
+    while (true) {
+        if ((*indexInput == ',') || (*indexInput == '\0')) {
+            *indexTemp++ = total;
+            total = 0;
+        } else {
+            total = total * 10 + (*indexInput - '0');
+        }
+        if (*indexInput == '\0') {
+            break;
+        }
+        indexInput++;
     }
-    *buf = temp;
+    ATTEST_LOG_INFO("[AttestSeriaToBinary] end print len = %d, mollocLen = %d", len, mollocLen);
+    if (memcpy_s(*buf, len, temp, len) != 0) {
+        free(temp);
+        return ATTEST_ERR;
+    }
+    free(temp);
     return ATTEST_OK;    
 }
