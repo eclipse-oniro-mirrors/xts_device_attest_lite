@@ -38,6 +38,9 @@ int32_t AttestSeriaToBinary(const char* input, uint8_t** buf, size_t len)
         return ATTEST_ERR;
     }
     size_t mollocLen = AttestGetMallocLen(input);
+    if (mollocLen > ATTEST_MAX_TLS_LEN) {
+        return ATTEST_ERR;
+    }
     uint8_t *temp = (uint8_t *)malloc(mollocLen);
     if (temp == NULL) {
         return ATTEST_ERR;
