@@ -13,33 +13,7 @@
 
 import("//build/lite/config/component/lite_component.gni")
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
-
-sources_common = [
-  "attest_entry.c",
-  "adapter/attest_adapter.c",
-  "adapter/attest_adapter_os.c",
-  "adapter/attest_adapter_oem.c",
-  "adapter/attest_adapter_mock.c",
-  "attest/attest_service.c",
-  "attest/attest_service_auth.c",
-  "attest/attest_service_active.c",
-  "attest/attest_service_challenge.c",
-  "attest/attest_service_reset.c",
-  "attest/attest_service_device.c",
-  "network/attest_channel.c",
-  "network/attest_coap.c",
-  "network/attest_network.c",
-  "network/attest_tls.c",
-  "security/attest_security.c",
-  "security/attest_security_token.c",
-  "security/attest_security_ticket.c",
-  "utils/attest_utils_file.c",
-  "utils/attest_utils_json.c",
-  "utils/attest_utils_log.c",
-  "utils/attest_utils_timer.c",
-  "utils/attest_utils_list.c",
-  "utils/attest_utils.c",
-]
+import("attestsource.gni")
 
 if (enable_attest_mock_network && enable_attest_mock_device) {
   sources_common += [ "${devattest_path}/test/unittest/src/attest_mock.c" ]
@@ -56,28 +30,7 @@ if (enable_attest_debug_dfx) {
 config("devattest_core_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [
-    "include",
-    "include/adapter",
-    "include/attest",
-    "include/dfx",
-    "include/security",
-    "include/network",
-    "include/utils",
-    "${devattest_path}/services/oem_adapter/include",
-    "//base/startup/init/interfaces/innerkits/include/syspara",
-    "//base/hiviewdfx/hilog_lite/interfaces/native/kits",
-    "//utils/native/lite/include",
-    "//third_party/cJSON",
-    "//third_party/bounds_checking_function/include",
-    "${devattest_path}/interfaces/innerkits",
-  ]
-
-  include_dirs += [
-    "//base/startup/init/interfaces/hals",
-    "//base/startup/init/interfaces/innerkits/include/syspara",
-    "//developtools/syscap_codec/interfaces/inner_api",
-  ]
+  include_dirs = core_dirs
 
   defines = []
   if (enable_attest_log_debug) {
@@ -120,6 +73,7 @@ copy("network_config") {
 if (ohos_kernel_type == "liteos_m") {
   static_library("devattest_core") {
     sources = sources_common
+    sources += sources_mock
 
     public_configs = [
       ":devattest_core_config",
@@ -150,6 +104,7 @@ if (ohos_kernel_type == "liteos_m") {
 } else if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
   shared_library("devattest_core") {
     sources = sources_common
+    sources += sources_mock
 
     public_configs = [ ":devattest_core_config" ]
     cflags = [

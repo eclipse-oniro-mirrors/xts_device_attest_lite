@@ -1,0 +1,59 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/lite/config/test.gni")
+import("//build/ohos.gni")
+import("//test/xts/device_attest_lite/build/devattestconfig.gni")
+import("//test/xts/device_attest_lite/services/core/attestsource.gni")
+
+unittest("device_attest_tdd") {
+  output_extension = "bin"
+  cflags = [
+    "-ftrapv",
+    "-Werror",
+    "-Wextra",
+    "-Wshadow",
+    "-fstack-protector-all",
+    "-D_FORTIFY_SOURCE=2",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+    "-fPIC",
+    "-pthread",
+  ]
+  defines = [ "ATTEST_HILOG_LEVEL = 1" ]
+  defines += [ "MBEDTLS_ALLOW_PRIVATE_ACCESS" ]
+  include_dirs = core_dirs
+  include_dirs += [
+    ".",
+    "${devattest_path}/services/core",
+    "${devattest_path}/interfaces/innerkits",
+  ]
+  sources = [
+    "attest_tdd_data_transfer.c",
+    "attest_tdd_mock_hal.c",
+    "attest_tdd_mock_net.c",
+    "attest_tdd_mock_property.c",
+    "attest_tdd_test.cpp",
+  ]
+  sources += sources_common
+  deps = [
+    "$ohos_product_adapter_dir/utils/token:haltoken_shared",
+    "${devattest_path}/services/core:network_config",
+    "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+    "//base/startup/init/interfaces/innerkits:parameter",
+    "//build/lite/config/component/cJSON:cjson_shared",
+    "//developtools/syscap_codec:syscap_interface_shared",
+    "//third_party/mbedtls:mbedtls",
+  ]
+}
