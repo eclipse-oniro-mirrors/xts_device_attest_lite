@@ -1,5 +1,5 @@
 {
-  "name": "@ohos/devattest_service_lite",
+  "name": "@ohos/device_attest_lite",
   "version": "4.0",
   "description": "",
   "license": "Apache License 2.0",
@@ -17,9 +17,8 @@
     "syscap": [ "SystemCapability.XTS.DeviceAttestLite" ],
     "features": [],
     "adapted_system_type": [
-      "liteos_m",
-      "liteos_a",
-      "linux"
+      "mini",
+      "small"
     ],
     "rom": "3072KB",
     "ram": "~64KB",
