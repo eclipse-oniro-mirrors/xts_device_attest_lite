@@ -128,7 +128,7 @@ static int32_t ParseChallengeResult(const char* jsonStr, ChallengeResult* challe
             ATTEST_MEM_FREE(challenge->cloudServerInfo.standbySite);
             break;
         }
-    }while(0);
+    } while (0);
     ATTEST_MEM_FREE(serverInfo);
     return ret;
 }
@@ -213,13 +213,13 @@ int32_t GetChallenge(ChallengeResult** challResult, ATTEST_ACTION_TYPE actionTyp
     char* standbySite = challengeResult->cloudServerInfo.standbySite;
     ret = UpdateNetConfig(activeSite, standbySite, &updateFlag);
     if (ret != ATTEST_OK) {
-        if (updateFlag == 1){
+        if (updateFlag == 1) {
             ATTEST_LOG_ERROR("[GetChallenge] update netconfig failed");
             return ATTEST_ERR;
         }
         ATTEST_LOG_DEBUG("[GetChallenge] using preset domain");
         *challResult = challengeResult;
-    }else{
+    } else {
         FREE_CHALLENGE_RESULT(challengeResult);
         ATTEST_LOG_DEBUG("[GetChallenge] using new domain");
         challengeResult = GetChallengeImpl(actionType);
