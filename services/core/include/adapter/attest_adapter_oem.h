@@ -45,6 +45,8 @@ bool OEMIsResetFlagExist(void);
 
 int32_t OEMReadNetworkConfig(char* buffer, uint32_t bufferLen);
 
+int32_t OEMWriteNetworkConfig(const char* data, uint32_t len);
+
 int32_t OEMWriteAuthResultCode(const char* data, uint32_t len);
 
 int32_t OEMReadAuthResultCode(char* buffer, uint32_t bufferLen);
