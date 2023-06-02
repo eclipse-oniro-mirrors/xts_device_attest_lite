@@ -1182,8 +1182,7 @@ static int32_t MergeDomain(char* hostName, char* port, char** resultDomain)
 
 static int32_t TestConnection(char* newDomain, char* curDomain)
 {
-    int32_t ret;
-    ret = TLSClose(g_attestSession);
+    int32_t ret = TLSClose(g_attestSession);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[TestConnection] close connection failed");
         return ATTEST_ERR;
@@ -1251,6 +1250,36 @@ static int32_t CheckDomain(char* inputData, char** outData)
     return ATTEST_OK;
 }
 
+#ifdef __LITEOS_M__
+static int32_t DumpDomain(const char* newDomain)
+{
+    uint32_t len = strlen(newDomain) * sizeof(char);
+    int32_t ret = AttestWriteNetworkConfig(newDomain, len);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[DumpDomain] dump networkconfig failed.");
+        return ATTEST_ERR;
+    }
+    return ATTEST_OK;
+}
+#else
+static int32_t DumpDomain(const char* newDomain)
+{
+    cJSON* newConfig = cJSON_CreateObject();
+    cJSON* newArr = cJSON_AddArrayToObject(newConfig, NETWORK_CONFIG_SERVER_INFO_NAME);
+    cJSON_AddItemToArray(newArr, cJSON_CreateString(newDomain));
+    char* json_data = cJSON_Print(newConfig);
+    cJSON_Delete(newConfig);
+    uint32_t len = strlen(json_data) * sizeof(char);
+    int32_t ret = AttestWriteNetworkConfig(json_data, len);
+    ATTEST_MEM_FREE(json_data);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[DumpDomain] dump networkconfig failed.");
+        return ATTEST_ERR;
+    }
+    return ATTEST_OK;
+}
+#endif
+
 int32_t UpdateNetConfig(char* activeSite, char* standbySite, int32_t* updateFlag)
 {
     if (activeSite == NULL || standbySite == NULL || updateFlag == NULL) {
@@ -1269,18 +1298,10 @@ int32_t UpdateNetConfig(char* activeSite, char* standbySite, int32_t* updateFlag
         return ATTEST_ERR;
     }
     *updateFlag = UPDATE_OK;
-    cJSON* newConfig = cJSON_CreateObject();
-    cJSON* newArr = cJSON_AddArrayToObject(newConfig, NETWORK_CONFIG_SERVER_INFO_NAME);
-    cJSON_AddItemToArray(newArr, cJSON_CreateString(newDomain));
-    char* json_data = cJSON_Print(newConfig);
-    cJSON_Delete(newConfig);
-    uint32_t len = strlen(json_data) * sizeof(char);
-    ret = AttestWriteNetworkConfig(json_data, len);
-    ATTEST_MEM_FREE(json_data);
+    ret = DumpDomain(newDomain);
     if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[UpdateNetConfig] write networkconfig failed.");
+        ATTEST_LOG_ERROR("[UpdateNetConfig] dump new domain failed");
         return ATTEST_ERR;
     }
-    ATTEST_LOG_DEBUG("[UpdateNetConfig] write network config end");
     return ATTEST_OK;
 }
