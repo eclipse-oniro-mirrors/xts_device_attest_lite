@@ -106,11 +106,10 @@ static int32_t ParseChallengeResult(const char* jsonStr, ChallengeResult* challe
     int32_t ret = GetObjectItemValueStr(jsonStr, "challenge", &(challenge->challenge));
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[ParseChallengeResult] GetObjectItem challenge failed.");
-        ATTEST_MEM_FREE(challenge->challenge);
         return ATTEST_ERR;
     }
     char* serverInfo = NULL;
-    do{
+    do {
         ret = GetObjectItemValueObject(jsonStr, "serverInfo", &serverInfo);
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseChallengeResult] GetObjectItem serverInfo failed.");
@@ -119,13 +118,11 @@ static int32_t ParseChallengeResult(const char* jsonStr, ChallengeResult* challe
         ret = GetObjectItemValueStr(serverInfo, "activeSite", &(challenge->cloudServerInfo.activeSite));
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseChallengeResult] GetObjectItem challenge failed.");
-            ATTEST_MEM_FREE(challenge->cloudServerInfo.activeSite);
             break;
         }
         ret = GetObjectItemValueStr(serverInfo, "standbySite", &(challenge->cloudServerInfo.standbySite));
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ParseChallengeResult] GetObjectItem challenge failed.");
-            ATTEST_MEM_FREE(challenge->cloudServerInfo.standbySite);
             break;
         }
     } while (0);
@@ -197,7 +194,6 @@ static ChallengeResult* GetChallengeImpl(ATTEST_ACTION_TYPE actionType)
 
 int32_t GetChallenge(ChallengeResult** challResult, ATTEST_ACTION_TYPE actionType)
 {
-    int32_t ret;
     ATTEST_LOG_DEBUG("[GetChallenge] Begin.");
     if (challResult == NULL) {
         ATTEST_LOG_ERROR("[GetChallenge] Invalid parameter");
@@ -211,27 +207,23 @@ int32_t GetChallenge(ChallengeResult** challResult, ATTEST_ACTION_TYPE actionTyp
     int32_t updateFlag = 0;
     char* activeSite = challengeResult->cloudServerInfo.activeSite;
     char* standbySite = challengeResult->cloudServerInfo.standbySite;
-    ret = UpdateNetConfig(activeSite, standbySite, &updateFlag);
-    if (ret != ATTEST_OK) {
-        if (updateFlag == 1) {
+    int32_t ret = UpdateNetConfig(activeSite, standbySite, &updateFlag);
+    if (updateFlag == UPDATE_OK) {
+        FREE_CHALLENGE_RESULT(challengeResult);
+        if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[GetChallenge] update netconfig failed");
             return ATTEST_ERR;
         }
-        ATTEST_LOG_DEBUG("[GetChallenge] using preset domain");
-        *challResult = challengeResult;
-    } else {
-        FREE_CHALLENGE_RESULT(challengeResult);
-        ATTEST_LOG_DEBUG("[GetChallenge] using new domain");
         challengeResult = GetChallengeImpl(actionType);
         if (challengeResult == NULL) {
             ATTEST_LOG_ERROR("[GetChallenge] GetChallengeImpl fail");
             return ATTEST_ERR;
         }
-        *challResult = challengeResult;
     }
     if (ATTEST_DEBUG_DFX) {
         ATTEST_DFX_CHALL_RESULT(challengeResult);
     }
-    ATTEST_LOG_DEBUG("[GetChallenge] end.");
+    *challResult = challengeResult;
+    ATTEST_LOG_DEBUG("[GetChallenge] end");
     return ATTEST_OK;
 }

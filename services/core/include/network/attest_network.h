@@ -30,15 +30,17 @@ extern "C" {
 #define NETWORK_CONFIG_SERVER_INFO_NAME "serverInfo"
 #define HOST_PATTERN "[a-zA-Z0-9-_.]"
 #define PORT_PATTERN "[0-9]"
-#define CAT_LEN 2
 #define PARAM_ONE 1
 #define PARAM_TWO 2
 #define ISSUE_REGION_KEY "issueRegion"
-#define ISSUE_REGION_VALUE "CN"
+#define ISSUE_REGION_VAL "CN"
 #define ACTIVE_SITE_KEY "activeSiteKey"
 #define STANDBY_SITE_KEY "standbySiteKey"
-#define COAP_ACTIVE_SITE_VALUE "CoAP_ActiveSiteKey"
-#define COAP_STANDBY_SITE_VALUE "CoAP_StandbySiteKey"
+#define ACTIVE_SITE_VAL_COAP "CoAP_ActiveSiteKey"
+#define STANDBY_SITE_VAL_COAP "CoAP_StandbySiteKey"
+#define CONNECTOR ":"
+#define UPDATE_OK 1
+#define UPDATE_NO 0
 
 typedef enum {
     COAP_URI_PATH   = 11,
