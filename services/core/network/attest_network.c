@@ -1164,7 +1164,7 @@ static int32_t MergeDomain(char* hostName, char* port, char** resultDomain)
             break;
         }
         if (strcat_s(newDomain, newDomainSize, hostName) != 0 ||
-            strcat_s(newDomain, newDomainSize, CONNECTOR) != 0 || 
+            strcat_s(newDomain, newDomainSize, CONNECTOR) != 0 ||
             strcat_s(newDomain, newDomainSize, port) != 0) {
             ATTEST_MEM_FREE(newDomain);
             ret = ATTEST_ERR;
@@ -1210,7 +1210,7 @@ static int32_t TestConnection(char* newDomain, char* curDomain)
     return ATTEST_OK;
 }
 
-static int32_t checkDomain(char* inputData, char** outData)
+static int32_t CheckDomain(char* inputData, char** outData)
 {
     if (inputData == NULL || outData == NULL) {
         ATTEST_LOG_ERROR("[CheckDomain] Invalid parameter");
@@ -1240,14 +1240,14 @@ static int32_t checkDomain(char* inputData, char** outData)
     }
     ret = TestConnection(newDomain, curDomain);
     if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[checkDomain] connect to new domain[%s] failed", newDomain);
+        ATTEST_LOG_ERROR("[CheckDomain] connect to new domain[%s] failed", newDomain);
         TLSClose(g_attestSession);
         ret = InitNetworkServerInfo();
         ConnectNetWork(&g_attestSession, DEVATTEST_ID);
         return ATTEST_ERR;
     }
     *outData = newDomain;
-    ATTEST_LOG_DEBUG("[checkDomain] check domain success");
+    ATTEST_LOG_DEBUG("[CheckDomain] check domain success");
     return ATTEST_OK;
 }
 
@@ -1257,12 +1257,11 @@ int32_t UpdateNetConfig(char* activeSite, char* standbySite, int32_t* updateFlag
         ATTEST_LOG_ERROR("[UpdateNetConfig] Invalid parameter");
         return ATTEST_ERR;
     }
-    int32_t ret;
     char* newDomain = NULL;
     *updateFlag = UPDATE_NO;
-    ret = checkDomain(activeSite, &newDomain);
+    int32_t ret = CheckDomain(activeSite, &newDomain);
     if (ret != ATTEST_OK && strcmp(activeSite, standbySite) != 0) {
-        ret = checkDomain(standbySite,&newDomain);
+        ret = CheckDomain(standbySite, &newDomain);
     }
     if (ret != ATTEST_OK) {
         ret = InitNetworkServerInfo();

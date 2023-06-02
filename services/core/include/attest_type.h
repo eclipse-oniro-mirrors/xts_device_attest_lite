@@ -93,7 +93,7 @@ typedef struct {
     uint64_t expireTime;  // 项目新增字段，参考接口文档
 } AuthStatus;
 
-//挑战值中域名信息
+// 挑战值结果中域名信息
 typedef struct {
     char* activeSite;
     char* standbySite;

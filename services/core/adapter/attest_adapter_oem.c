@@ -90,7 +90,7 @@ int32_t OEMWriteNetworkConfig(const char* data, uint32_t len)
     if (CreateFile(AUTH_RESULT_PATH, NETWORK_CONFIG_FILE_NAME) != 0) {
         return ATTEST_ERR;
     }
-    return WriteFile(AUTH_RESULT_PATH, NETWORK_CONFIG_FILE_NAME, data, len); 
+    return WriteFile(AUTH_RESULT_PATH, NETWORK_CONFIG_FILE_NAME, data, len);
 }
 
 // 写入认证结果

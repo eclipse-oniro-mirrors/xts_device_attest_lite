@@ -21,8 +21,8 @@
 #include "attest_network.h"
 #include "attest_service_device.h"
 #include "attest_adapter_mock.h"
-#include "attest_service_challenge.h"
 #include "attest_adapter.h"
+#include "attest_service_challenge.h"
 
 static ChallengeResult* CreateChallengeResult(void)
 {
