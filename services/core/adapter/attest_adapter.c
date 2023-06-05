@@ -109,13 +109,37 @@ int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen)
     }
     return CopyNVData(buffer, bufferLen, nv_net.nv_dev_attest_net, sizeof(hi_nv_xts_dev_attest_net_cfg));
 }
+
+int32_t AttestWriteNetworkConfig(const char* data, uint32_t len)
+{
+    if (data == NULL || len > HI_NV_NET_SIZE) {
+        ATTEST_LOG_ERROR("[AttestWriteNetworkConfig] invalid parameter");
+        return ATTEST_ERR;
+    }
+    hi_nv_xts_dev_attest_net_cfg nv_net = { 0 };
+    int32_t ret = CopyNVData(nv_net.nv_dev_attest_net, sizeof(hi_nv_xts_dev_attest_net_cfg), data, len);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[AttestWriteNetworkConfig] copy data to NV failed");
+        return ATTEST_ERR;
+    }
+    ret = hi_nv_write(HI_NV_XTS_DEV_ATTEST_NET, (void*)&nv_net, sizeof(nv_net), 0);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[AttestWriteNetworkConfig] nv write failed");
+        return ATTEST_ERR;
+    }
+    return ATTEST_OK;
+}
 #else
 int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen)
 {
     return OEMReadNetworkConfig(buffer, bufferLen);
 }
-#endif
 
+int32_t AttestWriteNetworkConfig(const char* data, uint32_t len)
+{
+    return OEMWriteNetworkConfig(data, len);
+}
+#endif
 int32_t AttestWriteAuthResultCode(const char* data, uint32_t len)
 {
     return OEMWriteAuthResultCode(data, len);

@@ -273,6 +273,46 @@ void D2CClose(void)
     }
 }
 
+static int32_t BuildCoapChallServerInfo(cJSON **postData)
+{
+    if (postData == NULL) {
+        ATTEST_LOG_ERROR("[BuildCoapChallServerInfo] Invalid parameter");
+        return ATTEST_ERR;
+    }
+    cJSON *serverInfo = cJSON_CreateObject();
+    if (serverInfo == NULL) {
+        ATTEST_LOG_ERROR("[BuildCoapChallServerInfo] postData CreateObject fail");
+        return ATTEST_ERR;
+    }
+    if (!cJSON_AddItemToObject(*postData, "serverInfo", serverInfo)) {
+        ATTEST_LOG_ERROR("[BuildCoapChallServerInfo] add serverInfo to postData fail");
+        cJSON_Delete(serverInfo);
+        return ATTEST_ERR;
+    }
+    int32_t ret = ATTEST_ERR;
+    do {
+        if (cJSON_AddStringToObject(serverInfo, ISSUE_REGION_KEY, ISSUE_REGION_VAL) == NULL) {
+            ATTEST_LOG_ERROR("[BuildCoapChallServerInfo] build issueRegion fail");
+            break;
+        }
+        if (cJSON_AddStringToObject(serverInfo, ACTIVE_SITE_KEY, ACTIVE_SITE_VAL_COAP) == NULL) {
+            ATTEST_LOG_ERROR("[BuildCoapChallServerInfo] build activeSiteKey fail");
+            break;
+        }
+        if (cJSON_AddStringToObject(serverInfo, STANDBY_SITE_KEY, STANDBY_SITE_VAL_COAP) == NULL) {
+            ATTEST_LOG_ERROR("[BuildCoapChallServerInfo] build standbySiteKey fail");
+            break;
+        }
+        ret = ATTEST_OK;
+    } while (0);
+    if (ret != ATTEST_OK) {
+        cJSON_Delete(serverInfo);
+        ATTEST_LOG_ERROR("[BuildCoapChallServerInfo] generate serverInfo fail");
+        return ATTEST_ERR;
+    }
+    return ATTEST_OK;
+}
+
 char* BuildCoapChallBody(const DevicePacket *postValue)
 {
     ATTEST_LOG_DEBUG("[BuildCoapChallBody] Begin.");
@@ -285,9 +325,20 @@ char* BuildCoapChallBody(const DevicePacket *postValue)
         ATTEST_LOG_ERROR("[BuildCoapChallBody] postData CreateObject fail");
         return NULL;
     }
-    if (cJSON_AddStringToObject(postData, "uniqueId", postValue->udid) == NULL) {
+    int32_t ret = ATTEST_ERR;
+    do {
+        if (cJSON_AddStringToObject(postData, "uniqueId", postValue->udid) == NULL) {
+            ATTEST_LOG_ERROR("[BuildCoapChallBody] postData  AddStringToObject fail");
+            break;
+        }
+        ret = BuildCoapChallServerInfo(&postData);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[BuildCoapChallBody] BuildCoapChallServerInfo fail");
+            break;
+        }
+    } while (0);
+    if (ret != ATTEST_OK) {
         cJSON_Delete(postData);
-        ATTEST_LOG_ERROR("[BuildCoapChallBody] postData AddStringToObject fail");
         return NULL;
     }
     char *bodyData = cJSON_Print(postData);
@@ -1091,6 +1142,166 @@ int32_t InitNetworkServerInfo(void)
     if (ret != ATTEST_OK) {
         ATTEST_LOG_INFO("[InitNetworkServerInfo] init g_attestNetworkList failed");
         return ret;
+    }
+    return ATTEST_OK;
+}
+
+static int32_t MergeDomain(char* hostName, char* port, char** resultDomain)
+{
+    if (hostName == NULL || port == NULL || resultDomain == NULL) {
+        ATTEST_LOG_ERROR("[MergeDomain] invalid parameter");
+        return ATTEST_ERR;
+    }
+    int32_t ret = ATTEST_OK;
+    char* newDomain = NULL;
+    int newDomainSize = 0;
+    do {
+        newDomainSize = strlen(hostName) + strlen(port) + strlen(CONNECTOR) + 1;
+        newDomain = (char *)ATTEST_MEM_MALLOC(newDomainSize);
+        if (newDomain == NULL) {
+            ret = ATTEST_ERR;
+            ATTEST_LOG_ERROR("[MergeDomain] failed to mem malloc new domain");
+            break;
+        }
+        if (strcat_s(newDomain, newDomainSize, hostName) != 0 ||
+            strcat_s(newDomain, newDomainSize, CONNECTOR) != 0 ||
+            strcat_s(newDomain, newDomainSize, port) != 0) {
+            ATTEST_MEM_FREE(newDomain);
+            ret = ATTEST_ERR;
+            ATTEST_LOG_ERROR("[MergeDomain] failed to copy domain info");
+            break;
+        }
+    } while (0);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[MergeDomain] cat host port failed");
+        return ATTEST_ERR;
+    }
+    *resultDomain = newDomain;
+    return ret;
+}
+
+static int32_t TestConnection(char* newDomain, char* curDomain)
+{
+    int32_t ret = TLSClose(g_attestSession);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[TestConnection] close connection failed");
+        return ATTEST_ERR;
+    }
+    do {
+        ReleaseList(&g_attestNetworkList);
+        ret = SplitNetworkInfoSymbol(newDomain, &g_attestNetworkList);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[TestConnection] update g_attestNetworkList failed");
+            break;
+        }
+        ret = ConnectNetWork(&g_attestSession, DEVATTEST_ID);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[TestConnection] connect to new domain failed");
+            break;
+        }
+    } while (0);
+    if (ret != ATTEST_OK) {
+        ReleaseList(&g_attestNetworkList);
+        ret = SplitNetworkInfoSymbol(curDomain, &g_attestNetworkList);
+        return ATTEST_ERR;
+    }
+    ATTEST_LOG_DEBUG("[TestConnection] connect to new domain[%s] success", newDomain);
+    return ATTEST_OK;
+}
+
+static int32_t CheckDomain(char* inputData, char** outData)
+{
+    if (inputData == NULL || outData == NULL) {
+        ATTEST_LOG_ERROR("[CheckDomain] Invalid parameter");
+        return ATTEST_ERR;
+    }
+    if (g_attestNetworkList.head == NULL) {
+        ATTEST_LOG_ERROR("[CheckDomain] no init g_attestNetworkList ");
+        return ATTEST_ERR;
+    }
+    ServerInfo* serverInfo = (ServerInfo*)g_attestNetworkList.head->data;
+    char newHost[MAX_HOST_NAME_LEN];
+    int32_t ret = sscanf_s(inputData, "%*[^:]:%*[/]%[a-zA-Z_.-]", newHost, MAX_HOST_NAME_LEN);
+    if (ret != PARAM_ONE) {
+        ATTEST_LOG_ERROR("[CheckDomain] split domain from HTTP addr failed");
+        return ATTEST_ERR;
+    }
+    if (strcmp(serverInfo->hostName, newHost) == 0) {
+        ATTEST_LOG_ERROR("[CheckDomain] same domain,curHost[%s],newHost[%s]", serverInfo->hostName, newHost);
+        return ATTEST_ERR;
+    }
+    char* newDomain = NULL;
+    char* curDomain = NULL;
+    if (MergeDomain(serverInfo->hostName, serverInfo->port, &curDomain) != ATTEST_OK ||
+        MergeDomain(newHost, serverInfo->port, &newDomain) != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[CheckDomain] generate domain failed");
+        return ATTEST_ERR;
+    }
+    ret = TestConnection(newDomain, curDomain);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[CheckDomain] connect to new domain[%s] failed", newDomain);
+        TLSClose(g_attestSession);
+        ret = InitNetworkServerInfo();
+        ConnectNetWork(&g_attestSession, DEVATTEST_ID);
+        return ATTEST_ERR;
+    }
+    *outData = newDomain;
+    ATTEST_LOG_DEBUG("[CheckDomain] check domain success");
+    return ATTEST_OK;
+}
+
+#ifdef __LITEOS_M__
+static int32_t DumpDomain(const char* newDomain)
+{
+    uint32_t len = strlen(newDomain) * sizeof(char);
+    int32_t ret = AttestWriteNetworkConfig(newDomain, len);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[DumpDomain] dump networkconfig failed.");
+        return ATTEST_ERR;
+    }
+    return ATTEST_OK;
+}
+#else
+static int32_t DumpDomain(const char* newDomain)
+{
+    cJSON* newConfig = cJSON_CreateObject();
+    cJSON* newArr = cJSON_AddArrayToObject(newConfig, NETWORK_CONFIG_SERVER_INFO_NAME);
+    cJSON_AddItemToArray(newArr, cJSON_CreateString(newDomain));
+    char* jsonData = cJSON_Print(newConfig);
+    cJSON_Delete(newConfig);
+    uint32_t len = strlen(jsonData) * sizeof(char);
+    int32_t ret = AttestWriteNetworkConfig(jsonData, len);
+    ATTEST_MEM_FREE(jsonData);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[DumpDomain] dump networkconfig failed.");
+        return ATTEST_ERR;
+    }
+    return ATTEST_OK;
+}
+#endif
+
+int32_t UpdateNetConfig(char* activeSite, char* standbySite, int32_t* updateFlag)
+{
+    if (activeSite == NULL || standbySite == NULL || updateFlag == NULL) {
+        ATTEST_LOG_ERROR("[UpdateNetConfig] Invalid parameter");
+        return ATTEST_ERR;
+    }
+    char* newDomain = NULL;
+    *updateFlag = UPDATE_NO;
+    int32_t ret = CheckDomain(activeSite, &newDomain);
+    if (ret != ATTEST_OK && strcmp(activeSite, standbySite) != 0) {
+        ret = CheckDomain(standbySite, &newDomain);
+    }
+    if (ret != ATTEST_OK) {
+        ret = InitNetworkServerInfo();
+        ATTEST_LOG_ERROR("[UpdateNetConfig] update new domain failed");
+        return ATTEST_ERR;
+    }
+    *updateFlag = UPDATE_OK;
+    ret = DumpDomain(newDomain);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[UpdateNetConfig] dump new domain failed");
+        return ATTEST_ERR;
     }
     return ATTEST_OK;
 }
