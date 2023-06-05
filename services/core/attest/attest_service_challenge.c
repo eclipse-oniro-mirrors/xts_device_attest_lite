@@ -204,7 +204,7 @@ int32_t GetChallenge(ChallengeResult** challResult, ATTEST_ACTION_TYPE actionTyp
         ATTEST_LOG_ERROR("[GetChallenge] GetChallengeImpl fail");
         return ATTEST_ERR;
     }
-    int32_t updateFlag = 0;
+    int32_t updateFlag = UPDATE_NO;
     char* activeSite = challengeResult->cloudServerInfo.activeSite;
     char* standbySite = challengeResult->cloudServerInfo.standbySite;
     int32_t ret = UpdateNetConfig(activeSite, standbySite, &updateFlag);
