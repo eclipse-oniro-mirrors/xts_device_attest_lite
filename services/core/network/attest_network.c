@@ -1267,11 +1267,11 @@ static int32_t DumpDomain(const char* newDomain)
     cJSON* newConfig = cJSON_CreateObject();
     cJSON* newArr = cJSON_AddArrayToObject(newConfig, NETWORK_CONFIG_SERVER_INFO_NAME);
     cJSON_AddItemToArray(newArr, cJSON_CreateString(newDomain));
-    char* json_data = cJSON_Print(newConfig);
+    char* jsonData = cJSON_Print(newConfig);
     cJSON_Delete(newConfig);
-    uint32_t len = strlen(json_data) * sizeof(char);
-    int32_t ret = AttestWriteNetworkConfig(json_data, len);
-    ATTEST_MEM_FREE(json_data);
+    uint32_t len = strlen(jsonData) * sizeof(char);
+    int32_t ret = AttestWriteNetworkConfig(jsonData, len);
+    ATTEST_MEM_FREE(jsonData);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[DumpDomain] dump networkconfig failed.");
         return ATTEST_ERR;
