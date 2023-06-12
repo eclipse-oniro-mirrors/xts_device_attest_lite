@@ -83,11 +83,11 @@ static int32_t VerifyCrtTime(mbedtls_x509_crt* crt, uint32_t* flags)
     struct tm theNowTm = *gmtime(&nowTime);
     // UTC TIME
     mbedtls_x509_time curTime = {0};
-    // 获取当前年份,从1900开始，所以要加1900
+    // Obtain the current year, starting from 1900, so add 1900
     curTime.year = ATTEST_TIME_DIFF_YEAR_1900 + theNowTm.tm_year;
-    // 获取当前月份,范围是0-11,所以要加1
+    // Obtain the current month, ranging from 0 to 11, so add 1
     curTime.mon = ATTEST_TIME_DIFF_MONTH_ONE + theNowTm.tm_mon;
-    // 获取当前月份日数,范围是1-31
+    // Obtain the current number of days in the month, ranging from 1 to 31
     curTime.day = theNowTm.tm_mday;
     curTime.hour = theNowTm.tm_hour;
     curTime.min = theNowTm.tm_min;
@@ -119,7 +119,7 @@ static int32_t LazyVerifyCert(void* data, mbedtls_x509_crt* crt, int32_t depth, 
         return ERR_NET_INVALID_ARG;
     }
 
-    // 判断服务侧证书时间有效性
+    // Verify certificate time
     int32_t ret = VerifyCrtTime(crt, flags);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[LazyVerifyCert] cert time is invalid");
