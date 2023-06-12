@@ -159,7 +159,7 @@ static int32_t SetChallenge(ChallengeResult* challengeResult, ATTEST_ACTION_TYPE
         ATTEST_LOG_ERROR("[SetChallenge] Send Challenge Msg failed");
         return ret;
     }
-    
+
     ret = ParseChallengeResult((const char*)respMsg, challengeResult);
     ATTEST_MEM_FREE(respMsg);
     if (ret != ATTEST_OK) {
@@ -204,6 +204,7 @@ int32_t GetChallenge(ChallengeResult** challResult, ATTEST_ACTION_TYPE actionTyp
         ATTEST_LOG_ERROR("[GetChallenge] GetChallengeImpl fail");
         return ATTEST_ERR;
     }
+    ATTEST_LOG_DEBUG("[GetChallenge] Update net config.");
     int32_t updateFlag = UPDATE_NO;
     char* activeSite = challengeResult->cloudServerInfo.activeSite;
     char* standbySite = challengeResult->cloudServerInfo.standbySite;

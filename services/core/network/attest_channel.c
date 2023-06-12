@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <stdio.h>
+#include <time.h>
 #include "securec.h"
 #include "attest_tls.h"
 #include "attest_utils.h"
@@ -20,26 +22,117 @@
 #include "attest_channel.h"
 
 #define MAX_REQUEST_SIZE 2048
+#define ATTEST_TIME_DIFF_YEAR_1900 1900
+#define ATTEST_TIME_DIFF_MONTH_ONE 1
 const int32_t TLS_READ_TIMEOUT_MS = 500; // time unit is ms
 
 typedef int32_t(*VerifyFunc)(void*, mbedtls_x509_crt*, int32_t, uint32_t*);
 
+static int32_t X509CheckTime(const mbedtls_x509_time *before, const mbedtls_x509_time *after)
+{
+    if (before == NULL || after == NULL) {
+        ATTEST_LOG_ERROR("[X509CheckTime] time is null");
+        return ATTEST_ERR;
+    }
+    if (before->year > after->year) {
+        return ATTEST_ERR;
+    }
+
+    if (before->year == after->year &&
+        before->mon > after->mon) {
+        return ATTEST_ERR;
+    }
+
+    if (before->year == after->year &&
+        before->mon == after->mon &&
+        before->day > after->day) {
+        return ATTEST_ERR;
+    }
+
+    if (before->year == after->year &&
+        before->mon == after->mon &&
+        before->day == after->day &&
+        before->hour > after->hour) {
+        return ATTEST_ERR;
+    }
+
+    if (before->year == after->year &&
+        before->mon == after->mon &&
+        before->day == after->day &&
+        before->hour == after->hour &&
+        before->min > after->min) {
+        return ATTEST_ERR;
+    }
+
+    if (before->year == after->year &&
+        before->mon == after->mon &&
+        before->day == after->day &&
+        before->hour == after->hour &&
+        before->min == after->min &&
+        before->sec > after->sec) {
+        return ATTEST_ERR;
+    }
+
+    return ATTEST_OK;
+}
+
+static int32_t VerifyCrtTime(mbedtls_x509_crt* crt, uint32_t* flags)
+{
+    time_t nowTime;
+    time(&nowTime);
+    struct tm theNowTm = *gmtime(&nowTime);
+    // UTC TIME
+    mbedtls_x509_time curTime = {0};
+    // 获取当前年份,从1900开始，所以要加1900
+    curTime.year = ATTEST_TIME_DIFF_YEAR_1900 + theNowTm.tm_year;
+    // 获取当前月份,范围是0-11,所以要加1
+    curTime.mon = ATTEST_TIME_DIFF_MONTH_ONE + theNowTm.tm_mon;
+    // 获取当前月份日数,范围是1-31
+    curTime.day = theNowTm.tm_mday;
+    curTime.hour = theNowTm.tm_hour;
+    curTime.min = theNowTm.tm_min;
+    curTime.sec = theNowTm.tm_sec;
+
+    // check time is past
+    int32_t ret = X509CheckTime(&curTime, &crt->valid_to);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[VerifyCrtTime] time is past");
+        *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
+        return ATTEST_ERR;
+    }
+    // check time is future
+    ret = X509CheckTime(&crt->valid_from, &curTime);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[VerifyCrtTime] time is future");
+        *flags |= MBEDTLS_X509_BADCERT_FUTURE;
+        return ATTEST_ERR;
+    }
+    return ATTEST_OK;
+}
+
 static int32_t LazyVerifyCert(void* data, mbedtls_x509_crt* crt, int32_t depth, uint32_t* flags)
 {
-    (void)depth;
+    ((void)data);
+    ATTEST_LOG_DEBUG("[LazyVerifyCert] depth:%d", depth);
     if (crt == NULL || flags == NULL) {
+        ATTEST_LOG_ERROR("[LazyVerifyCert] crt or flags is null");
         return ERR_NET_INVALID_ARG;
     }
-    if (((*flags & MBEDTLS_X509_BADCERT_EXPIRED) != 0) || ((*flags & MBEDTLS_X509_BADCERT_FUTURE) != 0)) {
-        (*flags) &= ~(MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCERT_FUTURE);
+
+    // 判断服务侧证书时间有效性
+    int32_t ret = VerifyCrtTime(crt, flags);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[LazyVerifyCert] cert time is invalid");
+        return ERR_NET_CERT_VERIFY_FAIL;
     }
+
     if (*flags != 0) {
         int32_t certsNum = GetCommonCertSize();
         int32_t i = 0;
         while (i < certsNum) {
             mbedtls_x509_crt caCert;
             mbedtls_x509_crt_init(&caCert);
-            int32_t ret = LoadCommonOtherCert(&caCert, (unsigned int)i);
+            ret = LoadCommonOtherCert(&caCert, (unsigned int)i);
             if (ret != 0) {
                 mbedtls_x509_crt_free(&caCert);
                 return ERR_NET_PARSE_CERT_FAIL;
@@ -50,15 +143,16 @@ static int32_t LazyVerifyCert(void* data, mbedtls_x509_crt* crt, int32_t depth, 
                 mbedtls_x509_crt_free(&caCert);
                 continue;
             }
-
-            (*flags) &= ~(MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCERT_FUTURE);
             mbedtls_x509_crt_free(&caCert);
             if (*flags == 0) {
                 break;
             }
         }
     }
-    ((void)data);
+    if (*flags != 0) {
+        ATTEST_LOG_ERROR("[LazyVerifyCert] flags:0x%X", *flags);
+        return ERR_NET_CERT_VERIFY_FAIL;
+    }
     return ATTEST_OK;
 }
 
@@ -110,7 +204,6 @@ int32_t TLSConnect(TLSSession* session)
     if (session == NULL) {
         return ERR_NET_INVALID_ARG;
     }
-
     TLSConfig* tlsConfig = &(session->tlsConfig);
     mbedtls_net_init(&(tlsConfig->netCtx));
     mbedtls_ssl_init(&(tlsConfig->sslCtx));
@@ -118,15 +211,12 @@ int32_t TLSConnect(TLSSession* session)
     mbedtls_ctr_drbg_init(&(tlsConfig->ctrDrbgCtx));
     mbedtls_x509_crt_init(&(tlsConfig->caCert));
     mbedtls_entropy_init(&(tlsConfig->entropyCtx));
-
     int32_t ret = mbedtls_ctr_drbg_seed(&(tlsConfig->ctrDrbgCtx), mbedtls_entropy_func,
         &(tlsConfig->entropyCtx), (const uint8_t *)session->entropySeed, strlen(session->entropySeed));
     if (ret != 0) {
         ATTEST_LOG_ERROR("[TLSConnect] Generate DRGB seed failed, ret = -0x%x.", -ret);
         return ERR_NET_DRBG_SEED_FAIL;
     }
-
-    // Load the trusted CA
     if ((ret = LoadCommonCert(&(tlsConfig->caCert))) != 0) {
         ATTEST_LOG_ERROR("[TLSConnect] TLS load cert failed, ret = -0x%x.", -ret);
         return ret;
@@ -138,13 +228,11 @@ int32_t TLSConnect(TLSSession* session)
         ATTEST_LOG_ERROR("[TLSConnect] Connect to server failed, ret = -0x%x.", -ret);
         return ERR_NET_CONNECT_FAIL;
     }
-
     ret = mbedtls_net_set_nonblock(&(tlsConfig->netCtx));
     if (ret != 0) {
         ATTEST_LOG_ERROR("[TLSConnect] Set non block failed, ret = -0x%x.", -ret);
         return ERR_NET_SET_NON_BLOCK_FAIL;
     }
-
     ret = TLSSetupConfig(session);
     if (ret != 0) {
         ATTEST_LOG_ERROR("[TLSConnect] Set TLS session failed, ret = -0x%x.", -ret);

@@ -400,7 +400,8 @@ HWTEST_F(AttestTddTest, TestGetChallenge001, TestSize.Level1)
     g_netType = ATTEST_GET_CHANLLEGE;
     ChallengeResult* challenge = NULL;
     int32_t ret = GetChallenge(&challenge, ATTEST_ACTION_RESET);
-    EXPECT_TRUE((ret == ATTEST_OK) && (challenge != NULL));
+    EXPECT_TRUE(ret == ATTEST_OK);
+    EXPECT_TRUE(challenge != NULL);
     if (ret != ATTEST_OK) {
         FREE_CHALLENGE_RESULT(challenge);
         ATTEST_LOG_ERROR("[AttestTdd] GetChallenge failed, ret = %d.", ret);
