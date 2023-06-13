@@ -79,19 +79,23 @@ static int32_t X509CheckTime(const mbedtls_x509_time *before, const mbedtls_x509
 static int32_t VerifyCrtTime(mbedtls_x509_crt* crt, uint32_t* flags)
 {
     time_t nowTime;
-    time(&nowTime);
-    struct tm theNowTm = *gmtime(&nowTime);
+    (void)time(&nowTime);
+    struct tm *theNowTm = gmtime(&nowTime);
+    if (theNowTm == NULL) {
+        ATTEST_LOG_ERROR("[VerifyCrtTime] failed to get time");
+        return ATTEST_ERR;
+    }
     // UTC TIME
     mbedtls_x509_time curTime = {0};
     // Obtain the current year, starting from 1900, so add 1900
-    curTime.year = ATTEST_TIME_DIFF_YEAR_1900 + theNowTm.tm_year;
+    curTime.year = ATTEST_TIME_DIFF_YEAR_1900 + theNowTm->tm_year;
     // Obtain the current month, ranging from 0 to 11, so add 1
-    curTime.mon = ATTEST_TIME_DIFF_MONTH_ONE + theNowTm.tm_mon;
+    curTime.mon = ATTEST_TIME_DIFF_MONTH_ONE + theNowTm->tm_mon;
     // Obtain the current number of days in the month, ranging from 1 to 31
-    curTime.day = theNowTm.tm_mday;
-    curTime.hour = theNowTm.tm_hour;
-    curTime.min = theNowTm.tm_min;
-    curTime.sec = theNowTm.tm_sec;
+    curTime.day = theNowTm->tm_mday;
+    curTime.hour = theNowTm->tm_hour;
+    curTime.min = theNowTm->tm_min;
+    curTime.sec = theNowTm->tm_sec;
 
     // check time is past
     int32_t ret = X509CheckTime(&curTime, &crt->valid_to);
