@@ -50,7 +50,6 @@ int32_t AttestSeriaToBinary(const char* input, uint8_t** buf, size_t len)
     char *indexInput = (char *)input;
     unsigned char *indexTemp = (unsigned char*)temp;
     unsigned char total = 0;
-    ATTEST_LOG_INFO("[AttestSeriaToBinary] begin print ");
     while (true) {
         if ((*indexInput == ',') || (*indexInput == '\0')) {
             *indexTemp++ = total;

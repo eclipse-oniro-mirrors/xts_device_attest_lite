@@ -564,7 +564,7 @@ static int32_t GenCoapMsg(const DevicePacket *devPacket, ATTEST_ACTION_TYPE acti
     char *msg = NULL;
     int32_t ret = BuildCoapBody(devPacket, actionType, &msg);
     if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[GenCoapMsg] BuildCoapMsg fail");
+        ATTEST_LOG_ERROR("[GenCoapMsg] Build coap body fail");
         ATTEST_MEM_FREE(msg);
         return ATTEST_ERR;
     }
@@ -1227,7 +1227,7 @@ static int32_t CheckDomain(char* inputData, char** outData)
         return ATTEST_ERR;
     }
     if (strcmp(serverInfo->hostName, newHost) == 0) {
-        ATTEST_LOG_ERROR("[CheckDomain] same domain,curHost[%s],newHost[%s]", serverInfo->hostName, newHost);
+        ATTEST_LOG_ERROR("[CheckDomain] same domain");
         return ATTEST_ERR;
     }
     char* newDomain = NULL;
@@ -1294,7 +1294,7 @@ int32_t UpdateNetConfig(char* activeSite, char* standbySite, int32_t* updateFlag
     }
     if (ret != ATTEST_OK) {
         ret = InitNetworkServerInfo();
-        ATTEST_LOG_ERROR("[UpdateNetConfig] update new domain failed");
+        ATTEST_LOG_WARN("[UpdateNetConfig] update new domain failed");
         return ATTEST_ERR;
     }
     *updateFlag = UPDATE_OK;

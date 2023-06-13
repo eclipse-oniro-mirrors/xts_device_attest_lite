@@ -76,6 +76,7 @@ extern "C" {
 #define ERR_NET_SET_HOSTNAME_FAIL                      412
 #define ERR_NET_WRITE_FAIL                             413
 #define ERR_NET_READ_FAIL                              414
+#define ERR_NET_CERT_VERIFY_FAIL                       415
 
 #ifdef __cplusplus
 #if __cplusplus
