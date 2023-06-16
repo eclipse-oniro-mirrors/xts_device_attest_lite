@@ -64,6 +64,10 @@ char* OsGetUdid(void)
     if (ret != ATTEST_OK) {
         return NULL;
     }
+    ret = ToLowerStr(devUdid, sizeof(udid));
+    if (ret != ATTEST_OK) {
+        return NULL;
+    }
     return AttestStrdup(devUdid);
 }
 
