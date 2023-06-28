@@ -1154,9 +1154,8 @@ static int32_t MergeDomain(char* hostName, char* port, char** resultDomain)
     }
     int32_t ret = ATTEST_OK;
     char* newDomain = NULL;
-    int newDomainSize = 0;
     do {
-        newDomainSize = strlen(hostName) + strlen(port) + strlen(CONNECTOR) + 1;
+        int newDomainSize = strlen(hostName) + strlen(port) + strlen(CONNECTOR) + 1;
         newDomain = (char *)ATTEST_MEM_MALLOC(newDomainSize);
         if (newDomain == NULL) {
             ret = ATTEST_ERR;
@@ -1202,7 +1201,7 @@ static int32_t TestConnection(char* newDomain, char* curDomain)
     } while (0);
     if (ret != ATTEST_OK) {
         ReleaseList(&g_attestNetworkList);
-        ret = SplitNetworkInfoSymbol(curDomain, &g_attestNetworkList);
+        (void)SplitNetworkInfoSymbol(curDomain, &g_attestNetworkList);
         return ATTEST_ERR;
     }
     ATTEST_LOG_DEBUG("[TestConnection] connect to new domain[%s] success", newDomain);
@@ -1241,7 +1240,7 @@ static int32_t CheckDomain(char* inputData, char** outData)
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[CheckDomain] connect to new domain[%s] failed", newDomain);
         TLSClose(g_attestSession);
-        ret = InitNetworkServerInfo();
+        (void)InitNetworkServerInfo();
         ConnectNetWork(&g_attestSession, DEVATTEST_ID);
         return ATTEST_ERR;
     }
@@ -1293,7 +1292,7 @@ int32_t UpdateNetConfig(char* activeSite, char* standbySite, int32_t* updateFlag
         ret = CheckDomain(standbySite, &newDomain);
     }
     if (ret != ATTEST_OK) {
-        ret = InitNetworkServerInfo();
+        (void)InitNetworkServerInfo();
         ATTEST_LOG_WARN("[UpdateNetConfig] update new domain failed");
         return ATTEST_ERR;
     }
