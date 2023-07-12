@@ -25,9 +25,11 @@
     "deps": {
       "components": [
         "samgr_lite",
-        "ipc_lite",
-        "kal_timer",
-        "hilog"
+        "ipc",
+        "hilog_lite",
+        "ace_engine_lite",
+        "init",
+        "syscap_codec"
       ],
       "third_party": [
         "bounds_checking_function",
