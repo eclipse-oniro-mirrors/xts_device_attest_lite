@@ -135,7 +135,7 @@ static DevicePacket* TddGenActiveMsg()
     if (ATTEST_CHANLLEGE_LEN != strlen(ATTEST_ACTIVE_CHAP)) {
         return NULL;
     }
-    // ASSERT_EQ(ATTEST_CHANLLEGE_LEN, strlen(ATTEST_ACTIVE_CHAP));
+
     AuthResult *authResult = GetAuthResult();
     if (authResult == nullptr) {
         return nullptr;
@@ -158,8 +158,6 @@ static DevicePacket* TddGenActiveMsg()
 
 static DevicePacket* TddGenAuthMsg()
 {
-    // ASSERT_EQ(ATTEST_CHANLLEGE_LEN, strlen(ATTEST_AUTH_CHAP));
-    
     if (ATTEST_CHANLLEGE_LEN != strlen(ATTEST_AUTH_CHAP)) {
         return NULL;
     }
@@ -171,7 +169,6 @@ static DevicePacket* TddGenAuthMsg()
     challenge.challenge = attestChallengeAuth;
     challenge.currentTime = ATTEST_AUTH_CHAP_TIME;
     int32_t ret = GenAuthMsg(&challenge, &reqMsg);
-    // ASSERT_EQ(ret, ATTEST_OK);
     if (ret != ATTEST_OK) {
         return nullptr;
     }
@@ -183,7 +180,6 @@ static DevicePacket* TddGenResetMsg()
     if (ATTEST_CHANLLEGE_LEN != strlen(ATTEST_RESET_EXPECT_CHAP)) {
         return NULL;
     }
-    // ASSERT_EQ(ATTEST_CHANLLEGE_LEN, strlen(ATTEST_RESET_EXPECT_CHAP));
     DevicePacket* reqMsg = NULL;
     char attestChallengeReset[ATTEST_CHANLLEGE_LEN + 1] = {0};
     (void)memcpy_s(attestChallengeReset, ATTEST_CHANLLEGE_LEN + 1, ATTEST_RESET_EXPECT_CHAP, ATTEST_CHANLLEGE_LEN);
@@ -192,7 +188,6 @@ static DevicePacket* TddGenResetMsg()
     challenge.challenge = attestChallengeReset;
     challenge.currentTime = ATTEST_RESET_EXPECT_CHAP_TIME;
     int32_t ret = GenResetMsg(&challenge, &reqMsg);
-    // ASSERT_EQ(ret, ATTEST_OK);
     if (ret != ATTEST_OK) {
         return nullptr;
     }

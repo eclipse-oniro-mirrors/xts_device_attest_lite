@@ -83,15 +83,27 @@ int32_t AttestBinaryToSerial(const uint8_t* input, int32_t inputLen,
     if (tempBuf == NULL) {
         return ATTEST_ERR;
     }
-    (void)memset(tempBuf, 0, outputSize);
+    memset_s(tempBuf, outputSize, 0, outputSize);
 
+    int32_t ret = ATTEST_OK;
+    int32_t offsetLength = 0;
     char* tempBufPtr = tempBuf;
     for (int32_t i = 0; i < inputLen; i++) {
-        sprintf(tempBufPtr, "%u", input[i]);
+        if (sprintf_s(tempBufPtr, outputSize - offsetLength, "%u", input[i]) <= 0) {
+            ret = ATTEST_ERR;
+            break;
+        }
         for (; *tempBufPtr != '\0'; tempBufPtr++) {
+            offsetLength++;
         }
         *tempBufPtr = ',';
+        offsetLength++;
         tempBufPtr++;
+    }
+    if (ret != ATTEST_OK) {
+        free(tempBuf);
+        tempBuf = NULL;
+        return ATTEST_ERR;
     }
     *tempBufPtr = ATTEST_ZERO_CHAR;
 

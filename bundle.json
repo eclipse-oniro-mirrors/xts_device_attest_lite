@@ -39,7 +39,7 @@
     },
     "build": {
       "sub_component": [
-        "//test/xts/device_attest_lite/build:attest_lite_packages"
+        "//test/xts/device_attest_lite:device_atTest_lite"
       ],
       "inner_kits": [
         {

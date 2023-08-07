@@ -21,7 +21,6 @@
 #include "attest_utils_timer.h"
 #include "attest_service.h"
 #include "attest_entry.h"
-#include "hal_token.h"
 
 static ATTEST_TIMER_ID g_ProcAttestTimerId = NULL;
 
@@ -86,11 +85,6 @@ static void AttestAuthCallBack(void *argv)
 int32_t AttestTask(void)
 {
     ATTEST_LOG_INFO("[AttestTask] Begin.");
-    char token[] = "vmlB9ooNtSEnD7eGccPi3bF0WNI8V9cywKzKml9yI4zhijPTqpxR5rAg9WXTpkd6,b1IWRZgmbq/W9a5wKupCfzFdTWL0JZdHiXHzXG3yTDsqKIWO2PeTck11VTjcPs1c,R9Bc/hPUjKAd4zUw,1000";
-    (void)HalWriteToken(token, strlen(token));
-
-
-    // 执行主流程代码
     int32_t ret = ProcAttest();
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[AttestTask] Proc failed ret = %d.", ret);
