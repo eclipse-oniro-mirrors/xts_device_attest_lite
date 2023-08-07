@@ -785,16 +785,6 @@ static int32_t SendCoapMsg(const TLSSession* session, const DevicePacket* devPac
                            const ATTEST_ACTION_TYPE actionType, CoapBuffer* payload)
 {
     ATTEST_LOG_DEBUG("[SendCoapMsg] Start.");
-    if (devPacket == NULL) {
-        ATTEST_LOG_ERROR("[SendCoapMsg] devPacket is null.");
-    }
-    if (session == NULL) {
-        ATTEST_LOG_ERROR("[SendCoapMsg] session is null.");
-    }
-    if (payload == NULL) {
-        ATTEST_LOG_ERROR("[SendCoapMsg] payload is null.");
-    }
-
     if (devPacket == NULL || session == NULL || payload == NULL) {
         ATTEST_LOG_ERROR("[SendCoapMsg] Invalid parameter.");
         return ATTEST_ERR;
