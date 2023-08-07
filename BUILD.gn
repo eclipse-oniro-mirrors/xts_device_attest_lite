@@ -14,5 +14,14 @@
 import("//build/lite/config/component/lite_component.gni")
 
 lite_component("device_atTest_lite") {
-  features = [ "build:attest_lite_packages" ]
+  features = []
+  if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
+    features += [
+      "framework:devattest_service",
+      "interfaces/kit/js:kit_device_attest",
+      "test/startup:devattest_client",
+    ]
+  } else if (ohos_kernel_type == "liteos_m") {
+    features += [ "framework:devattest_sdk" ]
+  }
 }

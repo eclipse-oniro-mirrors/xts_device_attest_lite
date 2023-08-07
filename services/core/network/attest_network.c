@@ -799,7 +799,6 @@ static int32_t SendCoapMsg(const TLSSession* session, const DevicePacket* devPac
         ATTEST_LOG_ERROR("[SendCoapMsg] Invalid parameter.");
         return ATTEST_ERR;
     }
-    ATTEST_LOG_INFO("[SendCoapMsg]kemin buffer:%s ", payload->buffer);
     int32_t ret = ATTEST_OK;
     size_t coapMessageLen = MAX_MESSAGE_LEN;
     char* coapMessage = (char*)ATTEST_MEM_MALLOC(sizeof(char) * MAX_MESSAGE_LEN);
@@ -950,7 +949,6 @@ static int32_t RecvCoapMsg(const TLSSession* session, char **respData, size_t *r
         }
     } while (0);
     ATTEST_MEM_FREE(coapMessage);
-    ATTEST_LOG_INFO("[RecvCoapMsg]kemin buffer:%s ", *respData);
     return ret;
 }
 

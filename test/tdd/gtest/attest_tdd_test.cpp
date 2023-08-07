@@ -143,7 +143,12 @@ static DevicePacket* TddGenActiveMsg()
 
     DevicePacket* reqMsg = NULL;
     char attestChallengeActive[ATTEST_CHANLLEGE_LEN + 1] = {0};
-    (void)memcpy_s(attestChallengeActive, ATTEST_CHANLLEGE_LEN + 1, ATTEST_ACTIVE_CHAP, ATTEST_CHANLLEGE_LEN);
+    errno_t rc = memcpy_s(attestChallengeActive, ATTEST_CHANLLEGE_LEN + 1,
+        ATTEST_ACTIVE_CHAP, ATTEST_CHANLLEGE_LEN);
+    if (rc != EOK) {
+        ATTEST_LOG_ERROR("[TddGenResetMsg] memset failed");
+        return nullptr;
+    }
 
     ChallengeResult challenge;
     challenge.challenge = attestChallengeActive;
@@ -163,8 +168,13 @@ static DevicePacket* TddGenAuthMsg()
     }
     DevicePacket* reqMsg = NULL;
     char attestChallengeAuth[ATTEST_CHANLLEGE_LEN + 1] = {0};
-    (void)memcpy_s(attestChallengeAuth, ATTEST_CHANLLEGE_LEN + 1, ATTEST_AUTH_CHAP, ATTEST_CHANLLEGE_LEN);
-    ATTEST_LOG_INFO("[kemin][TddGenAuthMsg]attestChallengeAuth:%s ", attestChallengeAuth);
+    errno_t rc = memcpy_s(attestChallengeAuth, ATTEST_CHANLLEGE_LEN + 1,
+        ATTEST_AUTH_CHAP, ATTEST_CHANLLEGE_LEN);
+    if (rc != EOK) {
+        ATTEST_LOG_ERROR("[TddGenResetMsg] memset failed");
+        return nullptr;
+    }
+
     ChallengeResult challenge;
     challenge.challenge = attestChallengeAuth;
     challenge.currentTime = ATTEST_AUTH_CHAP_TIME;
@@ -178,12 +188,16 @@ static DevicePacket* TddGenAuthMsg()
 static DevicePacket* TddGenResetMsg()
 {
     if (ATTEST_CHANLLEGE_LEN != strlen(ATTEST_RESET_EXPECT_CHAP)) {
-        return NULL;
+        return nullptr;
     }
     DevicePacket* reqMsg = NULL;
     char attestChallengeReset[ATTEST_CHANLLEGE_LEN + 1] = {0};
-    (void)memcpy_s(attestChallengeReset, ATTEST_CHANLLEGE_LEN + 1, ATTEST_RESET_EXPECT_CHAP, ATTEST_CHANLLEGE_LEN);
-
+    errno_t rc = memcpy_s(attestChallengeReset, ATTEST_CHANLLEGE_LEN + 1,
+        ATTEST_RESET_EXPECT_CHAP, ATTEST_CHANLLEGE_LEN);
+    if (rc != EOK) {
+        ATTEST_LOG_ERROR("[TddGenResetMsg] memset failed");
+        return nullptr;
+    }
     ChallengeResult challenge;
     challenge.challenge = attestChallengeReset;
     challenge.currentTime = ATTEST_RESET_EXPECT_CHAP_TIME;
@@ -374,8 +388,6 @@ HWTEST_F(AttestTddTest, TestGenAuthMsg001, TestSize.Level1)
         FREE_DEVICE_PACKET(reqMsg);
         return;
     }
-    printf("[kemin][TestGenAuthMsg001]outToken:%s \r\n", outToken);
-    ATTEST_LOG_INFO("[kemin][TestGenAuthMsg001]outToken:%s ", outToken);
     EXPECT_TRUE(strcmp(outToken, ATTEST_AUTH_GEN_TOKEN) == 0);
     FREE_DEVICE_PACKET(reqMsg);
 }

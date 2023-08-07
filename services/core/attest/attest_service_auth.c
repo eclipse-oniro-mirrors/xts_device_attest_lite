@@ -878,8 +878,6 @@ int32_t GenAuthMsg(const ChallengeResult* challengeResult, DevicePacket** devPac
         FREE_DEVICE_PACKET(devicePacket);
         return ATTEST_ERR;
     }
-    ATTEST_LOG_INFO("[kemin][GenAuthMsg] tokenId:%s ", devicePacket->tokenInfo.uuid);
-    ATTEST_LOG_INFO("[kemin][GenAuthMsg] tokenValue:%s ", devicePacket->tokenInfo.token);
 
     *devPacket = devicePacket;
     if (ATTEST_DEBUG_DFX) {
