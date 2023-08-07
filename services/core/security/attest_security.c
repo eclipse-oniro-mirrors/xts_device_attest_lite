@@ -14,8 +14,13 @@
  */
 
 #include <stdbool.h>
-#include "securec.h"
-#include "attest_error.h"
+#include <limits.h>
+#include <securec.h>
+#include "mbedtls/base64.h"
+#include "mbedtls/cipher.h"
+#include "mbedtls/aes.h"
+#include "mbedtls/hkdf.h"
+#include "mbedtls/md.h"
 #include "attest_adapter.h"
 #include "attest_utils.h"
 #include "attest_utils_log.h"
@@ -60,7 +65,6 @@ int32_t Base64Encode(const uint8_t* srcData, size_t srcDataLen, uint8_t* base64E
     }
     return ATTEST_OK;
 }
-
 
 void GetSalt(uint8_t* salt, uint32_t saltLen)
 {
@@ -322,11 +326,11 @@ int32_t Encrypt(uint8_t* inputData, size_t inputDataLen, const uint8_t* aesKey,
         return ret;
     }
 
-    if (outputLen != outputDataLen) {
+    if (outputLen > outputDataLen) {
         ATTEST_LOG_ERROR("[Encrypt] output Len is wrong length");
         return ERR_ATTEST_SECURITY_INVALID_ARG;
     }
-    ret = memcpy_s(outputData, outputLen, base64Data, outputLen);
+    ret = memcpy_s(outputData, outputDataLen, base64Data, outputLen);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[Encrypt] Encrypt memcpy_s failed, ret = %d", ret);
         return ERR_ATTEST_SECURITY_MEM_MEMCPY;
@@ -352,7 +356,7 @@ int32_t Decrypt(const uint8_t* inputData, size_t inputDataLen, const uint8_t* ae
 
     size_t decryptDataLen = 0;
     uint8_t decryptData[ENCRYPT_LEN] = {0};
-    AesCryptBufferDatas datas = {encryptData, sizeof(encryptData), decryptData, &decryptDataLen};
+    AesCryptBufferDatas datas = {encryptData, base64Len, decryptData, &decryptDataLen};
     if (DecryptAesCbc(&datas, aesKey, aesKey + PSK_LEN, AES_KEY_LEN - PSK_LEN) != 0) {
         ATTEST_LOG_ERROR("[Decrypt] Aes CBC encrypt symbol info failed, ret = %d", ret);
         return ERR_ATTEST_SECURITY_DECRYPT;

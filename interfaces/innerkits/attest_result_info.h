@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef DEVATTEST_MSG_DEF_H
-#define DEVATTEST_MSG_DEF_H
+#ifndef ATTEST_RESULT_INFO_H
+#define ATTEST_RESULT_INFO_H
 
 #include <stdint.h>
 
@@ -23,20 +23,12 @@ extern "C" {
 #endif
 #endif
 
-#define DEVATTEST_FAIL                            (-1)
-
-#define DEVATTEST_SUCCESS                         0
-
-#define DEVATTEST_ERR_JS_IS_NOT_SYSTEM_APP        202
-#define DEVATTEST_ERR_JS_PARAMETER_ERROR          401
-#define DEVATTEST_ERR_JS_SYSTEM_SERVICE_EXCEPTION 20000001
-
-#define ATTEST_RESULT_INIT (-1)
+#define SOFTWARE_RESULT_DETAIL_SIZE 5
 
 typedef struct {
     int32_t authResult;
     int32_t softwareResult;
-    int32_t softwareResultDetail[5];
+    int32_t softwareResultDetail[SOFTWARE_RESULT_DETAIL_SIZE];
     int32_t ticketLength;
     char* ticket;
 } AttestResultInfo;
@@ -47,4 +39,4 @@ typedef struct {
 #endif
 #endif
 
-#endif
+#endif // ATTEST_RESULT_INFO_H

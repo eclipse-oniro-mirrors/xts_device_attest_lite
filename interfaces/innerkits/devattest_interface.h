@@ -15,7 +15,7 @@
 #ifndef DEVATTEST_INTERFACE_H
 #define DEVATTEST_INTERFACE_H
 
-#include "devattest_msg_def.h"
+#include "attest_result_info.h"
 
 #ifdef __cplusplus
 #if __cplusplus

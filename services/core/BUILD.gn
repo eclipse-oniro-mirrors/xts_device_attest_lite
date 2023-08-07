@@ -30,7 +30,7 @@ if (enable_attest_debug_dfx) {
 config("devattest_core_config") {
   visibility = [ ":*" ]
 
-  include_dirs = core_dirs
+  include_dirs = include_core_dirs
 
   defines = []
   if (enable_attest_log_debug) {
@@ -57,6 +57,18 @@ config("devattest_core_config") {
   defines += [ "MBEDTLS_ALLOW_PRIVATE_ACCESS" ]
 }
 
+config("devattest_core_mini_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [ "${devattest_path}/common/mini" ]
+}
+
+config("devattest_core_small_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [ "${devattest_path}/common/small" ]
+}
+
 config("devattest_core_hi3861_config") {
   visibility = [ ":*" ]
 
@@ -74,9 +86,15 @@ if (ohos_kernel_type == "liteos_m") {
   static_library("devattest_core") {
     sources = sources_common
     sources += sources_mock
+    sources += [
+      "mini/adapter/attest_adapter_network_config.c",
+      "mini/attest/attest_service_pcid.c",
+      "mini/utils/attest_utils_file_detail.c",
+    ]
 
     public_configs = [
       ":devattest_core_config",
+      ":devattest_core_mini_config",
       ":devattest_core_hi3861_config",
     ]
 
@@ -105,8 +123,16 @@ if (ohos_kernel_type == "liteos_m") {
   shared_library("devattest_core") {
     sources = sources_common
     sources += sources_mock
+    sources += [
+      "small/adapter/attest_adapter_network_config.c",
+      "small/attest/attest_service_pcid.c",
+      "small/utils/attest_utils_file_detail.c",
+    ]
 
-    public_configs = [ ":devattest_core_config" ]
+    public_configs = [
+      ":devattest_core_config",
+      ":devattest_core_mini_config",
+    ]
     cflags = [
       "-ftrapv",
       "-Werror",

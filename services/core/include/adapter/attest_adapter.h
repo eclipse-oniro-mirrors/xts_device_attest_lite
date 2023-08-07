@@ -17,7 +17,6 @@
 #define ATTEST_ADAPTER_H
 
 #include <stdbool.h>
-#include <stdint.h>
 #include "attest_type.h"
 
 #ifdef __cplusplus
@@ -70,9 +69,9 @@ int32_t AttestSetParameter(const char *key, const char *value);
 
 int32_t AttestGetParameter(const char *key, const char *def, char *value, uint32_t len);
 
-int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen);
+int32_t AttestWriteNetworkConfig(const char* buffer, uint32_t bufferLen);
 
-int32_t AttestWriteNetworkConfig(const char* data, uint32_t len);
+int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen);
 
 int32_t AttestWriteAuthResultCode(const char* data, uint32_t len);
 

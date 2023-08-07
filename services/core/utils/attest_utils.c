@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "string.h"
-#include "securec.h"
-#include "time.h"
+#include <ctype.h>
+#include <string.h>
+#include <securec.h>
+#include <time.h>
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/sha256.h"
@@ -25,6 +26,8 @@
 
 #define DEV_BUF_LENGTH   3
 #define HASH_LENGTH      32
+#define PER_BYTE_BITS    8
+#define RANDOM_BYTES     4
 
 #if defined(MBEDTLS_VERSION_NUMBER) && (MBEDTLS_VERSION_NUMBER >= 0x03000000)
 #define mbedtls_sha256_starts_ret mbedtls_sha256_starts
@@ -39,26 +42,35 @@ int32_t GetRandomNum(void)
     static bool initFlag = false;
 
     const char* pers = "CTR_DRBG";
-    uint8_t random = 0;
-    int32_t ret = ATTEST_OK;
+    int32_t result = 0;
+    unsigned char* random = (unsigned char *)ATTEST_MEM_MALLOC(RANDOM_BYTES);
+    if (random == NULL) {
+        return 0;
+    }
     do {
+        int32_t ret = ATTEST_OK;
         if (initFlag == false) {
             mbedtls_ctr_drbg_init(&randomContext);
             mbedtls_entropy_init(&randomEntropy);
             ret = mbedtls_ctr_drbg_seed(&randomContext, mbedtls_entropy_func, &randomEntropy,
-                                        (const unsigned char *)pers, strlen(pers));
+                                        (const uint8_t*)pers, strlen(pers));
             if (ret != ATTEST_OK) {
                 break;
             }
             initFlag = true;
         }
 
-        ret = mbedtls_ctr_drbg_random(&randomContext, &random, sizeof(random));
+        ret = mbedtls_ctr_drbg_random(&randomContext, random, RANDOM_BYTES);
         if (ret != ATTEST_OK) {
             break;
         }
+        result = random[RANDOM_BYTES - 1];
+        for (int i = RANDOM_BYTES - 2; i >= 0; --i) {
+            result <<= PER_BYTE_BITS;
+            result |= random[i];
+        }
     } while (0);
-    return ABS(random);
+    return ABS(result);
 }
 
 char* AttestStrdup(const char* input)
@@ -172,6 +184,10 @@ int32_t ToLowerStr(char* str, int len)
     return ATTEST_OK;
 }
 
+/**
+ * @brief Encrypt string with sha256 algorithm, and generate uppercase string.
+ *
+ */
 int Sha256Value(const unsigned char *src, int srcLen, char *dest, int destLen)
 {
     if (src == NULL) {

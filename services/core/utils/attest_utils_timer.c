@@ -15,12 +15,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <securec.h>
+#include <signal.h>
+
 #include "attest_utils.h"
 #include "attest_utils_log.h"
 #include "attest_utils_timer.h"
 
-static void AttestFunction(union sigval attestTimer)
+#define ATTEST_TIMER_TASK_ID "attest_timer"
+
+static void AttestTimerCallback(union sigval attestTimer)
 {
     AttestTimerInfo *tmpTimerInfo = (AttestTimerInfo *)attestTimer.sival_ptr;
     if (tmpTimerInfo->type == ATTEST_TIMER_TYPE_ONCE) {
@@ -40,7 +44,8 @@ static void AttestMs2TimeSpec(struct timespec *tp, uint32_t ms)
     tp->tv_nsec = (long)(((unsigned long long)ms * OS_SYS_NS_PER_SECOND) / LOSCFG_BASE_CORE_MS_PER_SECOND);
 }
 
-static ATTEST_TIMER_ID AttestTimerCreate(TimerCallbackFunc func, AttestTimerType type, void *arg, uint32_t milliseconds)
+static ATTEST_TIMER_ID AttestTimerCreate(TimerCallbackFunc func, AttestTimerType type,
+    void *arg, uint32_t milliseconds)
 {
     if ((func == NULL) || (type != ATTEST_TIMER_TYPE_ONCE && type != ATTEST_TIMER_TYPE_PERIOD)) {
         ATTEST_LOG_ERROR("[AttestTimerCreate] something is wrong");
@@ -61,7 +66,7 @@ static ATTEST_TIMER_ID AttestTimerCreate(TimerCallbackFunc func, AttestTimerType
     timer_t timerId;
     struct sigevent sigEvp = { 0 };
     sigEvp.sigev_notify = SIGEV_THREAD;
-    sigEvp.sigev_notify_function = AttestFunction;
+    sigEvp.sigev_notify_function = AttestTimerCallback;
     sigEvp.sigev_value.sival_ptr = timerInfo;
     int32_t ret = timer_create(CLOCK_REALTIME, &sigEvp, &timerId);
     if (ret != 0) {
@@ -100,7 +105,6 @@ static int32_t AttestTimerStart(ATTEST_TIMER_ID attestTimerId)
 int32_t AttestStopTimerTask(const ATTEST_TIMER_ID attestTimerId)
 {
     if (attestTimerId == NULL) {
-        ATTEST_LOG_ERROR("[AttestStopTimerTask] attestTimerId is null");
         return ATTEST_ERR;
     }
     AttestTimerInfo *tmpTimerInfo = (AttestTimerInfo *)attestTimerId;
@@ -109,17 +113,17 @@ int32_t AttestStopTimerTask(const ATTEST_TIMER_ID attestTimerId)
     return (ret != 0) ? ATTEST_ERR : ATTEST_OK;
 }
 
-int32_t AttestCreateTimerTask(AttestTimerType isOnce, uint32_t milliseconds,
-                              void *func, void *arg, ATTEST_TIMER_ID *timerHandle)
+int32_t AttestStartTimerTask(AttestTimerType isOnce, uint32_t milliseconds,
+    void *func, void *arg, ATTEST_TIMER_ID *timerHandle)
 {
     if (func == NULL || timerHandle == NULL) {
-        ATTEST_LOG_ERROR("[AttestCreateTimerTask] callBackFunc or timerHandle is null");
+        ATTEST_LOG_ERROR("[AttestStartTimerTask] callBackFunc or timerHandle is null");
         return ATTEST_ERR;
     }
     if (*timerHandle != NULL) {
         AttestTimerInfo *tmpTimerInfo = (AttestTimerInfo *)timerHandle;
         if (tmpTimerInfo->timerId != 0) {
-            ATTEST_LOG_ERROR("[AttestCreateTimerTask] timerId[%d] already exists", tmpTimerInfo->timerId);
+            ATTEST_LOG_ERROR("[AttestStartTimerTask] timerId[%d] already exists", tmpTimerInfo->timerId);
             return ATTEST_ERR;
         }
     }
@@ -127,7 +131,7 @@ int32_t AttestCreateTimerTask(AttestTimerType isOnce, uint32_t milliseconds,
     AttestTimerType type = (isOnce == ATTEST_TIMER_TYPE_ONCE) ? ATTEST_TIMER_TYPE_ONCE : ATTEST_TIMER_TYPE_PERIOD;
     ATTEST_TIMER_ID attestTimerId = AttestTimerCreate((TimerCallbackFunc)func, type, arg, milliseconds);
     if (attestTimerId == NULL) {
-        ATTEST_LOG_ERROR("[AttestCreateTimerTask] failed to create timerHandle");
+        ATTEST_LOG_ERROR("[AttestStartTimerTask] failed to create timerHandle");
         return ATTEST_ERR;
     }
 
@@ -135,7 +139,7 @@ int32_t AttestCreateTimerTask(AttestTimerType isOnce, uint32_t milliseconds,
         if (AttestStopTimerTask(attestTimerId) == ATTEST_OK) {
             attestTimerId = NULL;
         }
-        ATTEST_LOG_ERROR("[AttestCreateTimerTask] failed to start timerHandle");
+        ATTEST_LOG_ERROR("[AttestStartTimerTask] failed to start timerHandle");
         return ATTEST_ERR;
     }
     *timerHandle = attestTimerId;

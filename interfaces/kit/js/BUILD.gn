@@ -31,6 +31,8 @@ shared_library("kit_device_attest") {
   ]
   include_dirs = [
     "include",
+    "${devattest_path}/common",
+    "${devattest_path}/common/log",
     "${devattest_path}/interfaces/innerkits",
     "${devattest_path}/framework/small/include",
     "//third_party/bounds_checking_function/include",

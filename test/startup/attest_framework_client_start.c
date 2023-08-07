@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "devattest_errno.h"
 #include "devattest_interface.h"
 
 #define ATTEST_SOFTWARE_RESULT_SIZE 5

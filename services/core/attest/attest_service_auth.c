@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
-#include "attest_type.h"
+#include <string.h>
+#include <securec.h>
+#include "cJSON.h"
+#include "mbedtls/base64.h"
 #include "attest_utils_log.h"
 #include "attest_utils.h"
 #include "attest_dfx.h"
@@ -56,7 +59,12 @@ bool IsAuthStatusChg(void)
             ATTEST_LOG_ERROR("[IsAuthStatusChg] CurrentTime invalied");
             break;
         }
-        ret = CheckAuthResult(authStatus, currentTime);
+        ret = CheckExpireTime(authStatus, currentTime);
+        if (ret != ATTEST_OK) {
+            ATTEST_LOG_ERROR("[IsAuthStatusChg] Check expire time failed");
+            break;
+        }
+        ret = CheckAuthResult(authStatus);
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[IsAuthStatusChg] Check auth result failed");
             break;
@@ -91,9 +99,13 @@ int32_t FlushAttestStatusPara(const char* authStatusBase64)
         ATTEST_LOG_ERROR("[FlushAttestStatusPara] Decode Auth Status failed");
         return ATTEST_ERR;
     }
-    int32_t result = authStatus->hardwareResult;
 
-    char* attestResult = (result == 0) ? STARTSUP_PARA_ATTEST_OK : STARTSUP_PARA_ATTEST_ERROR;
+    int32_t result = DEVICE_ATTEST_FAIL;
+    if (authStatus->hardwareResult == DEVICE_ATTEST_PASS && authStatus->softwareResult == DEVICE_ATTEST_PASS) {
+        result = DEVICE_ATTEST_PASS;
+    }
+
+    char* attestResult = (result == DEVICE_ATTEST_PASS) ? STARTSUP_PARA_ATTEST_OK : STARTSUP_PARA_ATTEST_ERROR;
     int32_t ret = AttestSetParameter(STARTSUP_PARA_ATTEST_KEY, attestResult);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[FlushAttestStatusPara] set parameter failed, ret = %d.", ret);
@@ -110,10 +122,10 @@ int32_t GetAttestStatusPara(void)
     int ret = AttestGetParameter(STARTSUP_PARA_ATTEST_KEY, STARTSUP_PARA_ATTEST_ERROR,
                                  attestResult, sizeof(attestResult));
     if ((ret != 0) && (strcmp(STARTSUP_PARA_ATTEST_OK, attestResult) == 0)) {
-        ATTEST_LOG_INFO("[GetAttestStatusPara] success, attest.auth.result = %s.", attestResult);
+        ATTEST_LOG_INFO("[GetAttestStatusPara] success.");
         return ATTEST_OK;
     }
-    ATTEST_LOG_INFO("[GetAttestStatusPara] failed.");
+    ATTEST_LOG_WARN("[GetAttestStatusPara] failed.");
     return ATTEST_ERR;
 }
 
@@ -442,17 +454,34 @@ int32_t GetAuthStatus(char** authStatus)
     return ATTEST_OK;
 }
 
-int32_t CheckAuthResult(AuthStatus* authStatus, uint64_t currentTime)
+int32_t CheckExpireTime(AuthStatus* authStatus, uint64_t currentTime)
 {
     if (authStatus == NULL) {
-        ATTEST_LOG_ERROR("[CheckAuthResult] Invalid parameter");
+        ATTEST_LOG_ERROR("[CheckExpireTime] Invalid parameter");
         return ATTEST_ERR;
     }
 
     uint64_t expireTime = authStatus->expireTime;
 
     if (expireTime <= currentTime) {
-        ATTEST_LOG_ERROR("[CheckAuthResult] expireTime is Wrong.");
+        ATTEST_LOG_ERROR("[CheckExpireTime] expireTime is Wrong.");
+        return ATTEST_ERR;
+    }
+
+    return ATTEST_OK;
+}
+
+int32_t CheckAuthResult(AuthStatus* authStatus)
+{
+    if (authStatus == NULL) {
+        ATTEST_LOG_ERROR("[CheckAuthResult] Invalid parameter");
+        return ATTEST_ERR;
+    }
+
+    int32_t hardwareResult = authStatus->hardwareResult;
+    int32_t softwareResult = authStatus->softwareResult;
+    if (hardwareResult != ATTEST_OK || softwareResult != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[CheckAuthResult] auth result is ATTEST_ERR.");
         return ATTEST_ERR;
     }
 
@@ -814,9 +843,10 @@ static int32_t ParseTokenId(const cJSON* json, AuthResult* authResult)
     return ATTEST_OK;
 }
 
-int32_t GenAuthMsg(ChallengeResult* challengeResult, DevicePacket** devPacket)
+int32_t GenAuthMsg(const ChallengeResult* challengeResult, DevicePacket** devPacket)
 {
     ATTEST_LOG_DEBUG("[GenAuthMsg] Begin.");
+    ATTEST_LOG_INFO("[GenAuthMsg] Begin.");
     if (challengeResult == NULL || devPacket == NULL) {
         ATTEST_LOG_ERROR("[GenAuthMsg] Invalid parameter");
         return ATTEST_ERR;
@@ -848,10 +878,14 @@ int32_t GenAuthMsg(ChallengeResult* challengeResult, DevicePacket** devPacket)
         FREE_DEVICE_PACKET(devicePacket);
         return ATTEST_ERR;
     }
+    ATTEST_LOG_INFO("[kemin][GenAuthMsg] tokenId:%s ", devicePacket->tokenInfo.uuid);
+    ATTEST_LOG_INFO("[kemin][GenAuthMsg] tokenValue:%s ", devicePacket->tokenInfo.token);
+
     *devPacket = devicePacket;
     if (ATTEST_DEBUG_DFX) {
         ATTEST_DFX_DEV_PACKET(devicePacket);
     }
+    ATTEST_LOG_INFO("[GenAuthMsg] End.");
     ATTEST_LOG_DEBUG("[GenAuthMsg] End.");
     return ATTEST_OK;
 }

@@ -12,17 +12,17 @@
 # limitations under the License.
 
 import("//build/lite/config/component/lite_component.gni")
+import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 
-lite_component("device_atTest_lite") {
-  features = []
+group("attest_lite_packages") {
+  deps = []
   if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
-    features += [
-      "framework:devattest_service",
-      "test/startup:devattest_client",
-      "interfaces/kit/js:kit_device_attest",
-      "test/tdd/gtest:device_attest_tdd",
+    deps += [
+      "${devattest_path}/framework:devattest_service",
+      "${devattest_path}/interfaces/kit/js:kit_device_attest",
+      "${devattest_path}/test/startup:devattest_client",
     ]
   } else if (ohos_kernel_type == "liteos_m") {
-    features += [ "framework:devattest_sdk" ]
+    deps += [ "${devattest_path}/framework:devattest_sdk" ]
   }
 }

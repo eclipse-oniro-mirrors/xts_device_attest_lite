@@ -16,44 +16,55 @@ import("//build/ohos.gni")
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 import("//test/xts/device_attest_lite/services/core/attestsource.gni")
 
-unittest("device_attest_tdd") {
-  output_extension = "bin"
-  cflags = [
-    "-ftrapv",
-    "-Werror",
-    "-Wextra",
-    "-Wshadow",
-    "-fstack-protector-all",
-    "-D_FORTIFY_SOURCE=2",
-    "-Wformat=2",
-    "-Wfloat-equal",
-    "-Wdate-time",
-    "-fPIC",
-    "-pthread",
-  ]
-  defines = [ "ATTEST_HILOG_LEVEL = 1" ]
-  defines += [ "MBEDTLS_ALLOW_PRIVATE_ACCESS" ]
-  include_dirs = core_dirs
-  include_dirs += [
-    ".",
-    "${devattest_path}/services/core",
-    "${devattest_path}/interfaces/innerkits",
-  ]
-  sources = [
-    "attest_tdd_data_transfer.c",
-    "attest_tdd_mock_hal.c",
-    "attest_tdd_mock_net.c",
-    "attest_tdd_mock_property.c",
-    "attest_tdd_test.cpp",
-  ]
-  sources += sources_common
-  deps = [
-    "$ohos_product_adapter_dir/utils/token:haltoken_shared",
-    "${devattest_path}/services/core:network_config",
-    "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
-    "//base/startup/init/interfaces/innerkits:parameter",
-    "//build/lite/config/component/cJSON:cjson_shared",
-    "//developtools/syscap_codec:syscap_interface_shared",
-    "//third_party/mbedtls:mbedtls",
-  ]
+if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
+  unittest("device_attest_tdd") {
+    output_extension = "bin"
+    cflags = [
+      "-ftrapv",
+      "-Werror",
+      "-Wextra",
+      "-Wshadow",
+      "-fstack-protector-all",
+      "-D_FORTIFY_SOURCE=2",
+      "-Wformat=2",
+      "-Wfloat-equal",
+      "-Wdate-time",
+      "-fPIC",
+      "-pthread",
+    ]
+    defines = [ "ATTEST_HILOG_LEVEL = 1" ]
+    defines += [ "MBEDTLS_ALLOW_PRIVATE_ACCESS" ]
+    include_dirs = include_core_dirs
+    include_dirs += [
+      ".",
+      "${devattest_path}/services/core",
+      "${devattest_path}/interfaces/innerkits",
+      "${devattest_path}/common/small",
+    ]
+    sources = [
+      "attest_tdd_data_transfer.c",
+      "attest_tdd_mock_hal.c",
+      "attest_tdd_mock_net.c",
+      "attest_tdd_mock_property.c",
+      "attest_tdd_test.cpp",
+    ]
+    sources += [
+      "${devattest_path}/services/core/small/adapter/attest_adapter_network_config.c",
+      "${devattest_path}/services/core/small/attest/attest_service_pcid.c",
+      "${devattest_path}/services/core/small/utils/attest_utils_file_detail.c",
+    ]
+    sources += sources_common
+    deps = [
+      "$ohos_product_adapter_dir/utils/token:haltoken_shared",
+      "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+      "//base/startup/init/interfaces/innerkits:parameter",
+      "//build/lite/config/component/cJSON:cjson_shared",
+      "//developtools/syscap_codec:syscap_interface_shared",
+      "//third_party/mbedtls:mbedtls",
+    ]
+  }
+} else {
+  #L0 Empty module
+  group("device_attest_tdd") {
+  }
 }

@@ -14,10 +14,11 @@
  */
 #include <securec.h>
 #include <gtest/gtest.h>
-
+#include "attest_error.h"
 #include "attest_utils_log.h"
+#include "attest_utils.h"
 #include "attest_entry.h"
-#include "devattest_msg_def.h"
+#include "attest_result_info.h"
 #include "attest_type.h"
 #include "attest_network.h"
 #include "attest_service_active.h"
@@ -42,6 +43,8 @@ static const int32_t ATTEST_RESET = 1;
 static const int32_t ATTEST_ACTIVE = 2;
 static const int32_t ATTEST_AUTH = 3;
 
+static const int32_t ATTEST_CHANLLEGE_LEN = 64;
+
 static const char* ATTEST_RESET_EXPECT_TOKEN = "WOetrEFOcjw8Px2TZNmq3ckoMzXEkkoLfgQeGNnG3XA=";
 
 static const char* ATTEST_AUTH_EXPECT_RESULT = "{\"authStats\":\".eyJhdXRoUmVzdWx0IjowLCJhdXRoVHlwZSI6IlRPS0VOX0VO\
@@ -55,11 +58,13 @@ T3Blbkhhcm1vbnkgMi4zIGJldGEvZGVidWcifQ.\",\
 \"token\":\"yh9te54pfTb91CrSqpD5fQsVBA/etKNb\",\
 \"uuid\":\"156dcff8-0ab0-4521-ac8f-ba682e6ca5a0\"\
 }3";
+
+static const char* ATTEST_AUTH_GEN_TOKEN = "5HWNhKgnJ+sVZM313rCsNa3QK2RhrC4+bClH9SX5O84=";
 static const char* ATTEST_AUTH_CHAP = "a81441e3c0d8d6a78907fa0888f9241be9591c4d6b7a533318b010fb2c3d9b80";
 static const int64_t ATTEST_AUTH_CHAP_TIME = 1449458719;
-static const char* ATTEST_AUTH_GEN_TOKEN = "5HWNhKgnJ+sVZM313rCsNa3QK2RhrC4+bClH9SX5O84=";
 
 static const char* ATTEST_ACTIVE_EXPECT_TOKEN = "648390656";
+static const char* ATTEST_ACTIVE_CHAP = "01824812bda06b33e3c76ac8cf3f6d2153867ce39db08f625203a350d5635ac9";
 static const int64_t ATTEST_ACTIVE_CHAP_TIME = 1449459365;
 
 static const int64_t ATTEST_EXPIRRTIME = -584928741;
@@ -77,9 +82,9 @@ aWwiOnsicGF0Y2hMZXZlbFJlc3VsdCI6MzAwMDgsInBjaWRSZXN1bHQiOjMwMDExLCJyb290SGFzaFJl
 3VsdCI6MzAwMDJ9LCJ1ZGlkIjoiODFDOTQ0NTI3OUEzQTQxN0Q0MTU5RkRGQzYyNjkxQkM4REEwMDJFODQ2M0M3MEQyM0FCNENCRjRERjk4MjYxQy\
 IsInZlcnNpb25JZCI6ImRlZmF1bHQvaHVhLXdlaS9rZW1pbi9kZWZhdWx0L09wZW5IYXJtb255LTQuMC4zLjIoQ2FuYXJ5MSkvb2hvcy9tYXgvMTAv\
 T3Blbkhhcm1vbnkgMi4zIGJldGEvZGVidWcifQ.";
+
 class AttestTddTest : public testing::Test {
 public:
-    AttestTddTest();
     static void SetUpTestCase(void);
 
     static void TearDownTestCase(void);
@@ -89,82 +94,135 @@ public:
     void TearDown();
 };
 
-AttestTddTest::AttestTddTest()
-{
-    int32_t ret = InitSysData(); // 初始化系统参数
-    ATTEST_LOG_INFO("[AttestTdd] Init system data ret = %d.", ret);
-}
-
 void AttestTddTest::SetUpTestCase(void)
 {
+    // input testsuit setup step，setup invoked before all testcases
+    (void)InitSysData();
+    (void)InitNetworkServerInfo();
 }
 
 void AttestTddTest::TearDownTestCase(void)
 {
+    // input testsuit teardown step，teardown invoked after all testcases
 }
 
 void AttestTddTest::SetUp()
 {
+    // input testcase setup step，setup invoked before each testcases
 }
 
 void AttestTddTest::TearDown()
 {
+    // input testcase teardown step，teardown invoked after each testcases
 }
 
 static AuthResult *GetAuthResult()
 {
     AuthResult *authResult = CreateAuthResult();
-    EXPECT_TRUE((authResult != nullptr));
     if (authResult == nullptr) {
         return nullptr;
     }
     int32_t ret = ParseAuthResultResp(ATTEST_AUTH_EXPECT_RESULT, authResult);
-    EXPECT_TRUE((ret == DEVATTEST_SUCCESS));
-    if (ret != DEVATTEST_SUCCESS) {
+    if (ret != ATTEST_OK) {
         DestroyAuthResult(&authResult);
         return nullptr;
     }
     return authResult;
 }
 
-static void WriteAuthResult(AuthResult *authResult)
-{
-    int32_t ret = FlushToken(authResult);
-    EXPECT_TRUE((ret == DEVATTEST_SUCCESS));
-}
-
-static DevicePacket* ConstructDevicePacket()
-{
-    DevicePacket* result = (DevicePacket*)malloc(sizeof(DevicePacket));
-    if (result == nullptr) {
-        return nullptr;
-    }
-    memset_s(result, sizeof(DevicePacket), 0, sizeof(DevicePacket));
-    EXPECT_TRUE(result != NULL);
-    return result;
-}
-
 static DevicePacket* TddGenActiveMsg()
 {
+    if (ATTEST_CHANLLEGE_LEN != strlen(ATTEST_ACTIVE_CHAP)) {
+        return NULL;
+    }
+    // ASSERT_EQ(ATTEST_CHANLLEGE_LEN, strlen(ATTEST_ACTIVE_CHAP));
     AuthResult *authResult = GetAuthResult();
     if (authResult == nullptr) {
         return nullptr;
     }
-    DevicePacket* reqMsg = ConstructDevicePacket();
-    if (reqMsg == nullptr) {
-        return nullptr;
-    }
-    char* ATTEST_ACTIVE_CHAP = "01824812bda06b33e3c76ac8cf3f6d2153867ce39db08f625203a350d5635ac9";
-    ChallengeResult chap = {.challenge = ATTEST_ACTIVE_CHAP, .currentTime = ATTEST_ACTIVE_CHAP_TIME};
-    int32_t ret = GenActiveMsg(authResult, &chap, &reqMsg);
-    EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
-    if (ret != DEVATTEST_SUCCESS) {
-        FREE_DEVICE_PACKET(reqMsg);
-        DestroyAuthResult(&authResult);
-        return nullptr;
-    }
+
+    DevicePacket* reqMsg = NULL;
+    char attestChallengeActive[ATTEST_CHANLLEGE_LEN + 1] = {0};
+    (void)memcpy_s(attestChallengeActive, ATTEST_CHANLLEGE_LEN + 1, ATTEST_ACTIVE_CHAP, ATTEST_CHANLLEGE_LEN);
+
+    ChallengeResult challenge;
+    challenge.challenge = attestChallengeActive;
+    challenge.currentTime = ATTEST_ACTIVE_CHAP_TIME;
+    int32_t ret = GenActiveMsg(authResult, &challenge, &reqMsg);
     DestroyAuthResult(&authResult);
+    if (ret != ATTEST_OK) {
+        return nullptr;
+    }
     return reqMsg;
+}
+
+static DevicePacket* TddGenAuthMsg()
+{
+    // ASSERT_EQ(ATTEST_CHANLLEGE_LEN, strlen(ATTEST_AUTH_CHAP));
+    
+    if (ATTEST_CHANLLEGE_LEN != strlen(ATTEST_AUTH_CHAP)) {
+        return NULL;
+    }
+    DevicePacket* reqMsg = NULL;
+    char attestChallengeAuth[ATTEST_CHANLLEGE_LEN + 1] = {0};
+    (void)memcpy_s(attestChallengeAuth, ATTEST_CHANLLEGE_LEN + 1, ATTEST_AUTH_CHAP, ATTEST_CHANLLEGE_LEN);
+    ATTEST_LOG_INFO("[kemin][TddGenAuthMsg]attestChallengeAuth:%s ", attestChallengeAuth);
+    ChallengeResult challenge;
+    challenge.challenge = attestChallengeAuth;
+    challenge.currentTime = ATTEST_AUTH_CHAP_TIME;
+    int32_t ret = GenAuthMsg(&challenge, &reqMsg);
+    // ASSERT_EQ(ret, ATTEST_OK);
+    if (ret != ATTEST_OK) {
+        return nullptr;
+    }
+    return reqMsg;
+}
+
+static DevicePacket* TddGenResetMsg()
+{
+    if (ATTEST_CHANLLEGE_LEN != strlen(ATTEST_RESET_EXPECT_CHAP)) {
+        return NULL;
+    }
+    // ASSERT_EQ(ATTEST_CHANLLEGE_LEN, strlen(ATTEST_RESET_EXPECT_CHAP));
+    DevicePacket* reqMsg = NULL;
+    char attestChallengeReset[ATTEST_CHANLLEGE_LEN + 1] = {0};
+    (void)memcpy_s(attestChallengeReset, ATTEST_CHANLLEGE_LEN + 1, ATTEST_RESET_EXPECT_CHAP, ATTEST_CHANLLEGE_LEN);
+
+    ChallengeResult challenge;
+    challenge.challenge = attestChallengeReset;
+    challenge.currentTime = ATTEST_RESET_EXPECT_CHAP_TIME;
+    int32_t ret = GenResetMsg(&challenge, &reqMsg);
+    // ASSERT_EQ(ret, ATTEST_OK);
+    if (ret != ATTEST_OK) {
+        return nullptr;
+    }
+    return reqMsg;
+}
+
+void WriteAuthStatus()
+{
+    int32_t ret = FlushAuthResult(ATTEST_TICKET, ATTEST_STATUS);
+    EXPECT_TRUE((ret == ATTEST_OK));
+}
+
+void TestGetAuthStatus(char **status)
+{
+    int32_t ret = GetAuthStatus(status);
+    EXPECT_TRUE((ret == ATTEST_OK));
+}
+
+static void FreeAuthStatus(AuthStatus* authStatus)
+{
+    if (authStatus->versionId != NULL) {
+        free(authStatus->versionId);
+    }
+    if (authStatus->authType != NULL) {
+        free(authStatus->authType);
+    }
+    if (authStatus->softwareResultDetail != NULL) {
+        free(authStatus->softwareResultDetail);
+    }
+    free(authStatus);
 }
 
 /*
@@ -175,9 +233,9 @@ static DevicePacket* TddGenActiveMsg()
 HWTEST_F(AttestTddTest, TestInitNetWort001, TestSize.Level1)
 {
     int ret = InitNetworkServerInfo();
-    EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
+    EXPECT_TRUE(ret == ATTEST_OK);
     ret = D2CConnect();
-    EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
+    EXPECT_TRUE(ret == ATTEST_OK);
 }
 
 /*
@@ -187,11 +245,13 @@ HWTEST_F(AttestTddTest, TestInitNetWort001, TestSize.Level1)
  */
 HWTEST_F(AttestTddTest, TestSendActiveMsg001, TestSize.Level1)
 {
+    (void)InitNetworkServerInfo();
+    (void)D2CConnect();
+
     g_netType = ATTEST_ACTIVE;
     DevicePacket* reqMsg = TddGenActiveMsg();
-    if (reqMsg == NULL) {
-        return;
-    }
+    ASSERT_TRUE(reqMsg != NULL);
+
     char* respMsg = NULL;
     int32_t ret = SendActiveMsg(reqMsg, &respMsg);
     EXPECT_TRUE((ret == ATTEST_OK) && (respMsg != NULL));
@@ -216,9 +276,9 @@ HWTEST_F(AttestTddTest, TestSendActiveMsg001, TestSize.Level1)
  */
 HWTEST_F(AttestTddTest, TestParseActiveResult001, TestSize.Level1)
 {
-    char *input = "{\"errcode\":0}";
+    const char *input = "{\"errcode\":0}";
     int32_t ret = ParseActiveResult(input);
-    EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
+    EXPECT_TRUE(ret == ATTEST_OK);
 }
 
 /*
@@ -228,21 +288,9 @@ HWTEST_F(AttestTddTest, TestParseActiveResult001, TestSize.Level1)
  */
 HWTEST_F(AttestTddTest, TestParseActiveResult002, TestSize.Level1)
 {
-    char *input = "{\"errcode\":\"-32s\"}";
+    const char *input = "{\"errcode\":\"-32s\"}";
     int32_t ret = ParseActiveResult(input);
-    EXPECT_TRUE((ret != DEVATTEST_SUCCESS));
-}
-
-void WriteAuthStatus()
-{
-    int32_t ret = FlushAuthResult(ATTEST_TICKET, ATTEST_STATUS);
-    EXPECT_TRUE((ret == DEVATTEST_SUCCESS));
-}
-
-void TestGetAuthStatus(char **status)
-{
-    int32_t ret = GetAuthStatus(status);
-    EXPECT_TRUE((ret == DEVATTEST_SUCCESS));
+    EXPECT_TRUE((ret != ATTEST_OK));
 }
 
 /*
@@ -263,20 +311,6 @@ HWTEST_F(AttestTddTest, TestGetAuthStatus001, TestSize.Level1)
     free(status);
 }
 
-static void FreeAuthStatus(AuthStatus* authStatus)
-{
-    if (authStatus->versionId != NULL) {
-        free(authStatus->versionId);
-    }
-    if (authStatus->authType != NULL) {
-        free(authStatus->authType);
-    }
-    if (authStatus->softwareResultDetail != NULL) {
-        free(authStatus->softwareResultDetail);
-    }
-    free(authStatus);
-}
-
 /*
  * @tc.name: TestDecodeAuthStatus001
  * @tc.desc: Test decode auth status.
@@ -293,7 +327,7 @@ HWTEST_F(AttestTddTest, TestDecodeAuthStatus001, TestSize.Level1)
         return;
     }
     int32_t ret = DecodeAuthStatus(status, outStatus);
-    EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
+    EXPECT_TRUE(ret == ATTEST_OK);
     SoftwareResultDetail* detail = outStatus->softwareResultDetail;
     EXPECT_TRUE((outStatus->versionId != nullptr) && (outStatus->authType != nullptr) && (detail != nullptr));
     if ((outStatus->versionId == nullptr) || (outStatus->authType == nullptr) || (detail == nullptr)) {
@@ -307,11 +341,11 @@ HWTEST_F(AttestTddTest, TestDecodeAuthStatus001, TestSize.Level1)
 }
 
 /*
- * @tc.name: TestCheckAuthResult001
+ * @tc.name: TestCheckExpireTime001
  * @tc.desc: Test check auth result.
  * @tc.type: FUNC
  */
-HWTEST_F(AttestTddTest, TestCheckAuthResult001, TestSize.Level1)
+HWTEST_F(AttestTddTest, TestCheckExpireTime001, TestSize.Level1)
 {
     AuthStatus* outStatus = CreateAuthStatus();
     EXPECT_TRUE(outStatus != nullptr);
@@ -320,29 +354,13 @@ HWTEST_F(AttestTddTest, TestCheckAuthResult001, TestSize.Level1)
     }
     outStatus->expireTime = 19673222;
     uint64_t currentTime = 19673223;
-    int32_t ret = CheckAuthResult(outStatus, currentTime);
-    EXPECT_TRUE(ret != DEVATTEST_SUCCESS);
+    int32_t ret = CheckExpireTime(outStatus, currentTime);
+    EXPECT_TRUE(ret != ATTEST_OK);
     outStatus->expireTime = 19673222;
     currentTime = 19673221;
-    ret = CheckAuthResult(outStatus, currentTime);
-    EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
+    ret = CheckExpireTime(outStatus, currentTime);
+    EXPECT_TRUE(ret == ATTEST_OK);
     free(outStatus);
-}
-
-static DevicePacket* TddGenAuthMsg()
-{
-    DevicePacket* reqMsg = ConstructDevicePacket();
-    if (reqMsg == NULL) {
-        return NULL;
-    }
-    ChallengeResult challenge = {.challenge = (char*)ATTEST_AUTH_CHAP, .currentTime = ATTEST_AUTH_CHAP_TIME};
-    int32_t ret = GenAuthMsg(&challenge, &reqMsg);
-    EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
-    if (ret != DEVATTEST_SUCCESS) {
-        FREE_DEVICE_PACKET(reqMsg);
-        return nullptr;
-    }
-    return reqMsg;
 }
 
 /*
@@ -353,16 +371,16 @@ static DevicePacket* TddGenAuthMsg()
 HWTEST_F(AttestTddTest, TestGenAuthMsg001, TestSize.Level1)
 {
     DevicePacket* reqMsg = TddGenAuthMsg();
-    EXPECT_TRUE((reqMsg != nullptr));
-    if (reqMsg == NULL) {
-        return;
-    }
+    ASSERT_TRUE((reqMsg != nullptr));
+
     char *outToken = reqMsg->tokenInfo.token;
     EXPECT_TRUE(outToken != nullptr);
     if (outToken == NULL) {
         FREE_DEVICE_PACKET(reqMsg);
         return;
     }
+    printf("[kemin][TestGenAuthMsg001]outToken:%s \r\n", outToken);
+    ATTEST_LOG_INFO("[kemin][TestGenAuthMsg001]outToken:%s ", outToken);
     EXPECT_TRUE(strcmp(outToken, ATTEST_AUTH_GEN_TOKEN) == 0);
     FREE_DEVICE_PACKET(reqMsg);
 }
@@ -375,13 +393,8 @@ HWTEST_F(AttestTddTest, TestGenAuthMsg001, TestSize.Level1)
 HWTEST_F(AttestTddTest, TestParseAuthResultResp001, TestSize.Level1)
 {
     AuthResult *authResult = GetAuthResult();
-    if (authResult == nullptr) {
-        return;
-    }
-    EXPECT_TRUE(authResult != nullptr);
-    if (authResult == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(authResult != nullptr);
+
     EXPECT_TRUE((authResult->ticket != nullptr) && (authResult->tokenValue != nullptr) &&
         (authResult->authStatus != nullptr));
     if (authResult->ticket != nullptr) {
@@ -409,25 +422,6 @@ HWTEST_F(AttestTddTest, TestGetChallenge001, TestSize.Level1)
     }
     EXPECT_TRUE(strcmp(ATTEST_RESET_EXPECT_CHAP, challenge->challenge) == 0);
     FREE_CHALLENGE_RESULT(challenge);
-}
-
-static DevicePacket* TddGenResetMsg()
-{
-    DevicePacket* reqMsg = ConstructDevicePacket();
-    if (reqMsg == NULL) {
-        return NULL;
-    }
-    ChallengeResult chap = {
-        .challenge = (char*)ATTEST_RESET_EXPECT_CHAP,
-        .currentTime = ATTEST_RESET_EXPECT_CHAP_TIME
-    };
-    int32_t ret = GenResetMsg(&chap, &reqMsg);
-    EXPECT_TRUE(ret == DEVATTEST_SUCCESS);
-    if (ret != DEVATTEST_SUCCESS) {
-        FREE_DEVICE_PACKET(reqMsg);
-        return nullptr;
-    }
-    return reqMsg;
 }
 
 /*
@@ -492,16 +486,17 @@ HWTEST_F(AttestTddTest, TestSendResetMsg001, TestSize.Level1)
 HWTEST_F(AttestTddTest, TestQueryAttestStatus001, TestSize.Level1)
 {
     AuthResult *authResult = GetAuthResult();
-    if (authResult == nullptr) {
-        return;
-    }
-    WriteAuthResult(authResult);
+    ASSERT_TRUE(authResult != nullptr);
+
+    int32_t ret = FlushToken(authResult);
+    EXPECT_EQ(ret, ATTEST_OK);
+
     uint8_t authResultCode = TDD_AUTH_RESULT;
     AttestWriteAuthResultCode((char*)&authResultCode, 1);
     AttestResultInfo attestResultInfo = { .softwareResultDetail = {-2, -2, -2, -2, -2} };
     attestResultInfo.ticket = NULL;
-    int32_t ret = EntryGetAttestStatus(&attestResultInfo);
-    EXPECT_TRUE((ret == DEVATTEST_SUCCESS) && (attestResultInfo.authResult == DEVATTEST_SUCCESS));
+    ret = EntryGetAttestStatus(&attestResultInfo);
+    EXPECT_TRUE((ret == ATTEST_OK) && (attestResultInfo.authResult == ATTEST_OK));
     EXPECT_TRUE((attestResultInfo.ticket != nullptr));
     if (attestResultInfo.ticket == nullptr) {
         return;

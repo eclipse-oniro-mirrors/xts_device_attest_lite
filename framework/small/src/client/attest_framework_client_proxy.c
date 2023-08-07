@@ -15,17 +15,15 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <securec.h>
-#include <ohos_errno.h>
-#include <ohos_types.h>
 #include <registry.h>
 #include <iunknown.h>
 #include <samgr_lite.h>
 #include <iproxy_client.h>
 #include <iproxy_server.h>
 
-#include "attest_log.h"
+#include "devattest_errno.h"
+#include "devattest_log.h"
 #include "attest_framework_define.h"
 #include "devattest_interface.h"
 
@@ -42,6 +40,39 @@ typedef struct {
 } AttestClientEntry;
 
 static AttestClientProxy *g_clientProxy;
+
+static int32_t ReadAttestResultTicket(IpcIo *reply, AttestResultInfo **attestStatus)
+{
+    if ((attestStatus == NULL) || (*attestStatus == NULL) || (reply == NULL)) {
+        HILOGE("[ReadAttestResultTicket] Invalid parameter.");
+        return DEVATTEST_FAIL;
+    }
+    AttestResultInfo *attestResult = *attestStatus;
+    size_t len = 0;
+    char *ticket = (char *)ReadString(reply, &len);
+    if (ticket == NULL) {
+        HILOGE("[ReadAttestResultTicket] Failed to ReadString.");
+        return DEVATTEST_FAIL;
+    }
+    len = strlen(ticket) + 1;
+    if (len > MAX_TICKET_SIZE) {
+        HILOGE("[ReadAttestResultTicket] The len is too large.");
+        return DEVATTEST_FAIL;
+    }
+    char* backTicket = (char *)malloc(len);
+    if (backTicket == NULL) {
+        HILOGE("[ReadAttestResultTicket] Failed to malloc backTicket.");
+        return DEVATTEST_FAIL;
+    }
+    (void)memset_s(backTicket, len, 0, len);
+    if (memcpy_s(backTicket, len, ticket, len) != 0) {
+        HILOGE("[ReadAttestResultTicket] Failed to copy ticket.");
+        free(backTicket);
+        return DEVATTEST_FAIL;
+    }
+    attestResult->ticket = backTicket;
+    return DEVATTEST_SUCCESS;
+}
 
 static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatus)
 {
@@ -74,29 +105,7 @@ static int32_t ReadAttestResultInfo(IpcIo *reply, AttestResultInfo **attestStatu
         return DEVATTEST_FAIL;
     }
 
-    char *ticket = (char *)ReadString(reply, &len);
-    if (ticket == NULL) {
-        HILOGE("[ReadAttestResultInfo] Failed to ReadString.");
-        return DEVATTEST_FAIL;
-    }
-    len = strlen(ticket) + 1;
-    if (len > MAX_TICKET_SIZE) {
-        HILOGE("[ReadAttestResultInfo] The len is too large.");
-        return DEVATTEST_FAIL;
-    }
-    char* backTicket = (char *)malloc(len);
-    if (backTicket == NULL) {
-        HILOGE("[ReadAttestResultInfo] Failed to malloc backTicket.");
-        return DEVATTEST_FAIL;
-    }
-    (void)memset_s(backTicket, len, 0, len);
-    if (memcpy_s(backTicket, len, ticket, len) != 0) {
-        HILOGE("[ReadAttestResultInfo] Failed to copy ticket.");
-        free(backTicket);
-        return DEVATTEST_FAIL;
-    }
-    attestResult->ticket = backTicket;
-    return DEVATTEST_SUCCESS;
+    return ReadAttestResultTicket(reply, attestStatus);
 }
 
 static int AttestClientQueryStatusCb(void *owner, int code, IpcIo *reply)

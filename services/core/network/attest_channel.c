@@ -36,43 +36,39 @@ static int32_t X509CheckTime(const mbedtls_x509_time *before, const mbedtls_x509
     }
     if (before->year > after->year) {
         return ATTEST_ERR;
+    } else if (before->year < after->year) {
+        return ATTEST_OK;
     }
-
-    if (before->year == after->year &&
-        before->mon > after->mon) {
+    // same year
+    if (before->mon > after->mon) {
         return ATTEST_ERR;
+    } else if (before->mon < after->mon) {
+        return ATTEST_OK;
     }
-
-    if (before->year == after->year &&
-        before->mon == after->mon &&
-        before->day > after->day) {
+    // same year and mon
+    if (before->day > after->day) {
         return ATTEST_ERR;
+    } else if (before->day < after->day) {
+        return ATTEST_OK;
     }
-
-    if (before->year == after->year &&
-        before->mon == after->mon &&
-        before->day == after->day &&
-        before->hour > after->hour) {
+    // same year, mon and day
+    if (before->hour > after->hour) {
         return ATTEST_ERR;
+    } else if (before->hour < after->hour) {
+        return ATTEST_OK;
     }
-
-    if (before->year == after->year &&
-        before->mon == after->mon &&
-        before->day == after->day &&
-        before->hour == after->hour &&
-        before->min > after->min) {
+    // same year, mon, day and hour
+    if (before->min > after->min) {
         return ATTEST_ERR;
+    } else if (before->min < after->min) {
+        return ATTEST_OK;
     }
-
-    if (before->year == after->year &&
-        before->mon == after->mon &&
-        before->day == after->day &&
-        before->hour == after->hour &&
-        before->min == after->min &&
-        before->sec > after->sec) {
+    // same year, mon, day, hour and min
+    if (before->sec > after->sec) {
         return ATTEST_ERR;
+    } else if (before->sec < after->sec) {
+        return ATTEST_OK;
     }
-
     return ATTEST_OK;
 }
 

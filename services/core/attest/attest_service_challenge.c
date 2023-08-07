@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#include <math.h>
+#include <stdio.h>
+#include <signal.h>
 #include "attest_type.h"
 #include "attest_utils.h"
 #include "attest_utils_log.h"
@@ -21,7 +24,6 @@
 #include "attest_network.h"
 #include "attest_service_device.h"
 #include "attest_adapter_mock.h"
-#include "attest_adapter.h"
 #include "attest_service_challenge.h"
 
 static ChallengeResult* CreateChallengeResult(void)
@@ -90,7 +92,7 @@ static int32_t ParseChallengeResult(const char* jsonStr, ChallengeResult* challe
     }
     double errorCode = GetObjectItemValueNumber(jsonStr, "errcode");
     if (isnan(errorCode)) {
-        ATTEST_LOG_ERROR("[ParseChallengeResult] Parse msg failed.");
+        ATTEST_LOG_ERROR("[ParseChallengeResult] GetObjectItem errcode failed.");
         return ATTEST_ERR;
     }
     if ((int32_t)errorCode != ATTEST_OK) {
@@ -173,7 +175,7 @@ static int32_t SetChallenge(ChallengeResult* challengeResult, ATTEST_ACTION_TYPE
 static ChallengeResult* GetChallengeImpl(ATTEST_ACTION_TYPE actionType)
 {
     int32_t ret = ATTEST_ERR;
-    ChallengeResult *challengeResult = CreateChallengeResult();
+    ChallengeResult* challengeResult = CreateChallengeResult();
     if (challengeResult == NULL) {
         ATTEST_LOG_ERROR("[GetChallengeImpl] Create ChallengeResult failed.");
         return NULL;
@@ -204,7 +206,6 @@ int32_t GetChallenge(ChallengeResult** challResult, ATTEST_ACTION_TYPE actionTyp
         ATTEST_LOG_ERROR("[GetChallenge] GetChallengeImpl fail");
         return ATTEST_ERR;
     }
-    ATTEST_LOG_DEBUG("[GetChallenge] Update net config.");
     int32_t updateFlag = UPDATE_NO;
     char* activeSite = challengeResult->cloudServerInfo.activeSite;
     char* standbySite = challengeResult->cloudServerInfo.standbySite;

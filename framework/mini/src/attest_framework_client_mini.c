@@ -14,9 +14,10 @@
  */
 
 #include <stdio.h>
-
-#include "attest_entry.h"
+#include "devattest_configuration.h"
+#include "devattest_errno.h"
 #include "devattest_interface.h"
+#include "attest_entry.h"
 
 int32_t StartDevAttestTask(void)
 {

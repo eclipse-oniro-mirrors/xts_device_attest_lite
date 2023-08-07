@@ -16,9 +16,7 @@
 #ifndef __ATTEST_UTILS_H__
 #define __ATTEST_UTILS_H__
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include <stdio.h>
 #include "attest_type.h"
 
 #ifdef __cplusplus
