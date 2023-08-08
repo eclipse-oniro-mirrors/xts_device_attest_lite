@@ -16,7 +16,7 @@
 #ifndef __ATTEST_SERVICE_AUTH_H__
 #define __ATTEST_SERVICE_AUTH_H__
 
-#include "mbedtls/base64.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -36,7 +36,9 @@ int32_t CheckVersionChanged(AuthStatus* authStatus);
 
 uint64_t GetCurrentTime(void);
 
-int32_t CheckAuthResult(AuthStatus* authStatus, uint64_t currentTime);
+int32_t CheckExpireTime(AuthStatus* authStatus, uint64_t currentTime);
+
+int32_t CheckAuthResult(AuthStatus* authStatus);
 
 AuthStatus* CreateAuthStatus(void);
 
@@ -48,7 +50,7 @@ AuthResult* CreateAuthResult(void);
 
 void DestroyAuthResult(AuthResult** authResult);
 
-int32_t GenAuthMsg(ChallengeResult* challengeResult, DevicePacket** devPacket);
+int32_t GenAuthMsg(const ChallengeResult* challengeResult, DevicePacket** devPacket);
 
 int32_t SendAuthMsg(const DevicePacket* devicePacket, char** respMsg);
 

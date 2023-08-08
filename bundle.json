@@ -47,13 +47,15 @@
             "header_base":"//test/xts/device_attest_lite/interfaces/innerkits",
             "header_files": [
               "devattest_interface.h",
-              "devattest_msg_def.h"
+              "attest_result_info.h"
             ]
           },
           "name": "//test/xts/device_attest_lite/framework:devattest_client"
         }
       ],
-      "test": []
+      "test": [
+        "//test/xts/device_attest_lite/test/unittest:unittest"
+      ]
     }
   }
 }

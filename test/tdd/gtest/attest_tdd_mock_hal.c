@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <stdbool.h>
 #include <securec.h>
 #include "attest_utils_log.h"
 #include "attest_adapter_mock.h"

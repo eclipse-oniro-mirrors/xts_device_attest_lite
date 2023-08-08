@@ -17,16 +17,6 @@
 #define ATTEST_TYPE_H
 
 #include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
-#include "cJSON.h"
-#include "limits.h"
-#include "securec.h"
 #include "attest_error.h"
 
 #ifdef __cplusplus
@@ -93,16 +83,15 @@ typedef struct {
     uint64_t expireTime;  // 项目新增字段，参考接口文档
 } AuthStatus;
 
-// 挑战值结果中域名信息
 typedef struct {
-    char* activeSite;
-    char* standbySite;
+    char *activeSite;
+    char *standbySite;
 } CloudServerInfo;
 
 // 获取挑战值返回结果
 typedef struct {
     uint64_t currentTime;
-    char* challenge;
+    char *challenge;
     CloudServerInfo cloudServerInfo;
 } ChallengeResult;
 

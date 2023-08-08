@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <string.h>
+#include <securec.h>
 #include "pthread.h"
 #include "time.h"
 #include "attest_type.h"
@@ -234,7 +236,7 @@ static void FlushAttestData(const char* ticket, const char* authStatus)
     }
     // 获取启动子系统parameter结果
     if (GetAttestStatusPara() != ATTEST_OK) {
-        ATTEST_LOG_WARN("[ProcAttestImpl] Get para failed");
+        ATTEST_LOG_WARN("[FlushAttestData] Get para failed");
     }
 }
 
@@ -268,6 +270,7 @@ static int32_t AttestStartup(AuthResult *authResult)
     }
     if (ret != ATTEST_OK) {
         UpdateAuthResultCode(AUTH_FAILED);
+        AttestSetParameter(STARTSUP_PARA_ATTEST_KEY, STARTSUP_PARA_ATTEST_ERROR);
         ATTEST_LOG_ERROR("[AttestStartup] Auth token failed, ret = %d.", ret);
         return ATTEST_ERR;
     }
@@ -275,6 +278,7 @@ static int32_t AttestStartup(AuthResult *authResult)
     ATTEST_LOG_INFO("[AttestStartup] Flush auth result.");
     FlushAttestData(authResult->ticket, authResult->authStatus);
     UpdateAuthResultCode(AUTH_SUCCESS);
+    AttestCreateResetFlag();
     // token激活
     ATTEST_LOG_INFO("[AttestStartup] Active token.");
     for (int32_t i = 0; i <= WISE_RETRY_CNT; i++) {
@@ -381,7 +385,7 @@ static int32_t CopyResultArray(AuthStatus* authStatus, int32_t** resultArray)
     head[ATTEST_RESULT_PATCHLEVEL] = AttestStatusTrans(softwareResultDetail->patchLevelResult);
     head[ATTEST_RESULT_ROOTHASH] = AttestStatusTrans(softwareResultDetail->rootHashResult);
     head[ATTEST_RESULT_PCID] = AttestStatusTrans(softwareResultDetail->pcidResult);
-    head[ATTEST_RESULT_RESERVE] = DEVICE_ATTEST_INIT;
+    head[ATTEST_RESULT_RESERVE] = DEVICE_ATTEST_INIT; // Always equal to DEVICE_ATTEST_INIT
     return ATTEST_OK;
 }
 
@@ -394,6 +398,7 @@ static int32_t SetAttestResultArray(int32_t** resultArray, int32_t value)
     for (int32_t i = 0; i < ATTEST_RESULT_MAX; i++) {
         head[i] = value;
     }
+    head[ATTEST_RESULT_RESERVE] = DEVICE_ATTEST_INIT; // Always equal to DEVICE_ATTEST_INIT
     return ATTEST_OK;
 }
 
@@ -483,7 +488,7 @@ static int32_t QueryAttestStatusSwitch(int32_t** resultArray, int32_t arraySize,
             ATTEST_LOG_INFO("[QueryAttestStatusSwitch] authResultCode is 0, ret = %d", ret);
             break;
         default:
-            ATTEST_LOG_INFO("[QueryAttestStatusSwitch] authResultCode is invalid");
+            ATTEST_LOG_WARN("[QueryAttestStatusSwitch] authResultCode is invalid");
             break;
     }
     return ret;

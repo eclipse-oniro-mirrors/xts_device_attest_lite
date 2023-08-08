@@ -19,7 +19,7 @@
 #include <iunknown.h>
 #include <samgr_lite.h>
 
-#include "attest_log.h"
+#include "devattest_log.h"
 #include "attest_framework_define.h"
 
 typedef struct {

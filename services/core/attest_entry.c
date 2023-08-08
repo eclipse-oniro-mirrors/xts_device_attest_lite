@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
+#include <securec.h>
+#include "devattest_configuration.h"
 #include "attest_type.h"
+#include "attest_error.h"
 #include "attest_utils_log.h"
 #include "attest_utils_timer.h"
 #include "attest_service.h"
@@ -77,25 +80,18 @@ static void AttestAuthCallBack(void *argv)
     }
     return;
 }
-#endif
+#endif // __LITEOS_M__
 
 int32_t AttestTask(void)
 {
     ATTEST_LOG_INFO("[AttestTask] Begin.");
-    // 执行主流程代码
     int32_t ret = ProcAttest();
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[AttestTask] Proc failed ret = %d.", ret);
     }
-
-    // 创建主流程定时器
-    ret = AttestCreateTimerTask(ATTEST_TIMER_TYPE_PERIOD,
-        EXPIRED_INTERVAL,
-        &AttestAuthCallBack,
-        NULL,
-        &g_ProcAttestTimerId);
+    ret = AttestCreateTimerTask();
     if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[AttestTask] Create Periodic TimerTask return ret = %d.", ret);
+        ATTEST_LOG_ERROR("[AttestTask] TimerTask failed ret = %d.", ret);
     }
     ATTEST_LOG_INFO("[AttestTask] End.");
     return ret;
@@ -104,7 +100,7 @@ int32_t AttestTask(void)
 static int32_t CopyAttestResult(int32_t *resultArray, AttestResultInfo *attestResultInfo)
 {
     if (resultArray == NULL) {
-        return DEVATTEST_FAIL;
+        return ATTEST_ERR;
     }
     int32_t *head = resultArray;
     attestResultInfo->authResult = *head;
@@ -113,32 +109,32 @@ static int32_t CopyAttestResult(int32_t *resultArray, AttestResultInfo *attestRe
     for (int i = 0; i < SOFTWARE_RESULT_DETAIL_SIZE; i++) {
         attestResultInfo->softwareResultDetail[i] = *(++head);
     }
-    return DEVATTEST_SUCCESS;
+    return ATTEST_OK;
 }
 
 int32_t EntryGetAttestStatus(AttestResultInfo* attestResultInfo)
 {
     if (attestResultInfo == NULL) {
-        return DEVATTEST_FAIL;
+        return ATTEST_ERR;
     }
     int32_t resultArraySize = MAX_ATTEST_RESULT_SIZE * sizeof(int32_t);
     int32_t *resultArray = (int32_t *)malloc(resultArraySize);
     if (resultArray == NULL) {
         ATTEST_LOG_ERROR("malloc resultArray failed");
-        return DEVATTEST_FAIL;
+        return ATTEST_ERR;
     }
     (void)memset_s(resultArray, resultArraySize, 0, resultArraySize);
     int32_t ticketLength = 0;
     char* ticketStr = NULL;
-    int32_t ret = DEVATTEST_SUCCESS;
+    int32_t ret = ATTEST_OK;
     do {
         ret = QueryAttestStatus(&resultArray, MAX_ATTEST_RESULT_SIZE, &ticketStr, &ticketLength);
-        if (ret != DEVATTEST_SUCCESS) {
+        if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("QueryAttest failed");
             break;
         }
         ret = CopyAttestResult(resultArray,  attestResultInfo);
-        if (ret != DEVATTEST_SUCCESS) {
+        if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("copy attest result failed");
             break;
         }
@@ -149,4 +145,26 @@ int32_t EntryGetAttestStatus(AttestResultInfo* attestResultInfo)
     resultArray = NULL;
     ATTEST_LOG_INFO("GetAttestStatus end success");
     return ret;
+}
+
+int32_t AttestCreateTimerTask(void)
+{
+    if (g_ProcAttestTimerId != NULL) {
+        return ATTEST_OK;
+    }
+
+    int32_t ret = AttestStartTimerTask(ATTEST_TIMER_TYPE_PERIOD,
+        EXPIRED_INTERVAL,
+        &AttestAuthCallBack,
+        NULL,
+        &g_ProcAttestTimerId);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[AttestCreateTimerTask] Create Periodic TimerTask failed, ret = %d.", ret);
+    }
+    return ret;
+}
+
+int32_t AttestDestroyTimerTask(void)
+{
+    return AttestStopTimerTask(g_ProcAttestTimerId);
 }

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ATTEST_LOG_H
-#define ATTEST_LOG_H
+#ifndef DEVATTEST_LOG_H
+#define DEVATTEST_LOG_H
 
 #include "hilog/log.h"
 
@@ -44,4 +44,4 @@ extern "C" {
 #endif
 #endif
 
-#endif
+#endif // DEVATTEST_LOG_H

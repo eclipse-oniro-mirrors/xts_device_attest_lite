@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -25,9 +25,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
-
-#include "securec.h"
-
+#include <securec.h>
+#include "cJSON.h"
 #include "attest_utils.h"
 #include "attest_utils_log.h"
 #include "attest_utils_list.h"
@@ -790,7 +789,6 @@ static int32_t SendCoapMsg(const TLSSession* session, const DevicePacket* devPac
         ATTEST_LOG_ERROR("[SendCoapMsg] Invalid parameter.");
         return ATTEST_ERR;
     }
-
     int32_t ret = ATTEST_OK;
     size_t coapMessageLen = MAX_MESSAGE_LEN;
     char* coapMessage = (char*)ATTEST_MEM_MALLOC(sizeof(char) * MAX_MESSAGE_LEN);

@@ -23,8 +23,8 @@
 #include <samgr_lite.h>
 #include <iproxy_client.h>
 #include <iproxy_server.h>
-
-#include "attest_log.h"
+#include "devattest_errno.h"
+#include "devattest_log.h"
 #include "attest_framework_define.h"
 #include "attest_entry.h"
 
@@ -126,8 +126,8 @@ static int32_t FeatureQueryAttest(IpcIo *reply)
         return DEVATTEST_FAIL;
     }
     AttestResultInfo attestResultInfo = { .softwareResultDetail = {-2, -2, -2, -2, -2} };
-    attestResultInfo.authResult = ATTEST_DEFAULT_RESULT;
-    attestResultInfo.softwareResult = ATTEST_DEFAULT_RESULT;
+    attestResultInfo.authResult = DEVATTEST_RESULT_INIT;
+    attestResultInfo.softwareResult = DEVATTEST_RESULT_INIT;
     attestResultInfo.ticket = NULL;
     int32_t ret = EntryGetAttestStatus(&attestResultInfo);
     if (ret != DEVATTEST_SUCCESS) {

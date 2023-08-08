@@ -33,7 +33,10 @@ executable("devattest_client") {
 
   ldflags = [ "-pthread" ]
 
-  include_dirs = [ "${devattest_path}/interfaces/innerkits" ]
+  include_dirs = [
+    "${devattest_path}/common",
+    "${devattest_path}/interfaces/innerkits",
+  ]
 
   deps = [ "${devattest_path}/framework:devattest_client" ]
 }

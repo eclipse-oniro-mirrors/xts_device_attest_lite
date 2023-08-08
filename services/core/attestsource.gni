@@ -12,55 +12,72 @@
 # limitations under the License.
 
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
-path = "${devattest_path}/services/core"
+
 sources_common = [
-  "${path}/attest_entry.c",
-  "${path}/adapter/attest_adapter.c",
-  "${path}/adapter/attest_adapter_os.c",
-  "${path}/adapter/attest_adapter_oem.c",
-  "${path}/adapter/attest_adapter_mock.c",
-  "${path}/attest/attest_service.c",
-  "${path}/attest/attest_service_auth.c",
-  "${path}/attest/attest_service_active.c",
-  "${path}/attest/attest_service_challenge.c",
-  "${path}/attest/attest_service_reset.c",
-  "${path}/attest/attest_service_device.c",
-  "${path}/network/attest_coap.c",
-  "${path}/network/attest_network.c",
-  "${path}/network/attest_tls.c",
-  "${path}/security/attest_security.c",
-  "${path}/security/attest_security_token.c",
-  "${path}/security/attest_security_ticket.c",
-  "${path}/utils/attest_utils_file.c",
-  "${path}/utils/attest_utils_json.c",
-  "${path}/utils/attest_utils_log.c",
-  "${path}/utils/attest_utils_timer.c",
-  "${path}/utils/attest_utils_list.c",
-  "${path}/utils/attest_utils.c",
+  "${attest_core_path}/attest_entry.c",
+  "${attest_core_path}/adapter/attest_adapter.c",
+  "${attest_core_path}/adapter/attest_adapter_os.c",
+  "${attest_core_path}/adapter/attest_adapter_oem.c",
+  "${attest_core_path}/adapter/attest_adapter_mock.c",
+  "${attest_core_path}/attest/attest_service.c",
+  "${attest_core_path}/attest/attest_service_auth.c",
+  "${attest_core_path}/attest/attest_service_active.c",
+  "${attest_core_path}/attest/attest_service_challenge.c",
+  "${attest_core_path}/attest/attest_service_reset.c",
+  "${attest_core_path}/attest/attest_service_device.c",
+  "${attest_core_path}/network/attest_network.c",
+  "${attest_core_path}/security/attest_security.c",
+  "${attest_core_path}/security/attest_security_token.c",
+  "${attest_core_path}/security/attest_security_ticket.c",
+  "${attest_core_path}/utils/attest_utils_file.c",
+  "${attest_core_path}/utils/attest_utils_json.c",
+  "${attest_core_path}/utils/attest_utils_log.c",
+  "${attest_core_path}/utils/attest_utils_timer.c",
+  "${attest_core_path}/utils/attest_utils_list.c",
+  "${attest_core_path}/utils/attest_utils.c",
+]
+
+sources_common += [
+  "${attest_core_path}/network/attest_coap.c",
+  "${attest_core_path}/network/attest_tls.c",
 ]
 
 sources_mock = [
-  "${path}/adapter/attest_adapter_hal.c",
-  "${path}/adapter/attest_adapter_property.c",
-  "${path}/network/attest_channel.c",
+  "${attest_core_path}/adapter/attest_adapter_hal.c",
+  "${attest_core_path}/adapter/attest_adapter_property.c",
 ]
 
-core_dirs = [
-  "${path}/include",
-  "${path}/include/adapter",
-  "${path}/include/attest",
-  "${path}/include/dfx",
-  "${path}/include/security",
-  "${path}/include/network",
-  "${path}/include/utils",
+sources_mock += [ "${attest_core_path}/network/attest_channel.c" ]
+
+include_core_dirs = [
+  "${attest_core_path}/include",
+  "${attest_core_path}/include/adapter",
+  "${attest_core_path}/include/attest",
+  "${attest_core_path}/include/dfx",
+  "${attest_core_path}/include/security",
+  "${attest_core_path}/include/network",
+  "${attest_core_path}/include/utils",
   "${devattest_path}/services/oem_adapter/include",
+  "${devattest_path}/interfaces/innerkits",
   "//base/startup/init/interfaces/innerkits/include/syspara",
   "//base/hiviewdfx/hilog_lite/interfaces/native/kits",
   "//utils/native/lite/include",
   "//third_party/cJSON",
   "//third_party/bounds_checking_function/include",
-  "${devattest_path}/interfaces/innerkits",
   "//base/startup/init/interfaces/hals",
   "//base/startup/init/interfaces/innerkits/include/syspara",
+  "//developtools/syscap_codec/interfaces/inner_api",
+]
+
+include_core_dirs += [
+  "${devattest_path}/services/oem_adapter/include",
+  "${devattest_path}/interfaces/innerkits",
+  "//utils/native/lite/include",
+  "//base/startup/init/interfaces/innerkits/include/syspara",
+  "//base/hiviewdfx/hilog_lite/interfaces/native/kits",
+  "//base/startup/init/interfaces/hals",
+  "//base/startup/init/interfaces/innerkits/include/syspara",
+  "//third_party/cJSON",
+  "//third_party/bounds_checking_function/include",
   "//developtools/syscap_codec/interfaces/inner_api",
 ]

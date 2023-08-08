@@ -12,7 +12,10 @@
 # limitations under the License.
 
 devattest_path = "//test/xts/device_attest_lite"
+
 devattest_innerkit_path = "${devattest_path}/interfaces/innerkits"
+
+attest_core_path = "${devattest_path}/services/core"
 
 declare_args() {
   attest_release = "attest_release"

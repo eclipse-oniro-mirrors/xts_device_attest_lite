@@ -16,8 +16,9 @@
 #include <unordered_map>
 #include "securec.h"
 #include "js_async_work.h"
+#include "devattest_errno.h"
 #include "devattest_interface.h"
-#include "attest_log.h"
+#include "devattest_log.h"
 #include "native_device_attest.h"
 using namespace std;
 

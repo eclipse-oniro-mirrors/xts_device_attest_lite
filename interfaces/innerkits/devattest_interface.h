@@ -15,7 +15,7 @@
 #ifndef DEVATTEST_INTERFACE_H
 #define DEVATTEST_INTERFACE_H
 
-#include "devattest_msg_def.h"
+#include "attest_result_info.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -23,10 +23,18 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
-// 异步接口
+/**
+ * @Desc Asynchronous interface, start device_attest task.
+ * @Para Void.
+ * @Return Returning 0 represents success, while returning other represents failure.
+ */
 int32_t StartDevAttestTask(void);
 
-// 同步接口 10ms级别
+/**
+ * @Desc Synchronous interface, get the result of device_attest. And it consume about 10ms.
+ * @Para Pointer to the structure of result of device_attest.
+ * @Return Returning 0 represents success, while returning other represents failure.
+ */
 int32_t GetAttestStatus(AttestResultInfo* attestResultInfo);
 
 #ifdef __cplusplus

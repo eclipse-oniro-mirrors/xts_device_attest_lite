@@ -14,11 +14,12 @@
  */
 
 #include <stdbool.h>
-#include "securec.h"
-#include "attest_error.h"
+#include <securec.h>
+#include "mbedtls/md.h"
 #include "attest_adapter.h"
-#include "attest_utils_log.h"
 #include "attest_dfx.h"
+#include "attest_utils.h"
+#include "attest_utils_log.h"
 #include "attest_security.h"
 #include "attest_security_token.h"
 
@@ -301,6 +302,7 @@ int32_t GetTokenId(uint8_t* tokenId, uint8_t tokenIdLen)
         ATTEST_LOG_ERROR("[GetTokenId] Get decrypted token id failed");
         return ATTEST_ERR;
     }
+
     return ret;
 }
 

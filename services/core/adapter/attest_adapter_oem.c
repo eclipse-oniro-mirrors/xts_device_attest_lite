@@ -13,20 +13,36 @@
  * limitations under the License.
  */
 
-#include "attest_type.h"
+#include <securec.h>
 #include "attest_utils_file.h"
 #include "attest_adapter_oem.h"
 
-// 是否存在重置标记
-bool OEMIsResetFlagExist(void)
+// 是否存在标记
+bool OEMIsFlagExist(OEM_FLAG_TYPE type)
 {
-    return IsFileExist(AUTH_RESULT_PATH, RESET_FLAG_FILE_NAME);
+    bool result = false;
+    switch (type) {
+        case OEM_FLAG_RESET:
+            result = IsFileExist(AUTH_RESULT_PATH, RESET_FLAG_FILE_NAME);
+            break;
+        default:
+            break;
+    }
+    return result;
 }
 
-// 创建重置标记
-int32_t OEMCreateResetFlag(void)
+// 创建标记
+int32_t OEMCreateFlag(OEM_FLAG_TYPE type)
 {
-    return CreateFile(AUTH_RESULT_PATH, RESET_FLAG_FILE_NAME);
+    int32_t result = ATTEST_ERR;
+    switch (type) {
+        case OEM_FLAG_RESET:
+            result = CreateFile(AUTH_RESULT_PATH, RESET_FLAG_FILE_NAME);
+            break;
+        default:
+            break;
+    }
+    return result;
 }
 
 // 写入认证结果
@@ -79,18 +95,19 @@ int32_t OEMWriteTicket(const TicketInfo* ticketInfo)
     return WriteFile(AUTH_RESULT_PATH, TICKET_FILE_NAME, ticket, sizeof(ticket));
 }
 
-// 读取网络配置信息
-int32_t OEMReadNetworkConfig(char* buffer, uint32_t bufferLen)
-{
-    return ReadFile(AUTH_RESULT_PATH, NETWORK_CONFIG_FILE_NAME, buffer, bufferLen);
-}
-
-int32_t OEMWriteNetworkConfig(const char* data, uint32_t len)
+// 写入网络配置信息
+int32_t OEMWriteNetworkConfig(const char* buffer, uint32_t bufferLen)
 {
     if (CreateFile(AUTH_RESULT_PATH, NETWORK_CONFIG_FILE_NAME) != 0) {
         return ATTEST_ERR;
     }
-    return WriteFile(AUTH_RESULT_PATH, NETWORK_CONFIG_FILE_NAME, data, len);
+    return WriteFile(AUTH_RESULT_PATH, NETWORK_CONFIG_FILE_NAME, buffer, bufferLen);
+}
+
+// 读取网络配置信息
+int32_t OEMReadNetworkConfig(char* buffer, uint32_t bufferLen)
+{
+    return ReadFile(AUTH_RESULT_PATH, NETWORK_CONFIG_FILE_NAME, buffer, bufferLen);
 }
 
 // 写入认证结果

@@ -15,7 +15,7 @@
 #ifndef ATTEST_FRAMEWORK_DEFINE_H
 #define ATTEST_FRAMEWORK_DEFINE_H
 
-#include "devattest_msg_def.h"
+#include "attest_result_info.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -27,7 +27,6 @@ extern "C" {
 #define ATTEST_QUEUE_SIZE     20
 #define ATTEST_SERVICE        "attest_service"
 #define ATTEST_FEATURE        "attest_feature"
-#define ATTEST_DEFAULT_RESULT (-2)
 
 typedef enum {
     ATTEST_FRAMEWORK_MSG_PROC,

@@ -18,9 +18,8 @@ lite_component("device_atTest_lite") {
   if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
     features += [
       "framework:devattest_service",
-      "test/startup:devattest_client",
       "interfaces/kit/js:kit_device_attest",
-      "test/tdd/gtest:device_attest_tdd",
+      "test/startup:devattest_client",
     ]
   } else if (ohos_kernel_type == "liteos_m") {
     features += [ "framework:devattest_sdk" ]

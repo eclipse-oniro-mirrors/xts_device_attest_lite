@@ -16,9 +16,8 @@
 #ifndef __ATTEST_UTILS_TIMER_H__
 #define __ATTEST_UTILS_TIMER_H__
 
-#include <signal.h>
 #include <time.h>
-#include "stdint.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -51,8 +50,8 @@ typedef struct {
     AttestTimerStatus status;
 } AttestTimerInfo;
 
-int32_t AttestCreateTimerTask(AttestTimerType isOnce, uint32_t milliseconds,
-                              void *func, void *arg, ATTEST_TIMER_ID *timerHandle);
+int32_t AttestStartTimerTask(AttestTimerType isOnce, uint32_t milliseconds,
+    void *func, void *arg, ATTEST_TIMER_ID *timerHandle);
 
 int32_t AttestStopTimerTask(const ATTEST_TIMER_ID attestTimerId);
 
