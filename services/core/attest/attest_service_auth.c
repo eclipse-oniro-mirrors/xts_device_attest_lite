@@ -91,9 +91,13 @@ int32_t FlushAttestStatusPara(const char* authStatusBase64)
         ATTEST_LOG_ERROR("[FlushAttestStatusPara] Decode Auth Status failed");
         return ATTEST_ERR;
     }
-    int32_t result = authStatus->hardwareResult;
 
-    char* attestResult = (result == 0) ? STARTSUP_PARA_ATTEST_OK : STARTSUP_PARA_ATTEST_ERROR;
+    int32_t result = DEVICE_ATTEST_FAIL;
+    if (authStatus->hardwareResult == DEVICE_ATTEST_PASS && authStatus->softwareResult == DEVICE_ATTEST_PASS) {
+        result = DEVICE_ATTEST_PASS;
+    }
+
+    char* attestResult = (result == DEVICE_ATTEST_PASS) ? STARTSUP_PARA_ATTEST_OK : STARTSUP_PARA_ATTEST_ERROR;
     int32_t ret = AttestSetParameter(STARTSUP_PARA_ATTEST_KEY, attestResult);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[FlushAttestStatusPara] set parameter failed, ret = %d.", ret);
@@ -110,10 +114,10 @@ int32_t GetAttestStatusPara(void)
     int ret = AttestGetParameter(STARTSUP_PARA_ATTEST_KEY, STARTSUP_PARA_ATTEST_ERROR,
                                  attestResult, sizeof(attestResult));
     if ((ret != 0) && (strcmp(STARTSUP_PARA_ATTEST_OK, attestResult) == 0)) {
-        ATTEST_LOG_INFO("[GetAttestStatusPara] success, attest.auth.result = %s.", attestResult);
+        ATTEST_LOG_INFO("[GetAttestStatusPara] success.");
         return ATTEST_OK;
     }
-    ATTEST_LOG_INFO("[GetAttestStatusPara] failed.");
+    ATTEST_LOG_WARN("[GetAttestStatusPara] failed.");
     return ATTEST_ERR;
 }
 
