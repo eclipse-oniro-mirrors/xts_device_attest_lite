@@ -139,7 +139,7 @@ const unsigned char GLOBALSIGN_ECC_ROOT_CA_DER[] = {
     0X3B, 0XE1, 0X78, 0X09, 0X85, 0XA8, 0X75, 0X92, 0X3B, 0XC8, 0X5C, 0XFD,
     0X48, 0XEF, 0X0D, 0X74, 0X22, 0XA8, 0X08, 0XE2, 0X6E, 0XC5, 0X49, 0XCE,
     0XC7, 0X0C, 0XBC, 0XA7, 0X61, 0X69, 0XF1, 0XF7, 0X3B, 0XE1, 0X2A, 0XCB,
-    0XF9, 0X2B, 0XF3, 0X66, 0X90, 0X37,
+    0XF9, 0X2B, 0XF3, 0X66, 0X90, 0X37
 };
 
 const unsigned char E46_GLOBALSIGN_ROOT_CA_DER[] = {
@@ -237,18 +237,18 @@ const unsigned char GLOBALSIGN_IOT_ROOT_E60_DER[] = {
     0X4E, 0XEB, 0XE3, 0X57, 0XC0, 0X36, 0X55
 };
 
-
 CertItem g_commonCerts = {
-    .certDer = GLOBALSIGN_ROOT_CA_R3_DER,
-    .certLen = sizeof(GLOBALSIGN_ROOT_CA_R3_DER)
+    .certDer = GLOBALSIGN_ECC_ROOT_CA_DER,
+    .certLen = sizeof(GLOBALSIGN_ECC_ROOT_CA_DER)
 };
 
 CertItem g_commonOtherCert[] = {
     {
-        .certDer = GLOBALSIGN_ECC_ROOT_CA_DER,
-        .certLen = sizeof(GLOBALSIGN_ECC_ROOT_CA_DER)
-	}
+        .certDer = GLOBALSIGN_ROOT_CA_R3_DER,
+        .certLen = sizeof(GLOBALSIGN_ROOT_CA_R3_DER)
+    }
 };
+
 int32_t LoadCommonCert(mbedtls_x509_crt* chain)
 {
     if (chain == NULL) {
