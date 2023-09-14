@@ -279,7 +279,7 @@ int32_t GetTokenValueHmac(const char* challenge, uint8_t* tokenValueHmac, uint8_
         ATTEST_LOG_ERROR("[GetTokenValueHmac] Encrypt token value hmac failed, ret = %d", ret);
         return ret;
     }
-    
+
     ret = Base64Encode(hmac, sizeof(hmac), tokenValueHmac, tokenValueHmacLen);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[GetTokenValueHmac] Encrypt token value base64 encode failed, ret = %d", ret);
