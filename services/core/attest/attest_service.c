@@ -363,7 +363,10 @@ int32_t ProcAttest(void)
 
 static int32_t AttestStatusTrans(int32_t attestStatus)
 {
-    return (attestStatus == 0) ? 0 : -1;
+    if (attestStatus == DEVICE_ATTEST_INIT) {
+        return DEVICE_ATTEST_INIT;
+    }
+    return (attestStatus == DEVICE_ATTEST_PASS) ? DEVICE_ATTEST_PASS : DEVICE_ATTEST_FAIL;
 }
 
 static int32_t CopyResultArray(AuthStatus* authStatus, int32_t** resultArray)
@@ -396,6 +399,9 @@ static int32_t SetAttestResultArray(int32_t** resultArray, int32_t value)
     for (int32_t i = 0; i < ATTEST_RESULT_MAX; i++) {
         head[i] = value;
     }
+#if defined __LITEOS_M__
+    head[ATTEST_RESULT_PCID] = DEVICE_ATTEST_INIT; // pcid of liteos_m is not Supported
+#endif
     head[ATTEST_RESULT_RESERVE] = DEVICE_ATTEST_INIT; // Always equal to DEVICE_ATTEST_INIT
     return ATTEST_OK;
 }
