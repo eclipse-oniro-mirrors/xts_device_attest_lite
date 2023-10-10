@@ -18,7 +18,7 @@
 #define ATTEST_DECIMAL                  (10)
 #define ATTEST_ZERO_CHAR                '0'
 #define ATTEST_ASCII_TO_STRING_SIZE     (4)
-int32_t AttestSeriaToBinary(const char* input, uint8_t** buf, size_t len);
+int32_t AttestSeriaToBinary(const char* input, uint8_t** outputBuff, size_t len);
 int32_t AttestBinaryToSerial(const uint8_t* input, int32_t inputLen,
     uint8_t** outputBuff, int32_t* outputLen);
 #endif
