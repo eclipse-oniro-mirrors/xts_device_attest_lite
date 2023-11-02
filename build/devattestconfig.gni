@@ -40,7 +40,7 @@ declare_args() {
 
   # dfx switch
   enable_attest_debug_dfx = false
-  
+
   # 集成轻量设备授权验证模块
   integrate_attest_mini_module = true
 }
