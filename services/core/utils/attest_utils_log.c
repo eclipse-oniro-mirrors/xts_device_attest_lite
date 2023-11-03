@@ -72,9 +72,11 @@ static void AttestLogPrint(AttestLogLevel logLevel, const char *logBuf)
 
 void AttestLog(AttestLogLevel logLevel, const char* fmt, ...)
 {
-    if (logLevel < ATTEST_HILOG_LEVEL) {
+#ifndef __ATTEST_HILOG_LEVEL_DEBUG__
+    if (logLevel == ATTEST_LOG_LEVEL_DEBUG) {
         return;
     }
+#endif
     char outStr[ATTEST_LOG_STR_LEM] = {0};
     va_list arg;
     va_start(arg, fmt);
@@ -89,7 +91,12 @@ void AttestLog(AttestLogLevel logLevel, const char* fmt, ...)
 
 void AttestLogAnonyStr(AttestLogLevel logLevel, const char* fmt, const char* str)
 {
-    if (fmt == NULL || str == NULL || logLevel < ATTEST_HILOG_LEVEL) {
+#ifndef __ATTEST_HILOG_LEVEL_DEBUG__
+    if (logLevel == ATTEST_LOG_LEVEL_DEBUG) {
+        return;
+    }
+#endif
+    if (fmt == NULL || str == NULL) {
         return;
     }
     char *strDup = AttestStrdup(str);
