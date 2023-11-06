@@ -32,8 +32,7 @@ if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
       "-fPIC",
       "-pthread",
     ]
-    defines = [ "ATTEST_HILOG_LEVEL = 1" ]
-    defines += [ "MBEDTLS_ALLOW_PRIVATE_ACCESS" ]
+    defines = [ "MBEDTLS_ALLOW_PRIVATE_ACCESS" ]
     include_dirs = include_core_dirs
     include_dirs += [
       ".",

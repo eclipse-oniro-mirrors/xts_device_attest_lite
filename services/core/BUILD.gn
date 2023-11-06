@@ -34,9 +34,7 @@ config("devattest_core_config") {
 
   defines = []
   if (enable_attest_log_debug) {
-    defines += [ "ATTEST_HILOG_LEVEL = 0" ]
-  } else {
-    defines += [ "ATTEST_HILOG_LEVEL = 1" ]
+    defines += [ "__ATTEST_HILOG_LEVEL_DEBUG__" ]
   }
 
   if (enable_attest_mock_network) {
