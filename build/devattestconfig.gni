@@ -53,3 +53,7 @@ declare_args() {
 if (attest_build_target == attest_debug) {
   enable_attest_log_debug = true
 }
+
+if (defined(abi_type) && abi_type != "") {
+  integrate_attest_mini_module = false
+}

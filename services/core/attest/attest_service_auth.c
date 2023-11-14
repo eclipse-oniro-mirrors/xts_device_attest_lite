@@ -122,7 +122,7 @@ int32_t GetAttestStatusPara(void)
     int ret = AttestGetParameter(STARTSUP_PARA_ATTEST_KEY, STARTSUP_PARA_ATTEST_ERROR,
                                  attestResult, sizeof(attestResult));
     if ((ret != 0) && (strcmp(STARTSUP_PARA_ATTEST_OK, attestResult) == 0)) {
-        ATTEST_LOG_INFO("[GetAttestStatusPara] success.");
+        ATTEST_LOG_INFO("[GetAttestStatusPara] success, persist.xts.devattest.authresult = %s", attestResult);
         return ATTEST_OK;
     }
     ATTEST_LOG_WARN("[GetAttestStatusPara] failed.");

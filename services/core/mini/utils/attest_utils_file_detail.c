@@ -17,11 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-
 #include "utils_file.h"
-#include <hi_tsensor.h>
-
-
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -29,11 +25,14 @@
 #include "attest_utils.h"
 #include "attest_utils_file.h"
 
-
-#define WRITE_FLASH_MAX_TEMPERATURE 80
 static const uint32_t MAX_FILE_BYTES_LIMIT = 5120;
 
-// L0 温度监控
+#if defined(CHIP_VER_Hi3861)
+#include <hi_tsensor.h>
+
+#define WRITE_FLASH_MAX_TEMPERATURE 80
+
+// 轻量设备温度监控
 bool IsOverTemperatureLimit(void)
 {
     hi_s16 temperature = 0;
@@ -48,6 +47,15 @@ bool IsOverTemperatureLimit(void)
     ATTEST_LOG_DEBUG("[IsOverTemperatureLimit]: device's temperature = %d", temperature);
     return (temperature >= WRITE_FLASH_MAX_TEMPERATURE);
 }
+
+#else
+
+bool IsOverTemperatureLimit(void)
+{
+    return false;
+}
+
+#endif // defined(CHIP_VER_Hi3861)
 
 int32_t GetFileSize(const char* path, const char* fileName, uint32_t* result)
 {
@@ -165,4 +173,4 @@ bool DeleteFile(const char* path, const char* fileName)
     }
     return true;
 }
-#endif
+#endif // __LITEOS_M__

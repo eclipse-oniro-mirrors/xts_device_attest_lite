@@ -17,7 +17,7 @@
 
 #include "mbedtls/x509_crt.h"
 
-#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
+#define ATTEST_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
 typedef struct {
     const unsigned char *certDer;

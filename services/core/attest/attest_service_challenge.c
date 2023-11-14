@@ -100,7 +100,7 @@ static int32_t ParseChallengeResult(const char* jsonStr, ChallengeResult* challe
         return -(int32_t)(errorCode);
     }
 
-    challenge->currentTime = GetObjectItemValueNumber(jsonStr, "currentTime");
+    challenge->currentTime = (uint64_t)GetObjectItemValueNumber(jsonStr, "currentTime");
     if (isnan((double)challenge->currentTime)) {
         ATTEST_LOG_ERROR("[ParseChallengeResult] GetObjectItem currentTime failed.");
         return ATTEST_ERR;

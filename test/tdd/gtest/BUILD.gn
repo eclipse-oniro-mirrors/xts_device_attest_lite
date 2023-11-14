@@ -25,7 +25,6 @@ if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
       "-Wextra",
       "-Wshadow",
       "-fstack-protector-all",
-      "-D_FORTIFY_SOURCE=2",
       "-Wformat=2",
       "-Wfloat-equal",
       "-Wdate-time",
