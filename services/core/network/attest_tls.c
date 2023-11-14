@@ -265,7 +265,7 @@ int32_t LoadCommonCert(mbedtls_x509_crt* chain)
 
 int32_t LoadCommonOtherCert(mbedtls_x509_crt* chain, uint32_t cursor)
 {
-    if (chain == NULL || cursor >= ARRAY_SIZE(g_commonOtherCert)) {
+    if (chain == NULL || cursor >= ATTEST_ARRAY_SIZE(g_commonOtherCert)) {
         ATTEST_LOG_ERROR("[LoadCommonOtherCert] Invalid parameter");
         return ERR_NET_PARSE_CERT_FAIL;
     }
@@ -280,5 +280,5 @@ int32_t LoadCommonOtherCert(mbedtls_x509_crt* chain, uint32_t cursor)
 
 int32_t GetCommonCertSize(void)
 {
-    return ARRAY_SIZE(g_commonOtherCert);
+    return ATTEST_ARRAY_SIZE(g_commonOtherCert);
 }

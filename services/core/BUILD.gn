@@ -96,17 +96,6 @@ if (ohos_kernel_type == "liteos_m") {
       ":devattest_core_hi3861_config",
     ]
 
-    cflags = [
-      "-Wall",
-      "-Wextra",
-      "-Wshadow",
-      "-fstack-protector-all",
-      "-D_FORTIFY_SOURCE=2",
-      "-Wformat=2",
-      "-Wfloat-equal",
-      "-Wdate-time",
-    ]
-
     deps = [
       "$ohos_product_adapter_dir/utils/token:hal_token_static",
       "//base/startup/init/interfaces/innerkits:parameter",
@@ -133,10 +122,8 @@ if (ohos_kernel_type == "liteos_m") {
     ]
     cflags = [
       "-ftrapv",
-      "-Werror",
       "-Wextra",
       "-Wshadow",
-      "-fstack-protector-all",
       "-Wformat=2",
       "-Wfloat-equal",
       "-Wdate-time",

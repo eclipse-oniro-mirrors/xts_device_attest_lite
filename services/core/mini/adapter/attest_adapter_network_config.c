@@ -14,10 +14,12 @@
  */
 
 #ifdef __LITEOS_M__
-#include "hi_mdm.h"
 
 #include "attest_utils_log.h"
 #include "attest_adapter.h"
+
+#if defined(CHIP_VER_Hi3861)
+#include <hi_mdm.h>
 
 #define HI_NV_XTS_DEV_ATTEST_NET 0x60
 #define HI_NV_NET_SIZE 164
@@ -71,4 +73,25 @@ int32_t AttestWriteNetworkConfig(const char* data, uint32_t len)
     }
     return ATTEST_OK;
 }
-#endif
+
+#else
+
+int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen)
+{
+    (void)buffer;
+    (void)bufferLen;
+    ATTEST_LOG_ERROR("[AttestReadNetworkConfig] Need to implement interface AttestReadNetworkConfig!");
+    return ATTEST_ERR;
+}
+
+int32_t AttestWriteNetworkConfig(const char* data, uint32_t len)
+{
+    (void)data;
+    (void)bufferLen;
+    ATTEST_LOG_ERROR("[AttestWriteNetworkConfig] Need to implement interface AttestWriteNetworkConfig!");
+    return ATTEST_ERR;
+}
+
+#endif // defined(CHIP_VER_Hi3861)
+
+#endif // __LITEOS_M__

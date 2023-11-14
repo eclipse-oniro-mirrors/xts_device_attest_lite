@@ -22,7 +22,6 @@ shared_library("kit_device_attest") {
     "-Wextra",
     "-Wshadow",
     "-fstack-protector-all",
-    "-D_FORTIFY_SOURCE=2",
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
