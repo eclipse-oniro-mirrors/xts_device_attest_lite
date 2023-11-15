@@ -25,7 +25,7 @@
 
 bool IsOverTemperatureLimit(void)
 {
-    return true;
+    return false;
 }
 
 int32_t GetFileSize(const char* path, const char* fileName, uint32_t* result)

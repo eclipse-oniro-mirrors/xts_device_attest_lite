@@ -14,12 +14,13 @@
  */
 
 #ifdef __LITEOS_M__
+#include "attest_utils.h"
 #include "attest_service_device.h"
 
 #define ATTEST_DEFAULT_PCID "pcid"
 char* GetPcid(void)
 {
     // LITEOS_M not support pcid, this function return default value, but don't use
-    return ATTEST_DEFAULT_PCID;
+    return AttestStrdup(ATTEST_DEFAULT_PCID);
 }
 #endif
