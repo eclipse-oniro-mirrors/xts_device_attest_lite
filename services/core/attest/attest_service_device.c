@@ -281,6 +281,6 @@ char* GetPcid(void)
 char* GetPcid(void)
 {
     // LITEOS_M not support pcid, this function return default value, but don't use
-    return "pcid";
+    return AttestStrdup("pcid");
 }
 #endif
