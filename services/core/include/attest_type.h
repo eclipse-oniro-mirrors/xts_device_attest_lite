@@ -30,12 +30,17 @@ extern "C" {
 #define STARTSUP_PARA_ATTEST_KEY "persist.xts.devattest.authresult"
 #define STARTSUP_PARA_ATTEST_OK "attest_ok"
 #define STARTSUP_PARA_ATTEST_ERROR "attest_error"
-
+#define STARTSUP_PARA_ATTEST_SIZE 16
 #define DEVATTEST_ID "DeviceAttest"
 
 // token相关
 #define TOKEN_ID_LEN 36
 #define TOKEN_VALUE_LEN 32
+#define TOKEN_ID_LEN_MAX 128
+#define TOKEN_VALUE_LEN_MAX 128
+#define OUT_STR_LEN_MAX 128
+
+#define TOKEN_UNPRESET (-2)
 
 #define SALT_ENCRYPT_LEN 16
 #define TOKEN_ID_ENCRYPT_LEN 64
@@ -54,6 +59,13 @@ extern "C" {
 
 #define APP_ID_LEN 9
 #define UDID_STRING_LEN 64
+
+// 最大限制长度
+#define MAX_ATTEST_MALLOC_BUFF_SIZE 1024
+
+#define MAX_ATTEST_MANUFACTURE_LEN 32
+#define MAX_ATTEST_MODEL_LEN 32
+#define MAX_ATTEST_SERIAL_LEN 64
 
 // 认证接口返回值，与json结构一一对应
 typedef struct {

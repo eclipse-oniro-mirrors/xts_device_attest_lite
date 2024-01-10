@@ -21,6 +21,7 @@
 #include "mbedtls/aes.h"
 #include "mbedtls/hkdf.h"
 #include "mbedtls/md.h"
+#include "mbedtls/md5.h"
 #include "attest_adapter.h"
 #include "attest_utils.h"
 #include "attest_utils_log.h"
@@ -46,8 +47,10 @@ int32_t Base64Encode(const uint8_t* srcData, size_t srcDataLen, uint8_t* base64E
     }
 
     size_t outLen = 0;
+    const size_t base64EncodeMaxLen = base64EncodeLen + 1;
     int32_t ret = mbedtls_base64_encode(NULL, 0, &outLen, srcData, srcDataLen);
-    if ((outLen == 0) || (outLen > (size_t)(base64EncodeLen + 1))) {
+
+    if ((outLen == 0) || (outLen > base64EncodeMaxLen)) {
         ATTEST_LOG_ERROR("[Base64Encode] Base64 encode get outLen failed, outLen = %u, ret = -0x00%x", outLen, -ret);
         return ERR_ATTEST_SECURITY_BASE64_ENCODE;
     }
@@ -61,8 +64,10 @@ int32_t Base64Encode(const uint8_t* srcData, size_t srcDataLen, uint8_t* base64E
     ret = memcpy_s(base64Encode, base64EncodeLen, base64Data, outLen);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[Base64Encode] memcpy_s base64Data fail");
+        (void)memset_s(base64Data, sizeof(base64Data), 0, sizeof(base64Data));
         return ERR_ATTEST_SECURITY_MEM_MEMCPY;
     }
+    (void)memset_s(base64Data, sizeof(base64Data), 0, sizeof(base64Data));
     return ATTEST_OK;
 }
 
@@ -123,6 +128,7 @@ static int32_t GetPsk(uint8_t psk[], size_t pskLen)
     for (size_t i = 0; i < pskLen; i++) {
         psk[i] = base64Psk[i] ^ base64PskKey[i];
     }
+    (void)memset_s(base64Psk, sizeof(base64Psk), 0, sizeof(base64Psk));
     return ATTEST_OK;
 }
 
@@ -148,6 +154,7 @@ static int32_t GetProductInfo(const char* version, SecurityParam* productInfoPar
             ATTEST_LOG_ERROR("[GetProductInfo] Copy product id failed");
             return ERR_ATTEST_SECURITY_MEM_MEMCPY;
         }
+        (void)memset_s(productId, PRODUCT_ID_LEN, 0, PRODUCT_ID_LEN);
     } else if (strcmp(version, TOKEN_VER1_0) == 0) { // productInfo = Manufacturekey
         productInfoParam->paramLen = MANUFACTUREKEY_LEN;
     }
@@ -184,63 +191,7 @@ int32_t GetAesKey(const SecurityParam* salt, const VersionData* versionData,  co
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[GetAesKey] HKDF derive key failed, ret = -0x%x", -ret);
     }
-    return ret;
-}
-
-// AES-128-CBC-PKCS#7加密
-static int32_t EncryptAesCbc(AesCryptBufferDatas* datas, const uint8_t* aesKey,
-                             const char* iv, size_t ivLen)
-{
-    if ((datas == NULL) || (datas->input == NULL) || (datas->output == NULL) ||
-        (datas->outputLen == NULL) || (aesKey == NULL)) {
-        ATTEST_LOG_ERROR("[EncryptAesCbc] Invalid parameter");
-        return ERR_ATTEST_SECURITY_INVALID_ARG;
-    }
-    if ((iv == NULL) || (ivLen != IV_LEN)) {
-        ATTEST_LOG_ERROR("[EncryptAesCbc] iv out of range");
-        return ERR_ATTEST_SECURITY_INVALID_ARG;
-    }
-    
-    if ((datas->inputLen / AES_BLOCK + 1) > (UINT_MAX / AES_BLOCK)) {
-        ATTEST_LOG_ERROR("[EncryptAesCbc] AesCryptBufferDatas inputLen overflow");
-        return ERR_ATTEST_SECURITY_INVALID_ARG;
-    }
-    *datas->outputLen = (datas->inputLen / AES_BLOCK + 1) * AES_BLOCK;
-
-    mbedtls_cipher_info_t cipherInfo;
-    (void)memset_s(&cipherInfo, sizeof(cipherInfo), 0, sizeof(cipherInfo));
-    cipherInfo.mode = MBEDTLS_MODE_CBC;
-
-    mbedtls_cipher_context_t cipherCtx;
-    mbedtls_cipher_init(&cipherCtx);
-    cipherCtx.cipher_info = &cipherInfo;
-    int32_t ret = mbedtls_cipher_set_padding_mode(&cipherCtx, MBEDTLS_PADDING_PKCS7);
-    if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[EncryptAesCbc] Set padding mode failed, ret = -0x%x", ret);
-        return ret;
-    }
-    cipherCtx.add_padding(datas->input, *(datas->outputLen), datas->inputLen);
-
-    mbedtls_aes_context aesCtx;
-    mbedtls_aes_init(&aesCtx);
-    ret = mbedtls_aes_setkey_enc(&aesCtx, aesKey, AES_CIPHER_BITS);
-    if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[EncryptAesCbc] Set mbedtls enc key failed, ret = -0x%x", ret);
-        return ret;
-    }
-
-    uint8_t ivTmp[IV_LEN] = {0};
-    if (memcpy_s(ivTmp, sizeof(ivTmp), iv, ivLen) != 0) {
-        ATTEST_LOG_ERROR("[EncryptAesCbc] memcpy_s iv fail");
-        return ERR_ATTEST_SECURITY_MEM_MEMCPY;
-    }
-    // iv is updated after use, so define ivTmp
-    ret = mbedtls_aes_crypt_cbc(&aesCtx, MBEDTLS_AES_ENCRYPT, *datas->outputLen, ivTmp,
-                                (const uint8_t*)datas->input, datas->output);
-    (void)memset_s(ivTmp, sizeof(ivTmp), 0, sizeof(ivTmp));
-    if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[EncryptAesCbc] Encrypt failed, ret = -0x%x", ret);
-    }
+    memset_s(psk, PSK_LEN, 0, PSK_LEN);
     return ret;
 }
 
@@ -299,6 +250,62 @@ static int32_t DecryptAesCbc(AesCryptBufferDatas* datas, const uint8_t* aesKey,
     }
     return ret;
 }
+// AES-128-CBC-PKCS#7加密
+static int32_t EncryptAesCbc(AesCryptBufferDatas* datas, const uint8_t* aesKey,
+                             const char* iv, size_t ivLen)
+{
+    if ((datas == NULL) || (datas->input == NULL) || (datas->output == NULL) ||
+        (datas->outputLen == NULL) || (aesKey == NULL)) {
+        ATTEST_LOG_ERROR("[EncryptAesCbc] Invalid parameter");
+        return ERR_ATTEST_SECURITY_INVALID_ARG;
+    }
+    if ((iv == NULL) || (ivLen != IV_LEN)) {
+        ATTEST_LOG_ERROR("[EncryptAesCbc] iv out of range");
+        return ERR_ATTEST_SECURITY_INVALID_ARG;
+    }
+    
+    if ((datas->inputLen / AES_BLOCK + 1) > (UINT_MAX / AES_BLOCK)) {
+        ATTEST_LOG_ERROR("[EncryptAesCbc] AesCryptBufferDatas inputLen overflow");
+        return ERR_ATTEST_SECURITY_INVALID_ARG;
+    }
+    *datas->outputLen = (datas->inputLen / AES_BLOCK + 1) * AES_BLOCK;
+
+    mbedtls_cipher_info_t cipherInfo;
+    (void)memset_s(&cipherInfo, sizeof(cipherInfo), 0, sizeof(cipherInfo));
+    cipherInfo.mode = MBEDTLS_MODE_CBC;
+
+    mbedtls_cipher_context_t cipherCtx;
+    mbedtls_cipher_init(&cipherCtx);
+    cipherCtx.cipher_info = &cipherInfo;
+    int32_t ret = mbedtls_cipher_set_padding_mode(&cipherCtx, MBEDTLS_PADDING_PKCS7);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[EncryptAesCbc] Set padding mode failed, ret = -0x%x", ret);
+        return ret;
+    }
+    cipherCtx.add_padding(datas->input, *(datas->outputLen), datas->inputLen);
+
+    mbedtls_aes_context aesCtx;
+    mbedtls_aes_init(&aesCtx);
+    ret = mbedtls_aes_setkey_enc(&aesCtx, aesKey, AES_CIPHER_BITS);
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[EncryptAesCbc] Set mbedtls enc key failed, ret = -0x%x", ret);
+        return ret;
+    }
+
+    uint8_t ivTmp[IV_LEN] = {0};
+    if (memcpy_s(ivTmp, sizeof(ivTmp), iv, ivLen) != 0) {
+        ATTEST_LOG_ERROR("[EncryptAesCbc] memcpy_s iv fail");
+        return ERR_ATTEST_SECURITY_MEM_MEMCPY;
+    }
+    // iv is updated after use, so define ivTmp
+    ret = mbedtls_aes_crypt_cbc(&aesCtx, MBEDTLS_AES_ENCRYPT, *datas->outputLen, ivTmp,
+                                (const uint8_t*)datas->input, datas->output);
+    (void)memset_s(ivTmp, sizeof(ivTmp), 0, sizeof(ivTmp));
+    if (ret != ATTEST_OK) {
+        ATTEST_LOG_ERROR("[EncryptAesCbc] Encrypt failed, ret = -0x%x", ret);
+    }
+    return ret;
+}
 
 int32_t Encrypt(uint8_t* inputData, size_t inputDataLen, const uint8_t* aesKey,
                 uint8_t* outputData, size_t outputDataLen)
@@ -335,6 +342,7 @@ int32_t Encrypt(uint8_t* inputData, size_t inputDataLen, const uint8_t* aesKey,
         ATTEST_LOG_ERROR("[Encrypt] Encrypt memcpy_s failed, ret = %d", ret);
         return ERR_ATTEST_SECURITY_MEM_MEMCPY;
     }
+    (void)memset_s(base64Data, BASE64_LEN + 1, 0, BASE64_LEN + 1);
     return ATTEST_OK;
 }
 
@@ -371,5 +379,44 @@ int32_t Decrypt(const uint8_t* inputData, size_t inputDataLen, const uint8_t* ae
         ATTEST_LOG_ERROR("[Decrypt] memcpy_s decryptData fail");
         return ERR_ATTEST_SECURITY_MEM_MEMCPY;
     }
+    (void)memset_s(decryptData, ENCRYPT_LEN, 0, ENCRYPT_LEN);
     return ATTEST_OK;
+}
+
+int32_t MD5Encode(const uint8_t* srcData, size_t srcDataLen, uint8_t* outputStr, int outputLen)
+{
+    if (srcData == NULL || srcDataLen == 0 || outputStr == NULL) {
+        ATTEST_LOG_ERROR("[MD5Encode] Invalid parameter");
+        return ATTEST_ERR;
+    }
+
+    uint8_t hash[MD5_LEN] = {0};
+    char buf[DEV_BUF_LENGTH] = {0};
+
+    mbedtls_md5_context md5_ctx;
+    mbedtls_md5_init(&md5_ctx);
+    mbedtls_md5_starts(&md5_ctx);
+    mbedtls_md5_update(&md5_ctx, srcData, srcDataLen);
+    mbedtls_md5_finish(&md5_ctx, hash);
+    mbedtls_md5_free(&md5_ctx);
+
+    int32_t ret = ATTEST_OK;
+    for (size_t i = 0; i < MD5_LEN; i++) {
+        uint8_t value = hash[i];
+        (void)memset_s(buf, DEV_BUF_LENGTH, 0, DEV_BUF_LENGTH);
+        if (sprintf_s(buf, sizeof(buf), "%02x", value) < 0) {
+            ATTEST_LOG_ERROR("[MD5Encode] Failed to sprintf");
+            ret = ATTEST_ERR;
+            break;
+        }
+
+        if (strcat_s((char*)outputStr, outputLen, buf) != 0) {
+            ATTEST_LOG_ERROR("[MD5Encode] Failed to strcat");
+            ret = ATTEST_ERR;
+            break;
+        }
+    }
+    (void)memset_s(buf, DEV_BUF_LENGTH, 0, DEV_BUF_LENGTH);
+    (void)memset_s(hash, MD5_LEN, 0, MD5_LEN);
+    return ret;
 }

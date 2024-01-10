@@ -24,8 +24,6 @@
 #include "attest_utils_memleak.h"
 #include "attest_utils.h"
 
-#define DEV_BUF_LENGTH   3
-#define HASH_LENGTH      32
 #define PER_BYTE_BITS    8
 #define RANDOM_BYTES     4
 
@@ -78,15 +76,17 @@ char* AttestStrdup(const char* input)
     if (input == NULL) {
         return NULL;
     }
-    size_t len = strlen(input) + 1;
-    if (len <= 1) {
+    size_t inputLen = strlen(input);
+    if (inputLen == 0 || inputLen >= MAX_ATTEST_MALLOC_BUFF_SIZE) {
         return NULL;
     }
-    char* out = ATTEST_MEM_MALLOC(len);
+
+    size_t outputLen = inputLen + 1;
+    char* out = ATTEST_MEM_MALLOC(outputLen);
     if (out == NULL) {
         return NULL;
     }
-    if (memcpy_s(out, len, input, strlen(input)) != 0) {
+    if (memcpy_s(out, outputLen, input, inputLen) != 0) {
         ATTEST_MEM_FREE(out);
         return NULL;
     }
@@ -95,13 +95,16 @@ char* AttestStrdup(const char* input)
 
 void URLSafeBase64ToBase64(const char* input, size_t inputLen, uint8_t** output, size_t* outputLen)
 {
-    uint8_t tempInputLen = 4;
-    if (input == NULL || inputLen == 0 || output == NULL || outputLen == NULL) {
+    const uint8_t tempInputLen = 4;
+    if (input == NULL || output == NULL || outputLen == NULL) {
         ATTEST_LOG_ERROR("[URLSafeBase64ToBase64] Invalid parameter");
         return;
     }
+    if (inputLen == 0 || inputLen >= MAX_ATTEST_MALLOC_BUFF_SIZE) {
+        return;
+    }
     *outputLen = inputLen + ((inputLen % tempInputLen == 0) ? 0 : (tempInputLen - inputLen % tempInputLen));
-    if (*outputLen == 0) {
+    if (*outputLen == 0 || *outputLen >= MAX_ATTEST_MALLOC_BUFF_SIZE) {
         return;
     }
     *output = (uint8_t *)ATTEST_MEM_MALLOC(*outputLen + 1);
@@ -147,7 +150,7 @@ int32_t AnonymiseStr(char* str)
     if (strLen <= tempLen) {
         ret = memset_s((void*)str, strLen, '*', strLen);
     } else {
-        uint32_t halfLen = 2;
+        const uint32_t halfLen = 2;
         int32_t unAnonyStrLen = CalUnAnonyStrLen(strLen);
         int32_t endpointLen = unAnonyStrLen / halfLen;
         ret = memset_s((void*)(str + endpointLen), (strLen - unAnonyStrLen), '*', (strLen - unAnonyStrLen));
@@ -202,17 +205,22 @@ int Sha256Value(const unsigned char *src, int srcLen, char *dest, int destLen)
     mbedtls_sha256_update_ret(&context, src, srcLen);
     mbedtls_sha256_finish_ret(&context, hash);
 
+    int32_t ret = ATTEST_OK;
     for (size_t i = 0; i < HASH_LENGTH; i++) {
         unsigned char value = hash[i];
         (void)memset_s(buf, DEV_BUF_LENGTH, 0, DEV_BUF_LENGTH);
         if (sprintf_s(buf, sizeof(buf), "%02X", value) < 0) {
-            return ATTEST_ERR;
+            ret = ATTEST_ERR;
+            break;
         }
         if (strcat_s(dest, destLen, buf) != 0) {
-            return ATTEST_ERR;
+            ret = ATTEST_ERR;
+            break;
         }
     }
-    return ATTEST_OK;
+    (void)memset_s(buf, DEV_BUF_LENGTH, 0, DEV_BUF_LENGTH);
+    (void)memset_s(hash, HASH_LENGTH, 0, HASH_LENGTH);
+    return ret;
 }
 
 void *AttestMemAlloc(uint32_t size, const char* file, uint32_t line, const char* func)
