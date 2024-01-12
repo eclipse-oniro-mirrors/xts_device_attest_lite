@@ -63,3 +63,8 @@ char* AttestGetManufacture(void)
 {
     return AttestStrdup(OsGetManufacture());
 }
+
+char* AttestGetSerial(void)
+{
+    return OsGetSerial();
+}
