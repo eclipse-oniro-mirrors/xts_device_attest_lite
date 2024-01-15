@@ -33,12 +33,17 @@ extern "C" {
 #define BASE64_LEN 64
 #define ENCRYPT_LEN 48
 
+#define MD5_LEN 16
+#define MD5_HEX_LEN 32
+
 // aes加密相关
 #define MANUFACTUREKEY_LEN 48
 #define PRODUCT_ID_LEN 8
 #define SALT_LEN 16
 #define PSK_LEN 16
 #define AES_KEY_LEN 32
+
+#define PRODUCT_KEY_LEN 256
 
 #define TOKEN_VER0_0 "1000"
 #define TOKEN_VER1_0 "1100"
@@ -72,6 +77,8 @@ int32_t Encrypt(uint8_t* inputData, size_t inputDataLen, const uint8_t* aesKey,
 
 int32_t Decrypt(const uint8_t* inputData, size_t inputDataLen, const uint8_t* aesKey,
                 uint8_t* outputData, size_t outputDataLen);
+
+int32_t MD5Encode(const uint8_t* srcData, size_t srcDataLen, uint8_t* outputStr, int outputLen);
 
 #ifdef __cplusplus
 #if __cplusplus

@@ -63,6 +63,8 @@ char* GetTenantId(void);
 
 char* GetPcid(void);
 
+uint8_t* GetUdidForVerification(void);
+
 #ifdef __cplusplus
 #if __cplusplus
 }

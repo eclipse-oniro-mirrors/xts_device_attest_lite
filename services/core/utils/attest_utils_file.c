@@ -17,8 +17,8 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <limits.h>
 #include <securec.h>
+#include <limits.h>
 #include "attest_utils_log.h"
 #include "attest_utils.h"
 #include "attest_utils_file.h"
@@ -51,7 +51,10 @@ int32_t ReadFileBuffer(const char* path, const char* fileName, char** outStr)
     }
     
     uint32_t fileSize = 0;
-    if (GetFileSize(path, fileName, &fileSize) != 0 || fileSize == 0) {
+    if (GetFileSize(path, fileName, &fileSize) != 0) {
+        return ATTEST_ERR;
+    }
+    if (fileSize == 0 || fileSize > MAX_ATTEST_MALLOC_BUFF_SIZE) {
         return ATTEST_ERR;
     }
     uint32_t bufferSize = fileSize + 1;

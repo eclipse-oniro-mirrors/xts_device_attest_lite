@@ -79,3 +79,8 @@ char* AttestGetUdid(void)
     }
     return OsGetUdid();
 }
+
+char* AttestGetSerial(void)
+{
+    return OsGetSerial();
+}
