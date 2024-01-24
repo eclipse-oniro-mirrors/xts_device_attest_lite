@@ -66,7 +66,7 @@ static void AttestLogPrint(AttestLogLevel logLevel, const char *logBuf)
         default:
             break;
     }
-    (void)HiLogPrint(LOG_CORE, hiLogLevel, 0xD001800, ATTESTLOG_LABEL, "%{public}s", logBuf);
+    (void)HiLogPrint(LOG_CORE, hiLogLevel, 0xD001810, ATTESTLOG_LABEL, "%{public}s", logBuf);
 }
 #endif
 
