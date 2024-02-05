@@ -24,7 +24,7 @@ extern "C" {
 #endif
 #endif
 
-#define ATTEST_LOG_DOMAIN 0xD001810
+#define ATTEST_LOG_DOMAIN 0xD005D00
 #define ATTEST_LOG_LABEL "DEVATTEST"
 
 #define HILOGD(fmt, ...)    \
