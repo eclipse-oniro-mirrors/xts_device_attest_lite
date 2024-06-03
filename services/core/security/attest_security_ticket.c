@@ -60,12 +60,10 @@ int32_t WriteTicketToDevice(const char* ticket, uint8_t ticketLen)
         ATTEST_LOG_ERROR("[WriteTicketToDevice] ticket or salt memcpy_s fail.");
         return ERR_ATTEST_SECURITY_MEM_MEMCPY;
     }
-
     if (AttestWriteTicket(&ticketInfo) != 0) {
         ATTEST_LOG_ERROR("[WriteTicketToDevice] Write ticket failed");
         return ATTEST_ERR;
     }
-
     ATTEST_LOG_DEBUG("[WriteTicketToDevice] End.");
     return ret;
 }

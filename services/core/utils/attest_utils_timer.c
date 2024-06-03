@@ -17,7 +17,8 @@
 #include <stdlib.h>
 #include <securec.h>
 #include <signal.h>
-
+#include <pthread.h>
+#include <sys/prctl.h>
 #include "attest_utils.h"
 #include "attest_utils_log.h"
 #include "attest_utils_timer.h"
@@ -26,6 +27,9 @@
 
 static void AttestTimerCallback(union sigval attestTimer)
 {
+#ifdef HAVE_PTHREAD_SETNAME_NP
+    (void)pthread_setname_np(pthread_self(), ATTEST_TIMER_TASK_ID); // set pthread name, at most 15 bytes.
+#endif
     AttestTimerInfo *tmpTimerInfo = (AttestTimerInfo *)attestTimer.sival_ptr;
     if (tmpTimerInfo->type == ATTEST_TIMER_TYPE_ONCE) {
         tmpTimerInfo->status = ATTEST_TIMER_STATUS_STOP;
@@ -123,7 +127,7 @@ int32_t AttestStartTimerTask(AttestTimerType isOnce, uint32_t milliseconds,
     if (*timerHandle != NULL) {
         AttestTimerInfo *tmpTimerInfo = (AttestTimerInfo *)timerHandle;
         if (tmpTimerInfo->timerId != 0) {
-            ATTEST_LOG_ERROR("[AttestStartTimerTask] timerId[%d] already exists", tmpTimerInfo->timerId);
+            ATTEST_LOG_ERROR("[AttestStartTimerTask] timerId already exists");
             return ATTEST_ERR;
         }
     }

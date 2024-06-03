@@ -85,6 +85,7 @@ static void AttestAuthCallBack(void *argv)
 int32_t AttestTask(void)
 {
     ATTEST_LOG_INFO("[AttestTask] Begin.");
+    // 执行主流程代码
     int32_t ret = ProcAttest();
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[AttestTask] Proc failed ret = %d.", ret);

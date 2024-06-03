@@ -15,10 +15,6 @@ import("//build/lite/config/component/lite_component.gni")
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 import("attestsource.gni")
 
-if (enable_attest_mock_network && enable_attest_mock_device) {
-  sources_common += [ "${devattest_path}/test/unittest/src/attest_mock.c" ]
-}
-
 if (enable_attest_debug_memory_leak) {
   sources_common += [ "utils/attest_utils_memleak.c" ]
 }
@@ -37,11 +33,11 @@ config("devattest_core_config") {
     defines += [ "__ATTEST_HILOG_LEVEL_DEBUG__" ]
   }
 
-  if (enable_attest_mock_network) {
+  if (enable_attest_test_mock_network) {
     defines += [ "__ATTEST_MOCK_NETWORK_STUB__" ]
   }
 
-  if (enable_attest_mock_device) {
+  if (enable_attest_test_mock_device) {
     defines += [ "__ATTEST_MOCK_DEVICE_STUB__" ]
   }
 
@@ -52,6 +48,11 @@ config("devattest_core_config") {
   if (enable_attest_debug_dfx) {
     defines += [ "__ATTEST_DEBUG_DFX__" ]
   }
+
+  if (disable_attest_active_site) {
+    defines += [ "__ATTEST_DISABLE_SITE__" ]
+  }
+
   defines += [ "MBEDTLS_ALLOW_PRIVATE_ACCESS" ]
 }
 

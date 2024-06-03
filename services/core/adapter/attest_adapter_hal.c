@@ -75,10 +75,16 @@ int32_t AttestWriteToken(TokenInfo* tokenInfo)
         return ATTEST_ERR;
     }
     int32_t ret = 0;
+    unsigned int len = 0;
+#ifdef __LITEOS_M__
+    len = TOKEN_ENCRYPT_LEN;
+#else
+    len = sizeof(token);
+#endif
     if (ATTEST_MOCK_DEVICE_STUB_FLAG) {
-        ret =  OsWriteTokenStub(token, sizeof(token));
+        ret =  OsWriteTokenStub(token, len);
     } else {
-        ret = HalWriteToken(token, sizeof(token));
+        ret = HalWriteToken(token, len);
     }
 
     if (ret != ATTEST_OK) {
@@ -96,10 +102,16 @@ int32_t AttestReadToken(TokenInfo* tokenInfo)
     }
     char token[TOKEN_ENCRYPT_LEN + 1] = {0};
     int32_t ret = 0;
+    unsigned int len = 0;
+#ifdef __LITEOS_M__
+    len = TOKEN_ENCRYPT_LEN;
+#else
+    len = sizeof(token);
+#endif
     if (ATTEST_MOCK_DEVICE_STUB_FLAG) {
-        ret =  OsReadTokenStub(token, sizeof(token));
+        ret =  OsReadTokenStub(token, len);
     } else {
-        ret = HalReadToken(token, sizeof(token));
+        ret = HalReadToken(token, len);
     }
 
     if (ret != ATTEST_OK) {

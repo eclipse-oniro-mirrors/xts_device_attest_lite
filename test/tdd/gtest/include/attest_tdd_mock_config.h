@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,32 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef ATTEST_TDD_MOCK_CONFIG_H
+#define ATTEST_TDD_MOCK_CONFIG_H
 
-#ifndef ATTEST_ENTRY_H
-#define ATTEST_ENTRY_H
-
-#include <stdint.h>
-#include "attest_result_info.h"
-
-#ifdef __cplusplus
-#if __cplusplus
-extern "C" {
-#endif
-#endif /* __cplusplus */
-
-int32_t AttestTask(void);
-
-int32_t EntryGetAttestStatus(AttestResultInfo* attestResultInfo);
-
-int32_t AttestCreateTimerTask(void);
-
-int32_t AttestDestroyTimerTask(void);
-
-#ifdef __cplusplus
-#if __cplusplus
-}
-#endif
-#endif /* __cplusplus */
+extern int32_t g_netType;
 
 #endif
-
