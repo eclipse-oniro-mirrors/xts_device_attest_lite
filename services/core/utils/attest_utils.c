@@ -306,7 +306,7 @@ int32_t HEXStringToAscii(const char* input, int32_t inputLen, char* output, int3
 
     int tempLen = 0;
     int32_t ret = ATTEST_OK;
-    for(int i = 0; i < inputLen; ) {
+    for (int i = 0; i < inputLen;) {
         int highNumber = HexToNumber(input[i]);
         int lowNumber = HexToNumber(input[i + 1]);
         if (highNumber == ATTEST_ERR || lowNumber == ATTEST_ERR) {

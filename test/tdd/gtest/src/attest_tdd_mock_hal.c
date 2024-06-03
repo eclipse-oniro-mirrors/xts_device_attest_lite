@@ -142,13 +142,16 @@ int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen)
     int32_t ret = ATTEST_ERR;
     switch (status) {
         case ATTEST_MOCK_HAL_NETWORK_CONFIG_OPTION_CORRECT:
-            ret = memcpy_s(buffer, bufferLen, ATTEST_MOCK_HAL_NETWORK_CONFIG_CORRECT, ATTEST_MOCK_HAL_NETWORK_CONFIG_LEN);
+            ret = memcpy_s(buffer, bufferLen,
+                ATTEST_MOCK_HAL_NETWORK_CONFIG_CORRECT, ATTEST_MOCK_HAL_NETWORK_CONFIG_LEN);
             break;
         case ATTEST_MOCK_HAL_NETWORK_CONFIG_OPTION_INCORRECT:
-            ret = memcpy_s(buffer, bufferLen, ATTEST_MOCK_HAL_NETWORK_CONFIG_INCORRECT, ATTEST_MOCK_HAL_NETWORK_CONFIG_LEN);
+            ret = memcpy_s(buffer, bufferLen,
+                ATTEST_MOCK_HAL_NETWORK_CONFIG_INCORRECT, ATTEST_MOCK_HAL_NETWORK_CONFIG_LEN);
             break;
         default:
-            ret = memcpy_s(buffer, bufferLen, ATTEST_MOCK_HAL_NETWORK_CONFIG_CORRECT, ATTEST_MOCK_HAL_NETWORK_CONFIG_LEN);
+            ret = memcpy_s(buffer, bufferLen,
+                ATTEST_MOCK_HAL_NETWORK_CONFIG_CORRECT, ATTEST_MOCK_HAL_NETWORK_CONFIG_LEN);
             break;
     }
     status++;

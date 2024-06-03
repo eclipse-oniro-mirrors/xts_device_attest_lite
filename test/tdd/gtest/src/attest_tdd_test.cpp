@@ -95,7 +95,7 @@ HWTEST_F(AttestTddTest, TestInitSysData001, TestSize.Level1)
     EXPECT_STREQ(StrdupDevInfo(UDID), ATTEST_MOCK_PROPERTY_UDID);
     // 恢复环境
     DestroySysData();
-    EXPECT_TRUE(StrdupDevInfo(VERSION_ID) == NULL);
+    EXPECT_TRUE(StrdupDevInfo(VERSION_ID) == nullptr);
 }
 
 /*
@@ -288,7 +288,7 @@ HWTEST_F(AttestTddTest, TestGenResetMsg001, TestSize.Level1)
     }
     char *outToken = reqMsg->tokenInfo.token;
     EXPECT_TRUE(outToken != nullptr);
-    if (outToken == NULL) {
+    if (outToken == nullptr) {
         FREE_DEVICE_PACKET(reqMsg);
         DestroySysData();
         return;
@@ -319,7 +319,7 @@ HWTEST_F(AttestTddTest, TestGenResetMsg002, TestSize.Level1)
     }
     char *outToken = reqMsg->tokenInfo.token;
     EXPECT_TRUE(outToken != nullptr);
-    if (outToken == NULL) {
+    if (outToken == nullptr) {
         FREE_DEVICE_PACKET(reqMsg);
         DestroySysData();
         return;
@@ -329,7 +329,7 @@ HWTEST_F(AttestTddTest, TestGenResetMsg002, TestSize.Level1)
 
     outToken = reqMsg->tokenInfo.uuid;
     EXPECT_TRUE(outToken != nullptr);
-    if (outToken == NULL) {
+    if (outToken == nullptr) {
         FREE_DEVICE_PACKET(reqMsg);
         DestroySysData();
         return;
@@ -372,12 +372,12 @@ HWTEST_F(AttestTddTest, TestGenAuthMsg001, TestSize.Level1)
 
     DevicePacket* reqMsg = TddGenMsg(ATTEST_CASE_AUTH);
     EXPECT_TRUE((reqMsg != nullptr));
-    if (reqMsg == NULL) {
+    if (reqMsg == nullptr) {
         return;
     }
     char *outToken = reqMsg->tokenInfo.token;
     EXPECT_TRUE(outToken != nullptr);
-    if (outToken == NULL) {
+    if (outToken == nullptr) {
         FREE_DEVICE_PACKET(reqMsg);
         return;
     }
@@ -406,7 +406,7 @@ HWTEST_F(AttestTddTest, TestGenAuthMsg002, TestSize.Level1)
     }
     char *outToken = reqMsg->tokenInfo.token;
     EXPECT_TRUE(outToken != nullptr);
-    if (outToken == NULL) {
+    if (outToken == nullptr) {
         FREE_DEVICE_PACKET(reqMsg);
         return;
     }
@@ -454,12 +454,12 @@ HWTEST_F(AttestTddTest, TestGenActiveMsg001, TestSize.Level1)
 
     DevicePacket* reqMsg = TddGenMsg(ATTEST_CASE_ACTIVE);
     EXPECT_TRUE((reqMsg != nullptr));
-    if (reqMsg == NULL) {
+    if (reqMsg == nullptr) {
         return;
     }
     char *outToken = reqMsg->tokenInfo.token;
     EXPECT_TRUE(outToken != nullptr);
-    if (outToken == NULL) {
+    if (outToken == nullptr) {
         FREE_DEVICE_PACKET(reqMsg);
         return;
     }
@@ -488,7 +488,7 @@ HWTEST_F(AttestTddTest, TestGenActiveMsg002, TestSize.Level1)
     }
     char *outToken = reqMsg->tokenInfo.token;
     EXPECT_TRUE(outToken != nullptr);
-    if (outToken == NULL) {
+    if (outToken == nullptr) {
         FREE_DEVICE_PACKET(reqMsg);
         return;
     }
@@ -531,17 +531,17 @@ HWTEST_F(AttestTddTest, TestGetChallenge001, TestSize.Level1)
     (void)D2CConnect();
 
     g_netType = ATTEST_GET_CHANLLEGE;
-    ChallengeResult* challenge = NULL;
+    ChallengeResult* challenge = nullptr;
     ret = GetChallenge(&challenge, ATTEST_ACTION_RESET);
     EXPECT_TRUE(ret == ATTEST_OK);
-    EXPECT_TRUE(challenge != NULL);
-    if (ret == ATTEST_OK && challenge != NULL) {
+    EXPECT_TRUE(challenge != nullptr);
+    if (ret == ATTEST_OK && challenge != nullptr) {
         EXPECT_TRUE(strcmp(ATTEST_RESET_EXPECT_CHAP, challenge->challenge) == 0);
         FREE_CHALLENGE_RESULT(challenge);
     }
     // 恢复环境
     DestroySysData();
-    EXPECT_TRUE(StrdupDevInfo(VERSION_ID) == NULL);
+    EXPECT_TRUE(StrdupDevInfo(VERSION_ID) == nullptr);
 }
 
 /*
@@ -559,20 +559,20 @@ HWTEST_F(AttestTddTest, TestSendResetMsg001, TestSize.Level1)
 
     g_netType = ATTEST_RESET;
     DevicePacket* reqMsg = TddGenMsg(ATTEST_CASE_RESET);
-    if (reqMsg == NULL) {
+    if (reqMsg == nullptr) {
         return;
     }
-    char* respMsg = NULL;
+    char* respMsg = nullptr;
     ret = SendResetMsg(reqMsg, &respMsg);
-    EXPECT_TRUE((ret == ATTEST_OK) && (respMsg != NULL));
+    EXPECT_TRUE((ret == ATTEST_OK) && (respMsg != nullptr));
     FREE_DEVICE_PACKET(reqMsg);
-    if ((ret == ATTEST_OK) && (respMsg != NULL)) {
+    if ((ret == ATTEST_OK) && (respMsg != nullptr)) {
         EXPECT_TRUE(strstr(respMsg, ATTEST_REST_ERROR_EXPECT_RESULT) != nullptr);
         free(respMsg);
     }
     // 恢复环境
     DestroySysData();
-    EXPECT_TRUE(StrdupDevInfo(VERSION_ID) == NULL);
+    EXPECT_TRUE(StrdupDevInfo(VERSION_ID) == nullptr);
 }
 
 /*
@@ -591,20 +591,20 @@ HWTEST_F(AttestTddTest, TestSendActiveMsg001, TestSize.Level1)
 
     g_netType = ATTEST_ACTIVE;
     DevicePacket* reqMsg = TddGenMsg(ATTEST_CASE_ACTIVE);
-    ASSERT_TRUE(reqMsg != NULL);
+    ASSERT_TRUE(reqMsg != nullptr);
 
-    char* respMsg = NULL;
+    char* respMsg = nullptr;
     ret = SendActiveMsg(reqMsg, &respMsg);
-    EXPECT_TRUE((ret == ATTEST_OK) && (respMsg != NULL));
+    EXPECT_TRUE((ret == ATTEST_OK) && (respMsg != nullptr));
     FREE_DEVICE_PACKET(reqMsg);
-    if ((ret == ATTEST_OK) && (respMsg != NULL)) {
+    if ((ret == ATTEST_OK) && (respMsg != nullptr)) {
         const char* ATTEST_ACTIVE_EXPECT_RESULT = "{\"errcode\":0}";
         EXPECT_TRUE(strcmp(ATTEST_ACTIVE_EXPECT_RESULT, respMsg) == 0);
         free(respMsg);
     }
     // 恢复环境
     DestroySysData();
-    EXPECT_TRUE(StrdupDevInfo(VERSION_ID) == NULL);
+    EXPECT_TRUE(StrdupDevInfo(VERSION_ID) == nullptr);
 }
 
 /*
@@ -623,7 +623,7 @@ HWTEST_F(AttestTddTest, TestQueryAttestStatus001, TestSize.Level1)
     uint8_t authResultCode = ATTEST_RESULT_CODE;
     AttestWriteAuthResultCode((char*)&authResultCode, 1);
     AttestResultInfo attestResultInfo = { .softwareResultDetail = {-2, -2, -2, -2, -2} };
-    attestResultInfo.ticket = NULL;
+    attestResultInfo.ticket = nullptr;
     ret = EntryGetAttestStatus(&attestResultInfo);
     EXPECT_TRUE((ret == ATTEST_OK) && (attestResultInfo.authResult == ATTEST_OK));
     EXPECT_TRUE((attestResultInfo.ticket != nullptr));

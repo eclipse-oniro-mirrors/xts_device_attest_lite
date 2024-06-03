@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
 import("//build/lite/config/test.gni")
+import("//build/ohos.gni")
 import("//test/xts/device_attest_lite/build/devattestconfig.gni")
 import("//test/xts/device_attest_lite/services/core/attestsource.gni")
 
@@ -60,8 +60,8 @@ if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
     sources += sources_common
 
     sources -= [
-      "${devattest_path}/services/core/security/attest_security_ticket.c",
       "${devattest_path}/services/core/adapter/attest_adapter.c",
+      "${devattest_path}/services/core/security/attest_security_ticket.c",
     ]
 
     deps = [
