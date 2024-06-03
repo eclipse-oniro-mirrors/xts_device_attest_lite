@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,32 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef ATTEST_ENTRY_H
-#define ATTEST_ENTRY_H
-
-#include <stdint.h>
-#include "attest_result_info.h"
-
-#ifdef __cplusplus
-#if __cplusplus
-extern "C" {
+#ifndef ATTEST_TDD_TEST_DATA_TRANSFER_H
+#define ATTEST_TDD_TEST_DATA_TRANSFER_H
+#define ATTEST_MAX_TLS_LEN              (10240)
+#define ATTEST_DECIMAL                  (10)
+#define ATTEST_ZERO_CHAR                '0'
+#define ATTEST_ASCII_TO_STRING_SIZE     (4)
+int32_t AttestSeriaToBinary(const char* input, uint8_t** buf, size_t len);
+int32_t AttestBinaryToSerial(const uint8_t* input, int32_t inputLen,
+    uint8_t** outputBuff, int32_t* outputLen);
 #endif
-#endif /* __cplusplus */
-
-int32_t AttestTask(void);
-
-int32_t EntryGetAttestStatus(AttestResultInfo* attestResultInfo);
-
-int32_t AttestCreateTimerTask(void);
-
-int32_t AttestDestroyTimerTask(void);
-
-#ifdef __cplusplus
-#if __cplusplus
-}
-#endif
-#endif /* __cplusplus */
-
-#endif
-

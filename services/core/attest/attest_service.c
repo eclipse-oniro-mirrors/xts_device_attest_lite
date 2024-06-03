@@ -303,7 +303,7 @@ static int32_t ProcAttestImpl(void)
         DestroySysData();
         return ATTEST_ERR;
     }
-    // 检查本地数据是否修改或过期，进行重新认证
+    // 检查本地数据是否修改或过期，进行重新验证
     if (!IsAuthStatusChg()) {
         ATTEST_LOG_WARN("[ProcAttestImpl] There is no change on auth status.");
         UpdateAuthResultCode(AUTH_SUCCESS);
@@ -316,6 +316,7 @@ static int32_t ProcAttestImpl(void)
         DestroySysData();
         return ATTEST_ERR;
     }
+    // 走授权验证流程
     ret = AttestStartup(authResult);
     DestroySysData();
     DestroyAuthResult(&authResult);
@@ -327,11 +328,11 @@ int32_t ProcAttest(void)
     pthread_mutex_lock(&g_mtxAttest);
     PrintCurrentTime();
     int32_t ret;
+    int32_t retValue;
     if (ATTEST_DEBUG_MEMORY_LEAK) {
-        ret = InitMemNodeList();
-        ATTEST_LOG_INFO("[ProcAttest] Init mem node list, ret = %d.", ret);
+        retValue = InitMemNodeList();
+        ATTEST_LOG_INFO("[ProcAttest] Init mem node list, retValue = %d.", retValue);
     }
-
     do {
         // init network server info
         ret = InitNetworkServerInfo();
@@ -345,18 +346,17 @@ int32_t ProcAttest(void)
             ATTEST_LOG_ERROR("[ProcAttest] Connect wise device failed, ret = %d.", ret);
             break;
         }
-
+        // 主流程
         ret = ProcAttestImpl();
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[ProcAttest] Proc Attest failed, ret = %d.", ret);
         }
         DisConnectWiseDevice();
     } while (0);
-
     if (ATTEST_DEBUG_MEMORY_LEAK) {
         PrintMemNodeList();
-        ret = DestroyMemNodeList();
-        ATTEST_LOG_INFO("[ProcAttest] Destroy mem node list,  ret = %d.", ret);
+        retValue = DestroyMemNodeList();
+        ATTEST_LOG_INFO("[ProcAttest] Destroy mem node list,  retValue = %d.", retValue);
     }
     PrintCurrentTime();
     pthread_mutex_unlock(&g_mtxAttest);

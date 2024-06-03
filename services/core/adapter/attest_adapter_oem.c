@@ -122,5 +122,8 @@ int32_t OEMWriteAuthResultCode(const char* data, uint32_t len)
 // 读取认证结果
 int32_t OEMReadAuthResultCode(char* buffer, uint32_t bufferLen)
 {
+    if (!IsFileExist(AUTH_RESULT_PATH, AUTH_RESULT_CODE_FILE_NAME)) {
+        return ATTEST_ERR;
+    }
     return ReadFile(AUTH_RESULT_PATH, AUTH_RESULT_CODE_FILE_NAME, buffer, bufferLen);
 }

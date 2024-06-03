@@ -97,6 +97,7 @@ DevicePacket* CreateDevicePacket(void)
     devicePacket->productInfo.rootHash = NULL;
     devicePacket->productInfo.patchTag = NULL;
     devicePacket->kitinfo = NULL;
+    devicePacket->pcid = NULL;
     return devicePacket;
 }
 
@@ -123,6 +124,7 @@ void DestroyDevicePacket(DevicePacket** devPacket)
     ATTEST_MEM_FREE(devicePacket->productInfo.rootHash);
     ATTEST_MEM_FREE(devicePacket->productInfo.patchTag);
     ATTEST_MEM_FREE(devicePacket->kitinfo);
+    ATTEST_MEM_FREE(devicePacket->pcid);
     ATTEST_MEM_FREE(*devPacket);
 }
 
@@ -272,6 +274,7 @@ void D2CClose(void)
     }
 }
 
+#ifndef __ATTEST_DISABLE_SITE__
 static int32_t BuildCoapChallServerInfo(cJSON **postData)
 {
     if (postData == NULL) {
@@ -311,6 +314,7 @@ static int32_t BuildCoapChallServerInfo(cJSON **postData)
     }
     return ATTEST_OK;
 }
+#endif
 
 char* BuildCoapChallBody(const DevicePacket *postValue)
 {
@@ -330,11 +334,14 @@ char* BuildCoapChallBody(const DevicePacket *postValue)
             ATTEST_LOG_ERROR("[BuildCoapChallBody] postData  AddStringToObject fail");
             break;
         }
+#ifndef __ATTEST_DISABLE_SITE__
         ret = BuildCoapChallServerInfo(&postData);
         if (ret != ATTEST_OK) {
             ATTEST_LOG_ERROR("[BuildCoapChallBody] BuildCoapChallServerInfo fail");
             break;
         }
+#endif
+        ret = ATTEST_OK;
     } while (0);
     if (ret != ATTEST_OK) {
         cJSON_Delete(postData);
@@ -1056,6 +1063,10 @@ static int32_t ParseNetworkInfosConfig(char *inputData, List *list)
         cJSON* array = cJSON_GetObjectItem(root, NETWORK_CONFIG_SERVER_INFO_NAME);
         if (array == NULL) {
             ATTEST_LOG_ERROR("[ParseNetworkInfosConfig] failed to get ObjectItem");
+            ret = ATTEST_ERR;
+            break;
+        }
+        if (!cJSON_IsArray(array)) {
             ret = ATTEST_ERR;
             break;
         }

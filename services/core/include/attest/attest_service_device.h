@@ -17,6 +17,16 @@
 #define __ATTEST_SERVICE_DEVICE_H__
 
 #include "attest_type.h"
+// 最大长度限制
+#define MAX_ATTEST_DEFAULT_LEN 64
+
+#define MAX_ATTEST_SERIAL_LEN 64
+#define MAX_ATTEST_VERSION_ID_LEN 255
+#define MAX_ATTEST_DISPLAY_VERSION_LEN 64
+#define MAX_ATTEST_MANUFACTURE_LEN 32
+#define MAX_ATTEST_MODEL_LEN 32
+#define MAX_ATTEST_BRAND_LEN 32
+#define MAX_ATTEST_PATCH_LEN 64
 
 #ifdef __cplusplus
 #if __cplusplus

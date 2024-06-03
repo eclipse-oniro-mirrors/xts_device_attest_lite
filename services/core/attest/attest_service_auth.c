@@ -36,7 +36,7 @@ bool IsAuthStatusChg(void)
     ATTEST_LOG_DEBUG("[IsAuthStatusChg] Begin.");
     char* authStatusBase64 = NULL;
     if (GetAuthStatus(&authStatusBase64) != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[IsAuthStatusChg] Load auth status failed or status file not exist");
+        ATTEST_LOG_WARN("[IsAuthStatusChg] Load auth status failed or status file not exist");
         return true;
     }
 
@@ -121,11 +121,15 @@ int32_t GetAttestStatusPara(void)
     char attestResult[AUTH_RESULT_LEN] = {0};
     int ret = AttestGetParameter(STARTSUP_PARA_ATTEST_KEY, STARTSUP_PARA_ATTEST_ERROR,
                                  attestResult, sizeof(attestResult));
-    if ((ret != 0) && (strcmp(STARTSUP_PARA_ATTEST_OK, attestResult) == 0)) {
+    if (ret == 0) {
+        ATTEST_LOG_ERROR("[GetAttestStatusPara] failed to get parameter.");
+        return ATTEST_ERR;
+    }
+    if (strcmp(STARTSUP_PARA_ATTEST_OK, attestResult) == 0) {
         ATTEST_LOG_INFO("[GetAttestStatusPara] success, persist.xts.devattest.authresult = %s", attestResult);
         return ATTEST_OK;
     }
-    ATTEST_LOG_WARN("[GetAttestStatusPara] failed.");
+    ATTEST_LOG_WARN("[GetAttestStatusPara] failed, persist.xts.devattest.authresult = ", attestResult);
     return ATTEST_ERR;
 }
 
@@ -856,9 +860,9 @@ int32_t GenAuthMsg(const ChallengeResult* challengeResult, DevicePacket** devPac
     
     uint8_t tokenValueHmac[TOKEN_VALUE_HMAC_LEN + 1] = {0};
     uint8_t tokenId[TOKEN_ID_LEN + 1] = {0};
-    if (GetTokenValueHmac(challengeResult->challenge, tokenValueHmac, TOKEN_VALUE_HMAC_LEN) != 0 ||
-        GetTokenId(tokenId, TOKEN_ID_LEN) != 0) {
-        ATTEST_LOG_ERROR("[GenAuthMsg] Get TokenId or TokenValueHmac failed");
+    int32_t ret = GetTokenValueAndId(challengeResult->challenge, tokenValueHmac, TOKEN_VALUE_HMAC_LEN,\
+        tokenId, TOKEN_ID_LEN);
+    if (ret != ATTEST_OK) {
         return ATTEST_ERR;
     }
 
@@ -874,7 +878,7 @@ int32_t GenAuthMsg(const ChallengeResult* challengeResult, DevicePacket** devPac
     devicePacket->tokenInfo.uuid = AttestStrdup((char*)tokenId);
     devicePacket->tokenInfo.token = AttestStrdup((char*)tokenValueHmac);
     devicePacket->pcid = StrdupDevInfo(PCID);
-    int32_t ret = PackProductInfo(&devicePacket->productInfo);
+    ret = PackProductInfo(&devicePacket->productInfo);
     if (ret != ATTEST_OK) {
         ATTEST_LOG_ERROR("[GenAuthMsg] Pack ProductInfo failed.");
         FREE_DEVICE_PACKET(devicePacket);

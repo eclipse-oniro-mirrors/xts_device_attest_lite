@@ -31,6 +31,8 @@
 #define DEV_BUF_LENGTH   3
 #define HASH_LENGTH      32
 
+#define ATTEST_EVEN_NUMBER 2
+
 void AttestMemFree(void **point);
 
 #define ATTEST_MEM_FREE(pointer) AttestMemFree((void **)&(pointer))
@@ -51,9 +53,13 @@ void PrintCurrentTime(void);
 
 int32_t ToLowerStr(char* str, int len);
 
+int Sha256ValueToAscii(const unsigned char *src, int srcLen, unsigned char *dest, int destLen);
+
 int Sha256Value(const unsigned char *src, int srcLen, char *dest, int destLen);
 
 int32_t AnonymiseStr(char* str);
+
+int32_t HEXStringToAscii(const char* input, int32_t inputLen, char* output, int32_t outputLen);
 
 #ifdef __cplusplus
 #if __cplusplus

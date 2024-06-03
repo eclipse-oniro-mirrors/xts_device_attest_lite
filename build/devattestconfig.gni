@@ -17,6 +17,7 @@ devattest_innerkit_path = "${devattest_path}/interfaces/innerkits"
 
 attest_core_path = "${devattest_path}/services/core"
 
+devattest_unittest_module_path = "device_attest/device_attest"
 declare_args() {
   attest_release = "attest_release"
   attest_debug = "attest_debug"
@@ -27,10 +28,10 @@ declare_args() {
   attest_build_target = attest_release
 
   # using mock network authentication data
-  enable_attest_mock_network = false
+  enable_attest_test_mock_network = false
 
   # using mock setting device data
-  enable_attest_mock_device = false
+  enable_attest_test_mock_device = false
 
   # check for memory leaks
   enable_attest_debug_memory_leak = false
@@ -43,6 +44,12 @@ declare_args() {
 
   # 集成轻量设备授权验证模块
   integrate_attest_mini_module = true
+
+  # 域名增强关闭
+  disable_attest_active_site = false
+
+  # token预置方案
+  enable_attest_preset_token = false
 }
 
 declare_args() {
