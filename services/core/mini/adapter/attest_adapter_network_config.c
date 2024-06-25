@@ -84,7 +84,7 @@ int32_t AttestReadNetworkConfig(char* buffer, uint32_t bufferLen)
     return ATTEST_ERR;
 }
 
-int32_t AttestWriteNetworkConfig(const char* data, uint32_t len)
+int32_t AttestWriteNetworkConfig(const char* data, uint32_t bufferLen)
 {
     (void)data;
     (void)bufferLen;
