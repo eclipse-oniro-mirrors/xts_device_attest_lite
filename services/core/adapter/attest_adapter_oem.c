@@ -98,12 +98,16 @@ int32_t OEMWriteTicket(const TicketInfo* ticketInfo)
 // 写入网络配置信息
 int32_t OEMWriteNetworkConfig(const char* buffer, uint32_t bufferLen)
 {
+    (void)buffer;
+    (void)bufferLen;
     return 0;
 }
 
 // 读取网络配置信息
 int32_t OEMReadNetworkConfig(char* buffer, uint32_t bufferLen)
 {
+    (void)buffer;
+    (void)bufferLen;
     return 0;
 }
 

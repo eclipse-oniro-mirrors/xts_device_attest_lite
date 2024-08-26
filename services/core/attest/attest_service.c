@@ -334,7 +334,9 @@ int32_t ProcAttest(void)
         ATTEST_LOG_INFO("[ProcAttest] Init mem node list, retValue = %d.", retValue);
     }
     do {
-        break;
+        if (ret == 0) {
+            break;
+        }
         // init network server info
         ret = InitNetworkServerInfo();
         if (ret != ATTEST_OK) {
