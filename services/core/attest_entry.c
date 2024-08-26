@@ -24,63 +24,6 @@
 
 static ATTEST_TIMER_ID g_ProcAttestTimerId = NULL;
 
-#ifdef __LITEOS_M__
-
-static osThreadId_t g_AttestTaskId = NULL;
-typedef void(*AttestTaskCallback)(void);
-// L0启动
-static int CreateAttestThread(void(*run)(void *), void *argv, const char *name, osThreadId_t *serverTaskId)
-{
-    osThreadAttr_t attr = {0};
-    attr.stack_size = LITEOS_M_STACK_SIZE;
-    attr.priority = osPriorityNormal;
-    attr.name = name;
-    *serverTaskId = osThreadNew((osThreadFunc_t)run, argv, &attr);
-    if (*serverTaskId == NULL) {
-        ATTEST_LOG_ERROR("[CreateAttestThread] osThreadNew fail.");
-        return ATTEST_ERR;
-    }
-    return ATTEST_OK;
-}
-
-static void AttestTaskThread(void *argv)
-{
-    AttestTaskCallback cb = (AttestTaskCallback)argv;
-    cb();
-    return;
-}
-
-static void AttestAuthCallBack(void *argv)
-{
-    (void)argv;
-    if (g_AttestTaskId != NULL) {
-        const char *pthreadName = osThreadGetName(g_AttestTaskId);
-        if ((pthreadName != NULL) && (strcmp(pthreadName, ATTEST_CALLBACK_THREAD_NAME) == 0)) {
-            osThreadTerminate(g_AttestTaskId);
-            ATTEST_LOG_ERROR("[AttestAuthCallBack] osThreadTerminate");
-        }
-        g_AttestTaskId = NULL;
-    }
-    int ret = CreateAttestThread(AttestTaskThread,
-        (void *)ProcAttest,
-        ATTEST_CALLBACK_THREAD_NAME,
-        &g_AttestTaskId);
-    if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[AttestAuthCallBack] CreateAttestThread return failed");
-    }
-    return;
-}
-#else
-static void AttestAuthCallBack(void *argv)
-{
-    (void)argv;
-    int32_t ret = ProcAttest();
-    if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[AttestAuthCallBack] Proc failed ret = %d.", ret);
-    }
-    return;
-}
-#endif // __LITEOS_M__
 
 int32_t AttestTask(void)
 {
@@ -150,19 +93,7 @@ int32_t EntryGetAttestStatus(AttestResultInfo* attestResultInfo)
 
 int32_t AttestCreateTimerTask(void)
 {
-    if (g_ProcAttestTimerId != NULL) {
-        return ATTEST_OK;
-    }
-
-    int32_t ret = AttestStartTimerTask(ATTEST_TIMER_TYPE_PERIOD,
-        EXPIRED_INTERVAL,
-        &AttestAuthCallBack,
-        NULL,
-        &g_ProcAttestTimerId);
-    if (ret != ATTEST_OK) {
-        ATTEST_LOG_ERROR("[AttestCreateTimerTask] Create Periodic TimerTask failed, ret = %d.", ret);
-    }
-    return ret;
+    return 0;
 }
 
 int32_t AttestDestroyTimerTask(void)

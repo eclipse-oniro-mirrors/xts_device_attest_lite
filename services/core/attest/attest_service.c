@@ -327,13 +327,16 @@ int32_t ProcAttest(void)
 {
     pthread_mutex_lock(&g_mtxAttest);
     PrintCurrentTime();
-    int32_t ret;
+    int32_t ret = 0;
     int32_t retValue;
     if (ATTEST_DEBUG_MEMORY_LEAK) {
         retValue = InitMemNodeList();
         ATTEST_LOG_INFO("[ProcAttest] Init mem node list, retValue = %d.", retValue);
     }
     do {
+        if (ret == 0) {
+            break;
+        }
         // init network server info
         ret = InitNetworkServerInfo();
         if (ret != ATTEST_OK) {
