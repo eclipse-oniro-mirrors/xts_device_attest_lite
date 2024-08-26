@@ -333,26 +333,7 @@ int32_t ProcAttest(void)
         retValue = InitMemNodeList();
         ATTEST_LOG_INFO("[ProcAttest] Init mem node list, retValue = %d.", retValue);
     }
-    do {
-        // init network server info
-        ret = InitNetworkServerInfo();
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttest] InitNetworkServerInfo failed, ret = %d.", ret);
-            break;
-        }
-        // connect to network
-        ret = ConnectWiseDevice();
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttest] Connect wise device failed, ret = %d.", ret);
-            break;
-        }
-        // 主流程
-        ret = ProcAttestImpl();
-        if (ret != ATTEST_OK) {
-            ATTEST_LOG_ERROR("[ProcAttest] Proc Attest failed, ret = %d.", ret);
-        }
-        DisConnectWiseDevice();
-    } while (0);
+
     if (ATTEST_DEBUG_MEMORY_LEAK) {
         PrintMemNodeList();
         retValue = DestroyMemNodeList();
