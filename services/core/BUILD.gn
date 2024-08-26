@@ -136,6 +136,5 @@ if (ohos_kernel_type == "liteos_m") {
       "//third_party/mbedtls:mbedtls",
     ]
     deps += [ "//developtools/syscap_codec:syscap_interface_shared" ]
-    deps += [ ":network_config" ]
   }
 }
