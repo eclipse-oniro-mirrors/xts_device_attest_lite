@@ -76,11 +76,6 @@ config("devattest_core_hi3861_config") {
   ]
 }
 
-copy("network_config") {
-  sources = [ "network_config.json" ]
-  outputs = [ "$root_out_dir/data/device_attest/network_config.json" ]
-}
-
 if (ohos_kernel_type == "liteos_m") {
   static_library("devattest_core") {
     sources = sources_common
@@ -141,6 +136,5 @@ if (ohos_kernel_type == "liteos_m") {
       "//third_party/mbedtls:mbedtls",
     ]
     deps += [ "//developtools/syscap_codec:syscap_interface_shared" ]
-    deps += [ ":network_config" ]
   }
 }
