@@ -24,7 +24,7 @@
 #define ATTEST_SOFTWARE_RESULT_SIZE 5
 #define ATTEST_ARGC_PARAM_2 2
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     int32_t ret = DEVATTEST_SUCCESS;
 
