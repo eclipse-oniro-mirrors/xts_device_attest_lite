@@ -83,6 +83,6 @@ hb build
 
 ## 相关仓<a id="section700"></a>
 
-[xts\_device\_attest](https://gitee.com/openharmony-sig/xts_device_attest/)
+[xts\_device\_attest](https://gitcode.com/openharmony-sig/xts_device_attest/)
 
 **xts\_device\_attest\_lite**
