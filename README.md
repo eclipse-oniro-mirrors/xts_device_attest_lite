@@ -203,6 +203,6 @@ hb build --gn-args build_xts=true
 ```
 ## Repositories Involved<a id="section600"></a>
 
-[xts\_device\_attest](https://gitee.com/openharmony-sig/xts_device_attest/)
+[xts\_device\_attest](https://gitcode.com/openharmony-sig/xts_device_attest/)
 
 **xts\_device\_attest\_lite**
