@@ -70,10 +70,6 @@ config("devattest_core_small_config") {
 
 config("devattest_core_hi3861_config") {
   visibility = [ ":*" ]
-
-  include_dirs = [
-    "//device/soc/hisilicon/hi3861v100/sdk_liteos/third_party/mbedtls/include",
-  ]
 }
 
 if (ohos_kernel_type == "liteos_m") {
